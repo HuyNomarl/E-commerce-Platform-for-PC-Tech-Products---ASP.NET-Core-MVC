@@ -1,0 +1,139 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\Web C#\\Eshop\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\logincontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\productcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\shared\\_sidebarpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{83E1B3CA-5369-419F-9824-45DD13E20E97}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\shared\\_sidebarpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LoginController.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\LoginController.cs",
+              "RelativeDocumentMoniker": "Eshop\\Controllers\\LoginController.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\LoginController.cs",
+              "RelativeToolTip": "Eshop\\Controllers\\LoginController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T03:28:33.906Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CartController.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CartController.cs",
+              "RelativeDocumentMoniker": "Eshop\\Controllers\\CartController.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CartController.cs",
+              "RelativeToolTip": "Eshop\\Controllers\\CartController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T03:27:55.407Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ProductController.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\ProductController.cs",
+              "RelativeDocumentMoniker": "Eshop\\Controllers\\ProductController.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\ProductController.cs",
+              "RelativeToolTip": "Eshop\\Controllers\\ProductController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T03:27:42.518Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "CategoryController.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CategoryController.cs",
+              "RelativeDocumentMoniker": "Eshop\\Controllers\\CategoryController.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CategoryController.cs",
+              "RelativeToolTip": "Eshop\\Controllers\\CategoryController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-12T03:26:27.038Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "_SidebarPartial.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_SidebarPartial.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Shared\\_SidebarPartial.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_SidebarPartial.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Shared\\_SidebarPartial.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-12T02:59:14.016Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Home\\Index.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABwAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-12T02:54:59.792Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAiwHwAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-12T02:45:43.408Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
