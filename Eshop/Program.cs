@@ -1,4 +1,15 @@
+using Eshop.Repository;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+//Connect to SQL Server Database
+builder.Services.AddDbContext<DataContext>(option =>
+{
+       option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+
+});
+
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -25,5 +36,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+//Seed Data
+var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
+SeedData.SeedingData(context);
 
 app.Run();
