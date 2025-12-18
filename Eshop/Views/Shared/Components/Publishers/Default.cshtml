@@ -1,0 +1,12 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model IEnumerable<PublisherModel>
+@foreach(var item in Model)
+{
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title"><a asp-action="Index" asp-controller="Publisher" asp-route-Slug="@item.Slug">@item.Name</a></h4>
+		</div>
+	</div>
+}

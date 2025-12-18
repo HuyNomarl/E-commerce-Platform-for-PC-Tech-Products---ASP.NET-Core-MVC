@@ -5,27 +5,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Eshop.Controllers
 {
-    public class CategoryController : Controller
+    public class PublisherController : Controller
     {
         private readonly DataContext _dataContext;
-        public CategoryController(DataContext dataContext)
+
+        public PublisherController(DataContext dataContext)
         {
             _dataContext = dataContext;
         }
 
-
         public async Task<IActionResult> Index(String Slug = "")
         {
-            CategoryModel category =  _dataContext.Categories.Where(p => p.Slug == Slug && p.Status == 1).FirstOrDefault();
-            if (category == null)
+            PublisherModel publisher = _dataContext.Publishers.Where(p => p.Slug == Slug && p.status == 1).FirstOrDefault();
+            if (publisher == null)
             {
                 return RedirectToAction("Index");
             }
 
-            var productsByCategory = _dataContext.Products.Where(p => p.CategoryId == category.Id );
+            var productsByCategory = _dataContext.Products.Where(p => p.PublisherId == publisher.Id);
 
             return View(await productsByCategory.OrderByDescending(p => p.Id).ToListAsync());
         }
-
     }
 }
