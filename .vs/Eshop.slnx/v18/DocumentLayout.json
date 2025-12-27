@@ -3,20 +3,28 @@
   "WorkspaceRootPath": "E:\\Web C#\\Eshop\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\publisher\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\publisher\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\shared\\_notificationpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\shared\\_notificationpartial.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\category\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\category\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\shared\\_layout.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\publishercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\publishercontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\cartcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\controllers\\categorycontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\models\\cartitemmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\models\\cartitemmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\cart\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\cart\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|e:\\web c#\\eshop\\eshop\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{951F54B3-7F0C-60F3-C94B-9553209FBEC7}|Eshop\\Eshop.csproj|solutionrelative:eshop\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -26,63 +34,89 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 2,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Category\\Index.cshtml",
-              "RelativeDocumentMoniker": "Eshop\\Views\\Category\\Index.cshtml",
-              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Category\\Index.cshtml",
-              "RelativeToolTip": "Eshop\\Views\\Category\\Index.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAzAAAAAAAAAA==",
+              "Title": "_Layout.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_Layout.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Shared\\_Layout.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_Layout.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Shared\\_Layout.cshtml",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAAANwAAAA1AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-18T12:06:52.652Z",
+              "WhenOpened": "2025-12-27T11:01:57.553Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Index.cshtml",
-              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Publisher\\Index.cshtml",
-              "RelativeDocumentMoniker": "Eshop\\Views\\Publisher\\Index.cshtml",
-              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Publisher\\Index.cshtml",
-              "RelativeToolTip": "Eshop\\Views\\Publisher\\Index.cshtml",
-              "ViewState": "AgIAABIAAAAAAAAAAAAAACgAAAAHAAAAAAAAAA==",
+              "Title": "_NotificationPartial.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_NotificationPartial.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Shared\\_NotificationPartial.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Shared\\_NotificationPartial.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Shared\\_NotificationPartial.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-12-18T12:06:16.118Z",
+              "WhenOpened": "2025-12-27T11:00:07.848Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "PublisherController.cs",
-              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\PublisherController.cs",
-              "RelativeDocumentMoniker": "Eshop\\Controllers\\PublisherController.cs",
-              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\PublisherController.cs*",
-              "RelativeToolTip": "Eshop\\Controllers\\PublisherController.cs*",
-              "ViewState": "AgIAAA0AAAAAAAAAAAAQwBoAAABdAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-18T12:01:44.677Z",
+              "DocumentIndex": 4,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Cart\\Index.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Cart\\Index.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Cart\\Index.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Cart\\Index.cshtml",
+              "ViewState": "AgIAADMAAAAAAAAAAAAAAEEAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-27T10:33:31.727Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
-              "Title": "CategoryController.cs",
-              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CategoryController.cs",
-              "RelativeDocumentMoniker": "Eshop\\Controllers\\CategoryController.cs",
-              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CategoryController.cs",
-              "RelativeToolTip": "Eshop\\Controllers\\CategoryController.cs",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAzwBsAAAAJAAAAAAAAAA==",
+              "Title": "CartItemModel.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Models\\CartItemModel.cs",
+              "RelativeDocumentMoniker": "Eshop\\Models\\CartItemModel.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Models\\CartItemModel.cs",
+              "RelativeToolTip": "Eshop\\Models\\CartItemModel.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAxwAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-18T11:49:49.235Z",
+              "WhenOpened": "2025-12-27T10:27:43.02Z",
               "EditorCaption": ""
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CartController.cs",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CartController.cs",
+              "RelativeDocumentMoniker": "Eshop\\Controllers\\CartController.cs",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Controllers\\CartController.cs",
+              "RelativeToolTip": "Eshop\\Controllers\\CartController.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAgwC4AAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-27T10:23:25.8Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "E:\\Web C#\\Eshop\\Eshop\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Eshop\\Views\\Home\\Index.cshtml",
+              "ToolTip": "E:\\Web C#\\Eshop\\Eshop\\Views\\Home\\Index.cshtml",
+              "RelativeToolTip": "Eshop\\Views\\Home\\Index.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-27T10:23:15.898Z",
+              "EditorCaption": ""
             }
           ]
         }
