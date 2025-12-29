@@ -7,7 +7,7 @@ namespace Eshop.Repository
     {
         public static void SeedingData(DataContext _context)
         {
-            _context.Database.Migrate();
+            //_context.Database.Migrate();
             if (!_context.Products.Any())
             {
                 CategoryModel Romance = new CategoryModel { Name = "Romance", Description = "Romance Books", Slug = "romance", Status = 1 };

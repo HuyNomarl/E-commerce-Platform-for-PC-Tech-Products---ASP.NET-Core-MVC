@@ -81,8 +81,6 @@ E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\f3waylwt2y-{0}-2z0ns9nrw6-2z0
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\k8zzfchkt9-{0}-muycvpuwrr-muycvpuwrr.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\gxfm7komwd-{0}-87fc7y1x7t-87fc7y1x7t.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\adpvfgwnb0-{0}-mlv21k5csn-mlv21k5csn.gz
-E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\thdx8p3kin-{0}-e8ip3w7pn2-e8ip3w7pn2.gz
-E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\j3mjsqf6ha-{0}-e8ip3w7pn2-e8ip3w7pn2.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.build.json
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.build.json.cache
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.development.json
@@ -405,3 +403,6 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win\lib\net9.0\Microsoft.Data.S
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\scopedcss\Areas\Admin\Views\Shared\_Layout.cshtml.rz.scp.css
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\thdx8p3kin-{0}-6f3uguqcn9-6f3uguqcn9.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\j3mjsqf6ha-{0}-6f3uguqcn9-6f3uguqcn9.gz
