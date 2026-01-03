@@ -1,4 +1,4 @@
-using Eshop.Repository;
+﻿using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,10 +45,21 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
+
 app.MapControllerRoute(
     name: "Areas",
     pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "Categoty",
+    pattern: "/category/{Slug?}",
+    defaults: new { controller = "Category", action = "Index" });
+
+app.MapControllerRoute(
+    name: "Publiser",
+    pattern: "/publisher/{Slug?}",
+    defaults: new { controller = "Publisher", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",

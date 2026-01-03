@@ -163,7 +163,6 @@ namespace Eshop.Areas.Admin.Controllers
                 existingProduct.CategoryId = product.CategoryId;
                 existingProduct.PublisherId = product.PublisherId;
 
-                // EF sẽ tự detect là Modified vì entity được track
                 await _dataContext.SaveChangesAsync();
 
                 TempData["success"] = "Cập nhật sản phẩm thành công!";

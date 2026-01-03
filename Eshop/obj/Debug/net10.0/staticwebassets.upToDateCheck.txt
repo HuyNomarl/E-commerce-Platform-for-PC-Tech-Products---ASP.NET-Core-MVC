@@ -1,23 +1,4 @@
-wwwroot\css\animate.css
-wwwroot\css\bootstrap.min.css
-wwwroot\css\font-awesome.min.css
-wwwroot\css\main.css
-wwwroot\css\prettyPhoto.css
-wwwroot\css\price-range.css
-wwwroot\css\responsive.css
 wwwroot\favicon.ico
-wwwroot\images\dune.jpg
-wwwroot\images\gallery1.jpg
-wwwroot\images\love_in_the_time_of_cholera.jpg
-wwwroot\js\bootstrap.min.js
-wwwroot\js\contact.js
-wwwroot\js\gmaps.js
-wwwroot\js\html5shiv.js
-wwwroot\js\jquery.js
-wwwroot\js\jquery.prettyPhoto.js
-wwwroot\js\jquery.scrollUp.min.js
-wwwroot\js\main.js
-wwwroot\js\price-range.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -78,11 +59,28 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\media\products\0799e265-02ec-456c-98a1-4247783b055b_2021-08-27-11-30-47_0.png
-wwwroot\media\products\516f3233-53f6-42a1-a737-6d7e5ac29a82_2022-08-22-20-49-19_0.png
-wwwroot\media\products\63ddd824-4a90-493b-81f7-ef1461fe24a6_2022-09-17-21-38-33_0.png
-wwwroot\media\products\a63c8042-e3f0-4496-a07c-fb6d6d0b2494_2021-08-27-11-30-47_0.png
-wwwroot\media\products\f5e02918-a79b-4054-b706-d9fd6ad605b9_2021-08-14-16-03-55_0.png
+wwwroot\css\animate.css
+wwwroot\css\bootstrap.min.css
+wwwroot\css\font-awesome.min.css
+wwwroot\css\main.css
+wwwroot\css\prettyPhoto.css
+wwwroot\css\price-range.css
+wwwroot\css\responsive.css
+wwwroot\js\bootstrap.min.js
+wwwroot\js\contact.js
+wwwroot\js\gmaps.js
+wwwroot\js\html5shiv.js
+wwwroot\js\jquery.js
+wwwroot\js\jquery.prettyPhoto.js
+wwwroot\js\jquery.scrollUp.min.js
+wwwroot\js\main.js
+wwwroot\js\price-range.js
+wwwroot\images\gallery1.jpg
+wwwroot\images\love_in_the_time_of_cholera.jpg
+wwwroot\images\dune.jpg
+wwwroot\media\products\199ed36f-12d2-4ad4-abf1-9627522f3d1b_2021-08-14-16-03-55_0.png
+wwwroot\media\products\d4d55c17-8c0a-48de-bc44-429f772f8b1b_2021-10-03-20-27-19_0.png
+wwwroot\backend\js\site.js
 E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
 E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
@@ -159,3 +157,4 @@ E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
+E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js

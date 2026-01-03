@@ -406,3 +406,4 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.S
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\scopedcss\Areas\Admin\Views\Shared\_Layout.cshtml.rz.scp.css
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\thdx8p3kin-{0}-6f3uguqcn9-6f3uguqcn9.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\j3mjsqf6ha-{0}-6f3uguqcn9-6f3uguqcn9.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\nhkxwv7c05-{0}-2qf1wd7m0u-2qf1wd7m0u.gz
