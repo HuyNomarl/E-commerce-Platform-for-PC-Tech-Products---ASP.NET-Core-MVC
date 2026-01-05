@@ -1,75 +1,212 @@
 ﻿@using Eshop.Models.ViewModel
 @model CartItemViewModel
 
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+<style>
+    /* Canh giữa theo chiều dọc cho table */
+    .cart_info table td, .cart_info table th {
+        vertical-align: middle !important;
+    }
 
-@{
-}
-<section id="cart_items">
+    /* Quantity layout */
+    .qty-wrap {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    /* Nút +/- to hơn */
+    .qty-btn {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
+
+        .qty-btn i {
+            font-size: 18px;
+        }
+
+    /* Ô số lượng to */
+    .qty-input {
+        width: 70px;
+        height: 42px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-align: center;
+        font-size: 16px;
+        background: #fff;
+    }
+
+    /* Nút Action to hơn */
+    .action-btn {
+        height: 42px;
+        padding: 0 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 8px;
+    }
+
+        .action-btn i {
+            font-size: 16px;
+        }
+</style>
+
+<section id="cart_items" class="py-4">
     <div class="container">
-        <div class="breadcrumbs">
-            <ol class="breadcrumb">
-                <li><a href="#">Home</a></li>
+        <div class="breadcrumbs mb-3">
+            <ol class="breadcrumb mb-0">
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
                 <li class="active">Shopping Cart</li>
             </ol>
         </div>
-        <div class="table-responsive cart_info">
-            <table class="table table-condensed">
-                <thead>
-                    <tr class="cart_menu">
-                        <td class="image">Item</td>
-                        <td class="description"></td>
-                        <td class="price">Price</td>
-                        <td class="quantity">Quantity</td>
-                        <td class="total">Total</td>
-                        <td></td>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.CartItems.Count > 0)
-                    {
-                        foreach (var item in Model.CartItems)
-                        {
-                            <tr>
-                                <td class="cart_product">
-                                    <a href=""><img src="~/css/@item.Image" alt=""></a>
-                                </td>
-                                <td class="cart_description">
-                                    <h4><a href="">@item.ProductName</a></h4>
-                                </td>
-                                <td class="cart_price">
-                                    <p>@item.Price</p>
-                                </td>
-                                <td class="cart_quantity">
 
-                                    <a class="btn btn-default btn-sm" asp-action="Increase" asp-controller="Cart" asp-route-id="@item.ProductId"> + </a>
-                                    <input class="cart_quantity_input" type="text" name="quantity" value="@item.Quantity" autocomplete="off" size="2">
-                                    <a class="btn btn-success btn-sm" asp-action="Decrease" asp-controller="Cart" asp-route-id="@item.ProductId"> - </a>
-                                    <a class="btn btn-danger btn-sm" asp-action="Remove" asp-controller="Cart" asp-route-id="@item.ProductId"> Remove </a>
+        @if (Model?.CartItems != null && Model.CartItems.Count > 0)
+        {
+            <div class="card shadow-sm cart_info">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th style="width:90px;">Item</th>
+                                    <th>Product</th>
+                                    <th class="text-end" style="width:140px;">Price</th>
+                                    <th class="text-center" style="width:240px;">Quantity</th>
+                                    <th class="text-end" style="width:160px;">Total</th>
+                                    <th class="text-end" style="width:160px;">Action</th>
+                                </tr>
+                            </thead>
 
-                                </td>
-                                <td class="cart_total">
-                                    <p class="cart_total_price">@(item.Quantity* item.Price)</p>
-                                </td>
-                                <td class="cart_delete">
-                                    <a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
-                                </td>
-                            </tr>
-                        }
-                        <tr>
-                            <td colspan="5" class="text-right"><strong>Grand Total:</strong></td>
-                            <td class="cart_total_price"><strong>@Model.GrandTotal</strong></td>
-                            <a class="btn btn-danger btn-sm" asp-action="Clear" asp-controller="Cart"> Clear </a>
-                        </tr>
-                    }
-                    else
-                    {
-                        <h4>Gio hang ban dang trong</h4>
-                    }
-                </tbody>
-            </table>
-        </div>
+                            <tbody>
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            @* Nếu có ảnh thì mở lại *@
+                                            @* <img src="~/media/products/@item.Image" class="img-thumbnail" style="width:70px;height:70px;object-fit:cover;" /> *@
+                                            <div class="bg-light border rounded d-flex align-items-center justify-content-center"
+                                                 style="width:70px;height:70px;">
+                                                <i class="fa fa-image text-muted"></i>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="fw-bold">
+                                                <a href="#" class="text-decoration-none">@item.ProductName</a>
+                                            </div>
+                                            <small class="text-muted">SKU: @item.ProductId</small>
+                                        </td>
+
+                                        <td class="text-end">
+                                            <span class="fw-semibold">@item.Price</span>
+                                        </td>
+
+                                        <td class="text-center">
+                                            <div class="qty-wrap">
+                                                <a class="btn btn-outline-secondary qty-btn"
+                                                   asp-action="Decrease"
+                                                   asp-controller="Cart"
+                                                   asp-route-id="@item.ProductId"
+                                                   title="Decrease">
+                                                    <i class="fa fa-minus"></i>
+                                                </a>
+
+                                                <input class="qty-input"
+                                                       type="text"
+                                                       value="@item.Quantity"
+                                                       readonly />
+
+                                                <a class="btn btn-outline-secondary qty-btn"
+                                                   asp-action="Increase"
+                                                   asp-controller="Cart"
+                                                   asp-route-id="@item.ProductId"
+                                                   title="Increase">
+                                                    <i class="fa fa-plus"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+
+                                        <td class="text-end">
+                                            <span class="fw-bold">@(item.Quantity* item.Price)</span>
+                                        </td>
+
+                                        <td class="text-end">
+                                            <a class="btn btn-danger action-btn"
+                                               asp-action="Remove"
+                                               asp-controller="Cart"
+                                               asp-route-id="@item.ProductId"
+                                               title="Remove item">
+                                                <i class="fa fa-trash"></i>
+                                                <span class="d-none d-sm-inline">Remove</span>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-white">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <a class="btn btn-link text-decoration-none p-0"
+                               asp-controller="Home"
+                               asp-action="Index">
+                                <i class="fa fa-arrow-left me-1"></i> Continue shopping
+                            </a>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-2">
+                                <div class="me-md-3">
+                                    <span class="text-muted">Grand Total:</span>
+                                    <span class="h5 mb-0 ms-2 fw-bold">@Model.GrandTotal</span>
+                                </div>
+
+                                <a class="btn btn-outline-danger"
+                                   asp-action="Clear"
+                                   asp-controller="Cart">
+                                    <i class="fa fa-times me-1"></i> Clear cart
+                                </a>
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <a class="btn btn-success"
+                                       asp-controller="Checkout"
+                                       asp-action="Checkout">
+                                        <i class="fa fa-credit-card me-1"></i> Checkout
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-outline-primary">
+                                        <i class="fa fa-sign-in-alt me-1"></i> Login to Checkout
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info d-flex align-items-center justify-content-between">
+                <div>
+                    <strong>Your cart is empty.</strong>
+                    <div class="text-muted">Add some products to continue.</div>
+                </div>
+                <a class="btn btn-primary"
+                   asp-controller="Home"
+                   asp-action="Index">
+                    Start shopping
+                </a>
+            </div>
+        }
     </div>
-</section> <!--/#cart_items-->
+</section>
