@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,6 +10,7 @@ namespace Eshop.Areas.Admin.Controllers
 {
 
     [Area("Admin")]
+    [Authorize]
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;

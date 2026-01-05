@@ -1,11 +1,13 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize]
     public class PublisherController : Controller
     {
         private readonly DataContext _dataContext;
