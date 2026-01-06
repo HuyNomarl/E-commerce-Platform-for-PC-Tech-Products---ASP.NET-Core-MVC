@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "Không có quyền truy cập";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<div class="container mt-4">
+    <div class="alert alert-warning">
+        <h4 class="mb-2">Bạn không có quyền truy cập trang này.</h4>
+        <div>Vui lòng đăng nhập bằng tài khoản có quyền phù hợp hoặc liên hệ quản trị viên.</div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a class="btn btn-primary" href="/">Về trang chủ</a>
+
+        @if (!string.IsNullOrEmpty(returnUrl))
+        {
+            <a class="btn btn-outline-secondary" href="@returnUrl">Thử lại</a>
+        }
+
+        <a class="btn btn-outline-danger" href="/Account/Logout?returnURL=/Account/Login">
+            Đăng xuất
+        </a>
+    </div>
+</div>

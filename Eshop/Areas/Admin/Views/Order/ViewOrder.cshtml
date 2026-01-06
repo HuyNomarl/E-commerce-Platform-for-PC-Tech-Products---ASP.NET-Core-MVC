@@ -1,0 +1,47 @@
+﻿@model IEnumerable<Eshop.Models.OrderDetails>
+@{
+    ViewData["title"] = "Order Detail";
+    var orderCode = ViewBag.OrderCode as string;
+}
+
+<h3>Order Detail View</h3>
+
+@if (!string.IsNullOrEmpty(orderCode))
+{
+    <p><strong>Order Code:</strong> @orderCode</p>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    <th scope="row">
+                        @(item.Product != null ? item.Product.Name : "N/A")
+                    </th>
+                    <td>@item.Price</td>
+                    <td>@item.Quantity</td>
+                    <td>@(item.Price* item.Quantity)</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4">No order details found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" asp-controller="Order" class="btn btn-secondary">Back to Orders</a>

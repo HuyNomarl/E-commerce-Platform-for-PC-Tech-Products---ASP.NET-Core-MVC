@@ -1,0 +1,46 @@
+﻿@{
+    ViewData["title"] = "User Index";
+}
+
+<h3>User Index View</h3>
+<a asp-area="Admin" asp-action="Create" asp-controller="User">Add User</a>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">User Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PasswordHash</th>
+            <th scope="col">Phone Number</th>
+            <th scope="col">Role</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var userWithRoles in Model)
+        {
+            <tr>
+                <th>@userWithRoles.User.Id</th>
+                <th>@userWithRoles.User.UserName</th>
+                <td>@userWithRoles.User.Email</td>
+                <td title="@(userWithRoles?.User?.PasswordHash)">
+                    @{
+                        var hash = userWithRoles?.User?.PasswordHash ?? "";
+                        var shortHash = hash.Length > 20 ? hash.Substring(0, 20) + "..." : hash;
+                    }
+                    @shortHash
+                </td>
+                <td>@userWithRoles.User.PhoneNumber</td>
+                <td>@userWithRoles.RoleName</td>
+                <td>
+                    <a asp-action="Edit" asp-controller="User" asp-route-id="@userWithRoles.User.Id" class="btn btn-primary">Edit</a>
+                    <a asp-action="Delete" asp-controller="User" asp-route-id="@userWithRoles.User.Id" class="btn btn-primary confirmDeletion">Delete</a>
+                </td>
+            </tr>
+
+        }
+
+
+    </tbody>
+</table>

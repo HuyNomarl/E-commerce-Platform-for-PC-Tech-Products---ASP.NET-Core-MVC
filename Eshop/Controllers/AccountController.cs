@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -65,7 +66,7 @@ namespace Eshop.Controllers
                 if (result.Succeeded)
                 {
                     TempData["success"] = "Tài khoản đã được tạo thành công!";
-                    return RedirectToAction("/account/login");
+                    return RedirectToAction("Login", "Account");
                 }
                 foreach (IdentityError error in result.Errors)
                 {
@@ -78,6 +79,13 @@ namespace Eshop.Controllers
         {
             await _signInManager.SignOutAsync();
             return Redirect(returnURL);
+        }
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult AccessDenied(string returnUrl = null)
+        {
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
         }
     }
 }

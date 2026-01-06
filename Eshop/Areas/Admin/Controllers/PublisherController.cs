@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Roles ="Admin, Publisher")]
     public class PublisherController : Controller
     {
         private readonly DataContext _dataContext;
@@ -33,7 +33,7 @@ namespace Eshop.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 publisher.Slug = publisher.Name.ToLower().Replace(" ", "-");
-                var Slug = await _dataContext.Categories.FirstOrDefaultAsync(p => p.Slug == publisher.Slug);
+                var Slug = await _dataContext.Publishers.FirstOrDefaultAsync(p => p.Slug == publisher.Slug);
                 if (Slug != null)
                 {
                     ModelState.AddModelError("", "Thương hiệu đã tồn tại!");

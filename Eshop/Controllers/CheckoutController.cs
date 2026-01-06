@@ -36,7 +36,7 @@ namespace Eshop.Controllers
                     var orderDetail = new OrderDetails();
                     orderDetail.UserName = userEmail;
                     orderDetail.OrderCode = OrderCode;
-                    orderDetail.ProductId = cart.ProductId;
+                    orderDetail.ProductId = (int)cart.ProductId;
                     orderDetail.Price = cart.Price;
                     orderDetail.Quantity = cart.Quantity;
                     _dataContext.OrderDetails.Add(orderDetail);

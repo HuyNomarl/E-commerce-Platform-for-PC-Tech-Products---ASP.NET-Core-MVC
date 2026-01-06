@@ -1,0 +1,55 @@
+﻿@model IEnumerable<Eshop.Models.OrderModel>
+@{
+    ViewData["title"] = "Orders Index";
+}
+
+<h3>Orders Index View</h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Order Code</th>
+            <th scope="col">User Email</th>
+            <th scope="col">Order Date</th>
+            <th scope="col">Order Status</th>
+            <th scope="col">Action</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <th scope="row">@item.OrderCode</th>
+                <td>@item.UserName</td>
+                <td>@item.CreatedTime</td>
+                <td>
+                    @if (item.Status == 0)
+                    {
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    }
+                    else if (item.Status == 1)
+                    {
+                        <span class="badge bg-info text-dark">Processing</span>
+                    }
+                    else if (item.Status == 2)
+                    {
+                        <span class="badge bg-success">Completed</span>
+                    }
+                    else if (item.Status == 3)
+                    {
+                        <span class="badge bg-danger">Cancelled</span>
+                    }
+
+                </td>
+                <td>
+                    <a asp-action="ViewOrder" asp-controller="Order" asp-route-orderCode="@item.OrderCode" class="btn btn-primary">View Order</a>
+                    <a asp-action="Delete" asp-controller="Oder" asp-route-id="@item.OrderId" class="btn btn-primary confirmDeletion">Delete</a>
+                </td>
+            </tr>
+
+        }
+
+
+    </tbody>
+</table>

@@ -28,6 +28,16 @@ builder.Services.AddSession(options =>
 builder.Services.AddIdentity<AppUserModel, IdentityRole>()
     .AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+
+    // tránh redirect vòng vòng nếu cookie lỗi
+    options.SlidingExpiration = true;
+});
+
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Password settings.
@@ -73,6 +83,7 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
