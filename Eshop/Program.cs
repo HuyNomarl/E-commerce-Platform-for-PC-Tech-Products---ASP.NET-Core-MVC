@@ -1,4 +1,5 @@
-﻿using Eshop.Models;
+﻿using Eshop.Areas.Admin.Repository;
+using Eshop.Models;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ builder.Services.AddDbContext<DataContext>(option =>
 
 });
 
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

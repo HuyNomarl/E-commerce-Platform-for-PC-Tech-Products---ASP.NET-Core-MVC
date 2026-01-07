@@ -13,7 +13,6 @@ namespace Eshop.Controllers
             _dataContext = dataContext;
         }
 
-
         public async Task<IActionResult> Index(String Slug = "")
         {
             CategoryModel category =  _dataContext.Categories.Where(p => p.Slug == Slug && p.Status == 1).FirstOrDefault();

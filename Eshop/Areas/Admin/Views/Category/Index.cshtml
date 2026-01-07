@@ -1,6 +1,15 @@
 ﻿@model IEnumerable<Eshop.Models.CategoryModel>
 @{
     ViewData["title"] = "Category Index";
+
+    Paginate pager = new Paginate();
+    int pageNo = 0;
+    if (ViewBag.Pager != null)
+    {
+        pager = ViewBag.Pager;
+        pageNo = pager.CurrentPage;
+    }
+
 }
 
 <h3>Category Index View</h3>
@@ -41,7 +50,6 @@
             </tr>
 
         }
-
-
     </tbody>
 </table>
+<partial name="../Shared/_Paging" model="pager" />

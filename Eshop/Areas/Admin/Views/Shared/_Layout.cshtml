@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using System.Text.Json
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -9,6 +11,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
+    <!-- Sweet Alert -->
+
+    <link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
+" rel="stylesheet">
+
+    <style>
+        .swal2-actions {
+            gap: 12px;
+        }
+    </style>
     <!-- CSS custom của template -->
     <link href="~/css/prettyPhoto.css" rel="stylesheet">
     <link href="~/css/price-range.css" rel="stylesheet">
@@ -20,89 +33,139 @@
 </head>
 
 <body>
-	<header id="header">
-		<!--header-->
-		<div class="header_top">
-			<!--header_top-->
-			<div class="container">
-				<div class="row">
-					
-					
-				</div>
-			</div>
-		</div><!--/header_top-->
+    <header id="header">
+        <!--header-->
+        <div class="header_top">
+            <!--header_top-->
+            <div class="container">
+                <div class="row">
+                </div>
+            </div>
+        </div><!--/header_top-->
 
-		<div class="header-middle">
-			<!--header-middle-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-4">
-						<div class="logo pull-left">
-							<a href="index.html"><img src="images/home/logo.png" alt="" /></a>
-						</div>
-						
-					</div>
-					
-				</div>
-			</div>
-		</div><!--/header-middle-->
+        <div class="header-middle">
+            <!--header-middle-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="logo pull-left">
+                            <a href="index.html"><img src="images/home/logo.png" alt="" /></a>
+                        </div>
 
-		<div class="header-bottom">
-			<!--header-bottom-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-9">
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-						</div>
-						<div class="mainmenu pull-left">
-							<ul class="nav navbar-nav collapse navbar-collapse">
-								<li><a asp-controller="Home" class="active">Home</a></li>
-								<li><a asp-controller="Product">Product</a></li>
-								<li><a asp-controller="Category">Categories</a></li>
-								<li><a asp-controller="Publisher">Brand</a></li>
-								<li><a asp-controller="Order" asp-action="Index">Orders</a></li>
-								<li><a asp-controller="User" asp-action="Index">Users</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<div class="search_box pull-right">
-							<input type="text" placeholder="Search" />
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--/header-bottom-->
-	</header><!--/header-->
-	<section>
-		<div class="container">
-			<div class="row">
+                    </div>
+
+                </div>
+            </div>
+        </div><!--/header-middle-->
+
+        <div class="header-bottom">
+            <!--header-bottom-->
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-9">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                        </div>
+                        <div class="mainmenu pull-left">
+                            <ul class="nav navbar-nav collapse navbar-collapse">
+                                <li><a asp-controller="Home" class="active">Home</a></li>
+                                <li><a asp-controller="Product">Product</a></li>
+                                <li><a asp-controller="Category">Categories</a></li>
+                                <li><a asp-controller="Publisher">Brand</a></li>
+                                <li><a asp-controller="Order" asp-action="Index">Orders</a></li>
+                                <li><a asp-controller="User" asp-action="Index">Users</a></li>
+                                <li><a asp-controller="Role" asp-action="Index">Roles</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="search_box pull-right">
+                            <input type="text" placeholder="Search" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!--/header-bottom-->
+    </header><!--/header-->
+    <section>
+        <div class="container">
+            <div class="row">
                 @Html.Partial("_NotificationPartial")
                 @RenderBody()
-			</div>
-		</div>
-	</section>
+            </div>
+        </div>
+    </section>
 
-	<footer id="footer">
-		
-
-	</footer><!--/Footer-->
+    <footer id="footer">
+    </footer><!--/Footer-->
 
 
 
-	<script src="~/js/jquery.js"></script>
-	<script src="~/js/bootstrap.min.js"></script>
-	<script src="~/js/jquery.scrollUp.min.js"></script>
-	<script src="~/js/price-range.js"></script>
-	<script src="~/js/jquery.prettyPhoto.js"></script>
-	<script src="~/js/main.js"></script>
-	<script src="~/backend/js/site.js"></script>
+    <script src="~/js/jquery.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.scrollUp.min.js"></script>
+    <script src="~/js/price-range.js"></script>
+    <script src="~/js/jquery.prettyPhoto.js"></script>
+    <script src="~/js/main.js"></script>
+    <script src="~/backend/js/site.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
+    <script>
+        $(function () {
+
+          // ✅ Toast/alert từ TempData (bạn đã có)
+          const successMessage = @Html.Raw(JsonSerializer.Serialize(TempData["SuccessMessage"]));
+          if (successMessage) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: successMessage,
+              timer: 2500,
+              showConfirmButton: false
+            });
+          }
+
+          const errorMessage = @Html.Raw(JsonSerializer.Serialize(TempData["ErrorMessage"]));
+          if (errorMessage) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: errorMessage,
+              timer: 3000,
+              showConfirmButton: false
+            });
+          }
+
+          // ✅ Confirm trước khi submit các form có class js-confirm-save
+          $(document).on('submit', 'form.js-confirm-save', function (e) {
+            e.preventDefault();
+
+            const form = this;
+
+            Swal.fire({
+              title: "Do you want to save the changes?",
+              showDenyButton: true,
+              showCancelButton: true,
+              confirmButtonText: "Save",
+              denyButtonText: "Don't save"
+            }).then((result) => {
+              if (result.isConfirmed) {
+                // submit thật
+                form.submit();
+              } else if (result.isDenied) {
+                Swal.fire("Changes are not saved", "", "info");
+              }
+              // Cancel => không làm gì
+            });
+          });
+
+        });
+    </script>
+
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

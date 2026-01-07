@@ -20,10 +20,44 @@ namespace Eshop.Areas.Admin.Controllers
         }
         public async Task<IActionResult> ViewOrder(string orderCode)
         {
-            var detailOrder = await _dataContext.OrderDetails.Include(od => od.Product).Where(od => od.OrderCode == orderCode)
-            .ToListAsync();
+            if (string.IsNullOrWhiteSpace(orderCode)) return NotFound();
+
+            var order = await _dataContext.Orders
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+            if (order == null) return NotFound();
+
+            ViewBag.OrderCode = orderCode;
+            ViewBag.OrderStatus = order.Status;   // ✅ QUAN TRỌNG
+
+            var detailOrder = await _dataContext.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => od.OrderCode == orderCode)
+                .ToListAsync();
 
             return View(detailOrder);
+        }
+
+
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UpdateOrder(string orderCode, int status)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode))
+                return BadRequest(new { success = false, message = "orderCode is required" });
+
+            var order = await _dataContext.Orders
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+            if (order == null)
+                return NotFound(new { success = false, message = "Order not found" });
+
+            order.Status = status;
+            await _dataContext.SaveChangesAsync();
+
+            return Json(new { success = true });
         }
     }
 }
