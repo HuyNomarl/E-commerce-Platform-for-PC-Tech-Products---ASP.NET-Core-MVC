@@ -56,7 +56,6 @@ namespace Eshop.Controllers
                 <h3>Cảm ơn bạn đã đặt hàng!</h3>
                 <p>Mã đơn hàng: <b>{orderCode}</b></p>
                 <p>Thời gian: {DateTime.Now:dd/MM/yyyy HH:mm}</p>
-                <p>Trạng thái: Chờ duyệt</p>
             ";
 
             try

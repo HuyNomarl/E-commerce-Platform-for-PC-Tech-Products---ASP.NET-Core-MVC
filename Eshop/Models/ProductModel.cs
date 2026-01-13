@@ -26,6 +26,7 @@ namespace Eshop.Models
         public int CategoryId { get; set; } 
         public CategoryModel Category { get; set; }
         public PublisherModel Publisher { get; set; }
+        public ICollection<RatingModel> RatingModel { get; set; } = new List<RatingModel>();
 
         public string? Image { get; set; } 
 

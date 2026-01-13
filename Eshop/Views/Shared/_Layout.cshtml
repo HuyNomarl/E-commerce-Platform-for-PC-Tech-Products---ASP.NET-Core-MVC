@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home | E-Shopper</title>
 
-    <!-- ✅ BOOTSTRAP 3.4.1 CDN (Phiên bản ổn định cuối cùng) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <link href="
+https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
+" rel="stylesheet">
 
     <!-- CSS custom của template -->
     <link href="~/css/prettyPhoto.css" rel="stylesheet">
@@ -143,9 +146,12 @@
                         </div>
                     </div>
                     <div class="col-sm-3">
-                        <div class="search_box pull-right">
-                            <input type="text" placeholder="Search" />
-                        </div>
+                        <form asp-controller="Product" asp-action="Search" method="post">
+                            <div class="search_box pull-right">
+                                <input type="text" name="searchTerm" placeholder="Search" />
+                                <button class="btn btn-danger" type="submit">Search</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -387,6 +393,7 @@
     </footer><!--/Footer-->
 
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Bootstrap JS -->

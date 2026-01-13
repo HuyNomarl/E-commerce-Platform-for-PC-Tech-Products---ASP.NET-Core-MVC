@@ -103,7 +103,7 @@
                                         </td>
 
                                         <td class="text-end">
-                                            <span class="fw-semibold">@item.Price</span>
+                                            <span class="fw-semibold">@item.Price.ToString("#,##0 VND")</span>
                                         </td>
 
                                         <td class="text-center">
@@ -132,7 +132,7 @@
                                         </td>
 
                                         <td class="text-end">
-                                            <span class="fw-bold">@(item.Quantity* item.Price)</span>
+                                            <span class="fw-bold">@(item.Quantity * item.Price)</span>
                                         </td>
 
                                         <td class="text-end">

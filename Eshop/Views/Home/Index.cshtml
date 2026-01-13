@@ -7,45 +7,83 @@
 </div>
 
 <style>
-	product-image-wrapper{
+    product-image-wrapper {
         height: 450px;
-	}
+    }
 </style>
 @model IEnumerable<Eshop.Models.ProductModel>
 
 <div class="col-sm-9 padding-right">
-	<div class="features_items">
-		<!--features_items-->
-		<h2 class="title text-center">Features Items</h2>
-		@foreach (var item in Model)
-		{		
-		<div class="col-sm-4">
-			<div class="product-image-wrapper">
-				
-				<div class="single-products">
-					
-					<div class="productinfo text-center">
-						<a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
-						<img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
-							<h2>@item.Price</h2>
-							<p>@item.Name</p>
+    <div class="features_items">
+        <!--features_items-->
+        <h2 class="title text-center">Features Items</h2>
+        @foreach (var item in Model)
+        {
+            <div class="col-sm-4">
+                <div class="product-image-wrapper">
+
+                    <div class="single-products">
+
+                        <div class="productinfo text-center">
+                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                                <img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
+                                <h2>@item.Price.ToString("#,##0 VND")</h2>
+                                <p>@item.Name</p>
                                 <p>Thể loại: @item.Category.Name</p>
                                 <p>Nhà xuất bản: @item.Publisher.Name</p>
-							</a>
-						<a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a>
-					</div>
-			
-					
-				</div>
-				
-				<div class="choose">
-					<ul class="nav nav-pills nav-justified">
-						<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-						<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
-		}
-		<div>
+                            </a>
+                            @* <a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a> *@
+                            <button type="button" class="btn btn-default add-to-cart" data-product_id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                        </div>
+
+
+                    </div>
+
+                    <div class="choose">
+                        <ul class="nav nav-pills nav-justified">
+                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
+                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        <div>
+        </div>
+    </div>
 </div>
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+          $('.add-to-cart').click(function () {
+            var productId = $(this).data('product_id'); // hoặc đổi sang data-product-id cho chuẩn
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+              url: '@Url.Action("Add", "Cart")',
+              type: 'POST',
+              data: {
+                id: productId,
+                __RequestVerificationToken: token
+              },
+              success: function (response) {
+                Swal.fire({
+                  icon: "success",
+                  title: "Thành công",
+                  text: "Đã thêm vào giỏ hàng!"
+                });
+              },
+              error: function (xhr) {
+                Swal.fire({
+                  icon: "error",
+                  title: "Oops...",
+                  text: "Có lỗi xảy ra! (" + xhr.status + ")"
+                });
+              }
+            });
+          });
+        });
+    </script>
+}

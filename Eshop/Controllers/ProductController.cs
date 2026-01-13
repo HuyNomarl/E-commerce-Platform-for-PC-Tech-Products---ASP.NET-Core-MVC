@@ -1,7 +1,10 @@
 ﻿using Eshop.Models;
+using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace Eshop.Controllers
 {
@@ -16,16 +19,72 @@ namespace Eshop.Controllers
         {
             return View();
         }
-        public async Task<IActionResult> Details(int Id)
+        public async Task<IActionResult> Details(int id)
         {
-            if (Id == null)
-            {
-                return RedirectToAction("Index");
-            }
-            var productsById = _dataContext.Products.Where(p => p.Id == Id).FirstOrDefault();
+            var product = await _dataContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Publisher)
+                .Include(p => p.RatingModel)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            return View(productsById);
+            if (product == null) return RedirectToAction(nameof(Index));
+
+            var relatedProducts = await _dataContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Publisher)
+                .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
+                .Take(4)
+                .ToListAsync();
+
+            ViewBag.RelatedProducts = relatedProducts;
+
+            var viewModel = new ProductDetailsViewModel
+            {
+                ProductDetail = product,
+                //RatingDetail = product.RatingModel   
+            };
+
+            return View(viewModel);
         }
+
+
+        public async Task<IActionResult> Search(string searchTerm)
+        {
+           var products = await _dataContext.Products
+                .Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm))
+                .ToListAsync();
+
+            ViewBag.Keyword = searchTerm;
+            return View(products);
+        }
+
+        public async Task<IActionResult> CommentProduct(RatingModel rating)
+        {
+            if (ModelState.IsValid)
+            {
+                var ratingEntity = new RatingModel
+                {
+                    ProductId = rating.ProductId,
+                    Name = rating.Name,
+                    Email = rating.Email,
+                    Comment = rating.Comment,
+                    Stars = rating.Stars,
+                };
+
+                _dataContext.RatingModels.Add(ratingEntity);
+                await _dataContext.SaveChangesAsync();
+
+                TempData["succes"] = "Them danh gia thanh cong!";
+
+                return Redirect(Request.Headers["Referer"]);
+            }
+            else
+            {
+                return RedirectToAction("Detail", new { id = rating.ProductId });
+            }
+            return Redirect(Request.Headers["Referer"]);
+        }
+
 
         //public IActionResult Create()
         //{

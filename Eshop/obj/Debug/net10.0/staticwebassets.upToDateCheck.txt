@@ -80,6 +80,7 @@ wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
 wwwroot\media\products\199ed36f-12d2-4ad4-abf1-9627522f3d1b_2021-08-14-16-03-55_0.png
+wwwroot\media\products\41f5e547-427c-40ef-9e29-4bd978f6487e_xrf4untzy9l61.webp
 wwwroot\media\products\d4d55c17-8c0a-48de-bc44-429f772f8b1b_2021-10-03-20-27-19_0.png
 E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
