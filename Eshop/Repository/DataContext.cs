@@ -17,6 +17,7 @@ namespace Eshop.Repository
         public DbSet<OrderModel> Orders { get; set; }
         public DbSet<OrderDetails> OrderDetails { get; set; }
         public DbSet<RatingModel> RatingModels { get; set; }
+        public DbSet<SliderModel> Sliders { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

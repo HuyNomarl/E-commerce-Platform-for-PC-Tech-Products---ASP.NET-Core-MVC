@@ -94,7 +94,6 @@ E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\ref\Eshop.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\7c4xazghm9-{0}-4n2duddgf0-4n2duddgf0.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\cq020ct6l2-{0}-a03q467kau-a03q467kau.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\9qxaoap17t-{0}-3je3f2rw5a-3je3f2rw5a.gz
-E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-qtq4xdn8qs-qtq4xdn8qs.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\wwuojaarp7-{0}-2al6ftd5ju-2al6ftd5ju.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\b7ua1fc8uu-{0}-4iqjtdhhvf-4iqjtdhhvf.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\yrgie8vn85-{0}-rpy24pqr5p-rpy24pqr5p.gz
@@ -408,3 +407,4 @@ E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\j3mjsqf6ha-{0}-6f3uguqcn9-6f3
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\nhkxwv7c05-{0}-2qf1wd7m0u-2qf1wd7m0u.gz
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-rqkt80q99l-rqkt80q99l.gz

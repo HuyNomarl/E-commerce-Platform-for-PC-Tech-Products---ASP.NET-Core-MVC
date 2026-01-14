@@ -2,7 +2,6 @@ wwwroot\backend\js\site.js
 wwwroot\css\animate.css
 wwwroot\css\bootstrap.min.css
 wwwroot\css\font-awesome.min.css
-wwwroot\css\main.css
 wwwroot\css\prettyPhoto.css
 wwwroot\css\price-range.css
 wwwroot\css\responsive.css
@@ -82,9 +81,27 @@ wwwroot\lib\jquery\LICENSE.txt
 wwwroot\media\products\199ed36f-12d2-4ad4-abf1-9627522f3d1b_2021-08-14-16-03-55_0.png
 wwwroot\media\products\41f5e547-427c-40ef-9e29-4bd978f6487e_xrf4untzy9l61.webp
 wwwroot\media\products\d4d55c17-8c0a-48de-bc44-429f772f8b1b_2021-10-03-20-27-19_0.png
-E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
-E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
+wwwroot\media\sliders\33c94fdb-5168-47f3-930f-0f666be2fe6f.jpg
+wwwroot\media\sliders\7e95033a-80e9-4279-82c5-6f099fbb45cb.jpg
+wwwroot\media\sliders\84bbfe4a-f523-4936-9092-f88a6e01d2cd.jpg
+wwwroot\css\main.css
+E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
 E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
+E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
+E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -144,18 +161,4 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\LICENSE.txt
-E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
-E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
-E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js

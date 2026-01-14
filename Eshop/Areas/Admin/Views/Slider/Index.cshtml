@@ -1,0 +1,63 @@
+﻿@model IEnumerable<Eshop.Models.SliderModel>
+@{
+    ViewData["title"] = "Slider Index";
+}
+
+<h3>Slider Index View</h3>
+<a asp-area="Admin" asp-action="Create" asp-controller="Slider">Add Slider</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Id</th>
+            <th scope="col">Slider Name</th>
+            <th scope="col">Slider Description</th>
+            <th scope="col">Image</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <th scope="row">@item.Id</th>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+
+                <td>
+                    @if (!string.IsNullOrEmpty(item.Image))
+                    {
+                        <img src="~/media/sliders/@item.Image" width="120" />
+                    }
+                </td>
+
+                <td>
+                    @if (item.Status == 1)
+                    {
+                        <span>Hiển thị</span>
+                    }
+                    else
+                    {
+                        <span>Ẩn</span>
+                    }
+                </td>
+
+                <td>
+                    <a asp-area="Admin" asp-action="Edit" asp-controller="Slider" asp-route-id="@item.Id"
+                       class="btn btn-primary">Edit</a>
+
+                    <form asp-area="Admin"
+                          asp-controller="Slider"
+                          asp-action="Delete"
+                          asp-route-id="@item.Id"
+                          method="post"
+                          style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger confirmDeletion">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

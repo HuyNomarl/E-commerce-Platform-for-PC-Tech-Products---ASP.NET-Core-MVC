@@ -1,0 +1,57 @@
+﻿@if (ViewBag.Sliders != null && ViewBag.Sliders.Count > 0)
+{
+    <section id="slider" class="site-slider">
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <div id="slider-carousel" class="carousel slide" data-ride="carousel" data-interval="5000" data-pause="hover">
+
+                        <ol class="carousel-indicators">
+                            @for (int i = 0; i < ViewBag.Sliders.Count; i++)
+                            {
+                                <li data-target="#slider-carousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
+                            }
+                        </ol>
+
+                        <div class="carousel-inner">
+                            @for (int i = 0; i < ViewBag.Sliders.Count; i++)
+                            {
+                                var item = ViewBag.Sliders[i];
+                                var imgUrl = Url.Content("~/media/sliders/" + item.Image);
+
+                                <div class="item @(i == 0 ? "active" : "")">
+                                    <div class="slider-wrap">
+
+                                        <!-- GIỮ IMG như code cũ -->
+                                        <img class="slider-img" src="@imgUrl" alt="Slider" />
+
+                                        <!-- overlay + text (tuỳ chọn) -->
+                                        <div class="slider-overlay"></div>
+
+                                        <div class="slider-content">
+                                            <h1>PC &amp; Linh kiện</h1>
+                                            <p>Deal tốt mỗi ngày – giao nhanh</p>
+                                            <a asp-controller="Product" asp-action="Index" class="btn btn-default slider-btn">
+                                                Mua ngay
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <a href="#slider-carousel" class="left control-carousel hidden-xs" data-slide="prev">
+                            <i class="fa fa-angle-left"></i>
+                        </a>
+                        <a href="#slider-carousel" class="right control-carousel hidden-xs" data-slide="next">
+                            <i class="fa fa-angle-right"></i>
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+}

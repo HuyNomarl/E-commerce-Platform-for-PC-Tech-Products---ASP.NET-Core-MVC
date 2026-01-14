@@ -20,6 +20,8 @@ namespace Eshop.Controllers
         public IActionResult Index()
         {
             var products = _dataContext.Products.Include("Publisher").Include("Category").ToList();
+            var sliders = _dataContext.Sliders.Where(p => p.Status == 1).ToList();
+            ViewBag.Sliders = sliders;
             return View(products);
         }
 
