@@ -16,16 +16,18 @@
 
 @Html.AntiForgeryToken()
 <input type="hidden" id="orderCode" value="@ViewBag.OrderCode" />
+<input type="hidden" id="userName" value="@(Model?.FirstOrDefault()?.UserName ?? "N/A")" />
 
-<table class="table">
+<table class="table" id="detail_order">
     <thead>
         <tr>
             <th>Product</th>
-            <th scope="col">Price</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">Line Total</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Line Total</th>
         </tr>
     </thead>
+
     <tbody>
         @if (Model != null && Model.Any())
         {
@@ -41,16 +43,20 @@
                     <td>@lineTotal.ToString("C")</td>
                 </tr>
             }
+        }
+    </tbody>
 
+    @if (Model != null && Model.Any())
+    {
+        <tfoot>
             <tr>
                 <th colspan="3" class="text-end">Total:</th>
                 <th>@subtotal.ToString("C")</th>
             </tr>
-
             <tr>
                 <th colspan="3" class="text-end">Status:</th>
-                <td>
-                    <select id="orderStatus" class="form-select" select-update-order>
+                <th>
+                    <select id="orderStatus" class="form-select">
                         <option value="1" selected="@(currentStatus == 1)">Pending</option>
                         <option value="2" selected="@(currentStatus == 2)">Processing</option>
                         <option value="3" selected="@(currentStatus == 3)">Shipped</option>
@@ -58,49 +64,60 @@
                         <option value="5" selected="@(currentStatus == 5)">Completed</option>
                         <option value="6" selected="@(currentStatus == 6)">Cancelled</option>
                     </select>
-                </td>
+                </th>
             </tr>
-        }
-        else
-        {
-            <tr>
-                <td colspan="4">No order details found.</td>
-            </tr>
-        }
-    </tbody>
+        </tfoot>
+    }
 </table>
+
 
 <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-secondary">Back to Orders</a>
 
 @section Scripts {
     <script>
+        function getPrintInfo() {
+          const code = $('#orderCode').val() || '';
+          const user = $('#userName').val() || '';
+          const status = $('#orderStatus option:selected').text() || '';
+          return { code, user, status };
+        }
 
-        $(document).ready(function () {
-            $('#orderStatus').on('change', function () {
-                var selectedStatus = $(this).val();
-                var orderCode = $('#orderCode').val();
-                var token = $('input[name="__RequestVerificationToken"]').val();
+        new DataTable('#detail_order', {
+          layout: {
+            topStart: {
+              buttons: [
+                {
+                  extend: 'print',
+                  title: '',
+                  customize: function (win) {
+                    const { code, user, status } = getPrintInfo();
 
-                $.ajax({
-                    url: '@Url.Action("UpdateOrder", "Order", new { area = "Admin" })',
-                    type: 'POST',
-                    data: {
-                        __RequestVerificationToken: token,
-                        orderCode: orderCode,
-                        status: selectedStatus
-                    },
-                    success: function (res) {
-                        if (res && res.success) {
-                            alert('Order status updated successfully.');
-                        } else {
-                            alert('Update failed.');
-                        }
-                    },
-                    error: function (xhr) {
-                        alert('Error updating order status.');
-                    }
-                });
-            });
+                    $(win.document.body).prepend(`
+                      <div style="margin-bottom:12px;">
+                        <h3 style="margin:0 0 6px 0;">Order Detail</h3>
+                        <div><strong>Order Code:</strong> ${code}</div>
+                        <div><strong>User Name:</strong> ${user}</div>
+                        <div><strong>Status:</strong> ${status}</div>
+                      </div>
+                    `);
+                  }
+                },
+                {
+                  extend: 'pdfHtml5',
+                  title: 'Order Detail',
+                  customize: function (doc) {
+                    const { code, user, status } = getPrintInfo();
+                    doc.content.unshift({
+                      text: `Order Code: ${code}\nUser Name: ${user}\nStatus: ${status}`,
+                      margin: [0, 0, 0, 12]
+                    });
+                  }
+                }
+              ]
+            }
+          }
         });
     </script>
 }
+
+

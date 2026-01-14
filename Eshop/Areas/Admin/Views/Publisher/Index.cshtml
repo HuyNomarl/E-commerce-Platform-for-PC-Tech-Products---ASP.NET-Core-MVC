@@ -5,7 +5,7 @@
 
 <h3>Brand Index View</h3>
 <a asp-area="Admin" asp-action="Create" asp-controller="Publisher">Add Brand</a>
-<table class="table">
+<table class="table" id="myTable">
     <thead>
         <tr>
             <th scope="col">Id</th>
@@ -13,6 +13,7 @@
             <th scope="col">Brand Description</th>
             <th scope="col">Brand Slug</th>
             <th scope="col">Status</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
@@ -45,3 +46,12 @@
 
     </tbody>
 </table>
+@section Scripts {
+    <script>
+        new DataTable('#myTable', {
+          layout: {
+            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+          }
+        });
+    </script>
+}

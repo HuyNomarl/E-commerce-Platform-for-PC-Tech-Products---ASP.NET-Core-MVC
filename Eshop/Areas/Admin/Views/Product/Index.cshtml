@@ -5,7 +5,7 @@
 
 <h3>Product Index View</h3>
 <a asp-area="Admin" asp-action="Create" asp-controller="Product">Add Product</a>
-<table class="table" id="product_table">
+<table class="table" id="myTable">
     <thead>
         <tr>
             <th scope="col">Id</th>
@@ -45,6 +45,10 @@
 </table>
 @section Scripts {
     <script>
-        let table = new DataTable('#product_table');
+        new DataTable('#myTable', {
+          layout: {
+            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+          }
+        });
     </script>
 }

@@ -7,7 +7,7 @@
 <h3>Role Index View</h3>
 <a asp-area="Admin" asp-action="Create" asp-controller="Role" class="btn btn-success">Add Role</a>
 
-<table class="table">
+<table class="table" id="myTable">
     <thead>
         <tr>
             <th scope="col">Id</th>
@@ -92,5 +92,13 @@
           });
         });
     </script>
+    <script>
+        new DataTable('#myTable', {
+          layout: {
+            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+          }
+        });
+    </script>
+
 }
 

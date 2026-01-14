@@ -6,7 +6,7 @@
 <h3>Slider Index View</h3>
 <a asp-area="Admin" asp-action="Create" asp-controller="Slider">Add Slider</a>
 
-<table class="table">
+<table class="table" id="myTable">
     <thead>
         <tr>
             <th scope="col">Id</th>
@@ -61,3 +61,12 @@
         }
     </tbody>
 </table>
+@section Scripts {
+    <script>
+        new DataTable('#myTable', {
+          layout: {
+            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+          }
+        });
+    </script>
+}
