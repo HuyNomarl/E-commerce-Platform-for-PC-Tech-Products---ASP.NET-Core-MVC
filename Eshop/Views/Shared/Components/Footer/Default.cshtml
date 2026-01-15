@@ -1,0 +1,405 @@
+﻿@model ContactModel
+
+@{
+    // ====== NAV (placeholder để mở rộng sau này) ======
+    var navGroups = new[]
+    {
+        new {
+            Title = "Shop",
+            Links = new (string Text, string Href)[] {
+                ("Drinks", "#"),
+                ("Gift Cards", "#"),
+                ("Find In Store", "#"),
+                ("Wholesale", "#"),
+                ("Heroes Program", "#"),
+            }
+        },
+        new {
+            Title = "Learn",
+            Links = new (string Text, string Href)[] {
+                ("Our Story", "#"),
+                ("Blog", "#"),
+                ("Digestive Health", "#"),
+                ("Sustainability", "#"),
+                ("Ingredients", "#"),
+                ("Quality & Safety", "#"),
+            }
+        },
+        new {
+            Title = "Help",
+            Links = new (string Text, string Href)[] {
+                ("FAQ", "#"),
+                ("Contact Us", "#"),
+                ("Accessibility", "#"),
+                ("Satisfaction Guarantee", "#"),
+                ("Manage Subscriptions", "#"),
+                ("Track Your Order", "#"),
+            }
+        },
+        new {
+            Title = "Company",
+            Links = new (string Text, string Href)[] {
+                ("Earn Rewards", "#"),
+                ("My Account", "#"),
+                ("Press", "#"),
+                ("Careers", "#"),
+                ("Affiliate Program", "#"),
+                ("Registered Dietitian Program", "#"),
+            }
+        },
+    };
+
+    // ====== CTA liên hệ (placeholder) ======
+    var contactCtas = new[]
+    {
+        new { Text = "Liên hệ", Href = "#", Icon = "fa-regular fa-envelope" },
+        new { Text = "Hotline", Href = "#", Icon = "fa-solid fa-phone" },
+        new { Text = "Zalo", Href = "#", Icon = "fa-regular fa-comment-dots" },
+    };
+
+    var socials = new[]
+    {
+    new { Title="Instagram", Href="#", Icon="fa-brands fa-instagram" },
+    new { Title="Facebook",  Href="#", Icon="fa-brands fa-facebook-f" },
+    new { Title="X",         Href="#", Icon="fa-brands fa-x-twitter" },
+    new { Title="LinkedIn",  Href="#", Icon="fa-brands fa-linkedin-in" },
+    new { Title="Pinterest", Href="#", Icon="fa-brands fa-pinterest-p" },
+    new { Title="TikTok",    Href="#", Icon="fa-brands fa-tiktok" },
+};
+
+    var mapUrl = Model.Map ?? "";
+    if (!string.IsNullOrWhiteSpace(mapUrl) && mapUrl.Contains("google.com/maps") && !mapUrl.Contains("output=embed"))
+    {
+        mapUrl += mapUrl.Contains("?") ? "&output=embed" : "?output=embed";
+    }
+}
+
+<style>
+
+    .contact-footer {
+        --contact-bg: #111827; 
+        --contact-text: rgba(255,255,255,.92);
+        --contact-muted: rgba(255,255,255,.72);
+        --contact-accent: #FE980F; 
+        --contact-accent-text: #111827;
+
+        --contact-border: rgba(255,255,255,.18);
+        --contact-surface: rgba(255,255,255,.06);
+        position: relative;
+        background: var(--contact-bg);
+        color: var(--contact-text);
+        overflow: hidden;
+        padding: 72px 0 28px;
+    }
+
+    .contact-footer__wave {
+        position: absolute;
+        left: 0;
+        top: -88px;
+        width: 100%;
+        height: 120px;
+        display: block;
+        pointer-events: none;
+    }
+
+    .contact-footer__inner {
+        position: relative;
+        z-index: 1;
+    }
+
+    .contact-footer__grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1.9fr; /* Brand + 4 cột link + Right */
+        gap: 26px 34px;
+        align-items: start;
+    }
+
+    .contact-footer__logo img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+    }
+
+    .contact-footer__desc {
+        margin-top: 14px;
+        color: var(--contact-muted);
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+        .contact-footer__desc p {
+            margin-bottom: 10px;
+        }
+
+    .contact-footer__ctas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .contact-footer__cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--contact-border);
+        border-radius: 999px;
+        color: var(--contact-text);
+        text-decoration: none;
+        font-size: 13px;
+        transition: .15s ease;
+    }
+
+        .contact-footer__cta:hover {
+            border-color: rgba(255,255,255,.35);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .contact-footer__group-title {
+        font-weight: 700;
+        letter-spacing: .2px;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .contact-footer__links {
+        display: grid;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+        .contact-footer__links a {
+            color: var(--contact-text);
+            text-decoration: none;
+            font-size: 14px;
+            opacity: .92;
+            transition: .15s ease;
+        }
+
+            .contact-footer__links a:hover {
+                opacity: 1;
+                text-decoration: underline;
+            }
+
+    .contact-footer__right {
+        justify-self: end;
+        width: 100%;
+        max-width: 520px;
+    }
+
+    .contact-footer__signup-title {
+        font-weight: 700;
+        margin-bottom: 12px;
+        font-size: 16px;
+        text-align: right;
+    }
+
+    .contact-footer__form {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .contact-footer__input {
+        width: 100%;
+        background: #F3F4F6; 
+        color: #111827;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 16px;
+        outline: none;
+        font-size: 14px;
+    }
+
+    .contact-footer__btn {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--contact-accent);
+        color: var(--contact-accent-text);
+        transition: .15s ease;
+        white-space: nowrap;
+    }
+
+        .contact-footer__btn:hover {
+            filter: brightness(.95);
+            transform: translateY(-1px);
+        }
+
+    .contact-footer__social {
+        display: flex;
+        gap: 16px;
+        justify-content: flex-end;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+
+        .contact-footer__social a {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--contact-border);
+            color: #fff;
+            text-decoration: none;
+            transition: .15s ease;
+        }
+
+            .contact-footer__social a:hover {
+                border-color: rgba(255,255,255,.35);
+                transform: translateY(-1px);
+            }
+
+    .contact-footer__map {
+        margin-top: 18px;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid var(--contact-border);
+        background: var(--contact-surface);
+    }
+
+        .contact-footer__map iframe {
+            display: block;
+            width: 100%;
+            height: 210px;
+            border: 0;
+        }
+
+    .contact-footer__badge {
+        margin-top: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+        color: var(--contact-muted);
+        font-size: 12px;
+    }
+
+    .contact-footer__badge-circle {
+        width: 58px;
+        height: 58px;
+        border-radius: 999px;
+        border: 2px solid rgba(255,255,255,.55);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .contact-footer__bottom {
+        margin-top: 26px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255,255,255,.14);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        color: var(--contact-muted);
+        font-size: 12px;
+        flex-wrap: wrap;
+    }
+
+        .contact-footer__bottom a {
+            color: var(--contact-muted);
+            text-decoration: none;
+        }
+
+            .contact-footer__bottom a:hover {
+                color: #fff;
+                text-decoration: underline;
+            }
+
+    
+</style>
+
+<footer class="contact-footer">
+    <!-- Wave giống ảnh -->
+    <svg class="contact-footer__wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+        <path fill="var(--contact-bg)"
+              d="M0,60 C240,110 520,10 760,56 C1020,108 1240,96 1440,70 L1440,120 L0,120 Z"></path>
+    </svg>
+
+    <div class="container contact-footer__inner">
+        <div class="contact-footer__grid">
+
+            <!-- Brand / Company info (giữ dữ liệu của bạn) -->
+            <div>
+                <div class="contact-footer__logo">
+                    <img src="~/media/contact/@Model.LogoImg" alt="Logo" />
+                </div>
+
+                <div class="contact-footer__desc">
+                    @Html.Raw(Model.Description)
+                </div>
+
+                <!-- CTA mở rộng sau này -->
+                <div class="contact-footer__ctas">
+                    @foreach (var cta in contactCtas)
+                    {
+                        <a class="contact-footer__cta" href="@cta.Href">
+                            <i class="@cta.Icon"></i>
+                            <span>@cta.Text</span>
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- 4 cột links -->
+            @foreach (var group in navGroups)
+            {
+                <div>
+                    <div class="contact-footer__group-title">@group.Title</div>
+                    <ul class="contact-footer__links">
+                        @foreach (var link in group.Links)
+                        {
+                            <li><a href="@link.Href">@link.Text</a></li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- Right column: subscribe + socials + map + badge -->
+            <div class="contact-footer__right">
+                <div class="contact-footer__signup-title">Sign up to get 15% off your first order</div>
+
+                <!-- Form subscribe: bạn có thể đổi action/controller sau -->
+                <form class="contact-footer__form" method="post" action="#">
+                    <input class="contact-footer__input" type="email" name="email" placeholder="Your Email Address" required />
+                    <button class="contact-footer__btn" type="submit">Subscribe</button>
+                </form>
+
+                <div class="contact-footer__social" aria-label="Social links">
+                    @foreach (var s in socials)
+                    {
+                        <a href="@s.Href" title="@s.Title" aria-label="@s.Title" target="_blank" rel="noopener">
+                            <i class="@s.Icon"></i>
+                        </a>
+                    }
+                </div>
+
+                @* Giữ nguyên map logic của bạn *@
+                @if (!string.IsNullOrWhiteSpace(mapUrl))
+                {
+                    <div class="contact-footer__map">
+                        <iframe src="@mapUrl"
+                                loading="lazy"
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</footer>

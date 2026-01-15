@@ -39,5 +39,11 @@ namespace Eshop.Controllers
             }
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public async Task<IActionResult> Contact()
+        {
+            var contact = await _dataContext.Contact.FirstOrDefaultAsync();
+            return View(contact);
+        }
     }
 }
