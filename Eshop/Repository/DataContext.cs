@@ -19,6 +19,9 @@ namespace Eshop.Repository
         public DbSet<RatingModel> RatingModels { get; set; }
         public DbSet<SliderModel> Sliders { get; set; }
         public DbSet<ContactModel> Contact { get; set; }
+        public DbSet<CompareModel> Compares { get; set; }
+        public DbSet<WishlistModel> Wishlists { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

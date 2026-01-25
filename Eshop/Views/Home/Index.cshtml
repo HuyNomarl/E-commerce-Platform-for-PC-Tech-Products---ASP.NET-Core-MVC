@@ -41,10 +41,13 @@
                     </div>
 
                     <div class="choose">
-                        <ul class="nav nav-pills nav-justified">
-                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-                        </ul>
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <ul class="nav nav-pills nav-justified">
+                                <li><button class="btn btn-default add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button></li>
+                                <li><button class="btn btn-default add-btn-compare" data-product_id="@item.Id">So sánh</button></li>
+                            </ul>
+                        }
                     </div>
                 </div>
             </div>
@@ -59,7 +62,7 @@
     <script>
         $(document).ready(function () {
           $('.add-to-cart').click(function () {
-            var productId = $(this).data('product_id'); // hoặc đổi sang data-product-id cho chuẩn
+            var productId = $(this).data('product_id');
             var token = $('input[name="__RequestVerificationToken"]').val();
 
             $.ajax({
@@ -73,7 +76,7 @@
                 Swal.fire({
                   icon: "success",
                   title: "Thành công",
-                  text: "Đã thêm vào giỏ hàng!"
+                  text: "Đã thêm vào yêu thích!"
                 });
               },
               error: function (xhr) {
@@ -85,6 +88,49 @@
               }
             });
           });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+                  $('.add-btn-wishlist').click(function () {
+          var productId = $(this).data('product_id');
+          var token = $('input[name="__RequestVerificationToken"]').val();
+
+          $.ajax({
+            url: '@Url.Action("AddWishlist", "Home")',
+            type: 'POST',
+            data: { productId: productId, __RequestVerificationToken: token },
+            success: function () {
+              Swal.fire({ icon: "success", title: "Thành công", text: "Đã thêm vào yêu thích!" });
+            },
+            error: function (xhr) {
+              console.log(xhr.responseText);
+              Swal.fire({ icon: "error", title: "Oops...", text: xhr.responseText || ("Lỗi (" + xhr.status + ")") });
+            }
+          });
+        });
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+                  $('.add-btn-compare').click(function () {
+          var productId = $(this).data('product_id');
+          var token = $('input[name="__RequestVerificationToken"]').val();
+
+          $.ajax({
+            url: '@Url.Action("AddCompare", "Home")',
+            type: 'POST',
+            data: { productId: productId, __RequestVerificationToken: token },
+            success: function () {
+              Swal.fire({ icon: "success", title: "Thành công", text: "Đã thêm vào so sánh!" });
+            },
+            error: function (xhr) {
+              console.log(xhr.responseText);
+              Swal.fire({ icon: "error", title: "Oops...", text: xhr.responseText || ("Lỗi (" + xhr.status + ")") });
+            }
+          });
+        });
+
         });
     </script>
 }

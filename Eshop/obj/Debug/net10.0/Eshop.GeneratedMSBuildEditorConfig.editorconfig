@@ -174,6 +174,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2hlY2tvdXRcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/Web C\#/Eshop/Eshop/Views/Home/Compare.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb21wYXJlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/Web C\#/Eshop/Eshop/Views/Home/Contact.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxDb250YWN0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -188,6 +192,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/Web C\#/Eshop/Eshop/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/Web C\#/Eshop/Eshop/Views/Home/Wishlist.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxXaXNobGlzdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/Web C\#/Eshop/Eshop/Views/Product/Details.cshtml]
