@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -194,5 +195,36 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction("Index");
 
         }
+        [HttpGet]
+        public async Task<IActionResult> AddQuantity(int Id)
+        {
+            ViewBag.Id = Id;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StoreProductQuantity(ProductQuantityModel productQuantityModel, int id)
+        {
+            var product = await _dataContext.Products.FindAsync(id);
+            if (product == null) return NotFound();
+
+            product.Quantity += productQuantityModel.Quantity;
+
+            var log = new ProductQuantityModel
+            {
+                ProductId = id,
+                Quantity = productQuantityModel.Quantity,
+                DateCreate = DateTime.Now
+            };
+
+            _dataContext.productQuantityModels.Add(log);
+            await _dataContext.SaveChangesAsync();
+
+            TempData["success"] = "Cập nhật số lượng thành công!";
+            return RedirectToAction("AddQuantity", new { Id = id });
+        }
+
+
     }
 }

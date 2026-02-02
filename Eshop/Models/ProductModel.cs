@@ -14,6 +14,9 @@ namespace Eshop.Models
         [Required, MinLength(4, ErrorMessage = "Yêu cầu nhập mô tả Sản phẩm")]
         public string Description { get; set; }
         //[Required, MinLength(4, ErrorMessage = "Yêu cầu nhập giá sản phẩm")]
+        public int Quantity { get; set; }
+        public int Sold { get; set; }
+
         [Required(ErrorMessage ="Yêu cầu nhập giá sản phẩm!")]
         [Range(0.01, double.MaxValue)]
         [Column(TypeName = "decimal(8,2)")]
