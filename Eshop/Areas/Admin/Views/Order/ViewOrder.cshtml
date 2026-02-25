@@ -1,123 +1,95 @@
-﻿@model IEnumerable<Eshop.Models.OrderDetails>
+﻿@model Eshop.Models.ViewModels.OrderDetailViewModel
+
 @{
     ViewData["title"] = "Order Detail";
-    var orderCode = ViewBag.OrderCode as string;
-    var currentStatus = (int)(ViewBag.OrderStatus ?? 1);
     decimal subtotal = 0;
 }
 
 <h3>Order Detail View</h3>
 
-@if (!string.IsNullOrEmpty(orderCode))
-{
-    <p><strong>Order Code:</strong> @orderCode</p>
-    <p><strong>User Name:</strong> @(Model?.FirstOrDefault()?.UserName ?? "N/A")</p>
-}
+<p><strong>Order Code:</strong> @Model.OrderCode</p>
+<p><strong>User Name:</strong> @Model.UserName</p>
 
-@Html.AntiForgeryToken()
-<input type="hidden" id="orderCode" value="@ViewBag.OrderCode" />
-<input type="hidden" id="userName" value="@(Model?.FirstOrDefault()?.UserName ?? "N/A")" />
+<form id="updateForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="orderCode" value="@Model.OrderCode" />
 
-<table class="table" id="detail_order">
-    <thead>
-        <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Line Total</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            subtotal = Model.Sum(item => item.Price * item.Quantity);
-
-            foreach (var item in Model)
+    <table class="table" id="detail_order">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th class="text-end">Price</th>
+                <th class="text-center">Quantity</th>
+                <th class="text-end">Line Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.OrderDetails.Any())
             {
-                var lineTotal = item.Price * item.Quantity;
-                <tr>
-                    <td>@(item.Product != null ? item.Product.Name : "N/A")</td>
-                    <td>@item.Price</td>
-                    <td>@item.Quantity</td>
-                    <td>@lineTotal.ToString("C")</td>
-                </tr>
-            }
-        }
-    </tbody>
+                subtotal = Model.OrderDetails.Sum(x => x.Price * x.Quantity);
 
-    @if (Model != null && Model.Any())
-    {
+                foreach (var item in Model.OrderDetails)
+                {
+                    <tr>
+                        <td>@item.Product?.Name</td>
+                        <td class="text-end">@item.Price.ToString("N0")</td>
+                        <td class="text-center">@item.Quantity</td>
+                        <td class="text-end">@((item.Price * item.Quantity).ToString("N0"))</td>
+                    </tr>
+                }
+            }
+        </tbody>
+
         <tfoot>
             <tr>
                 <th colspan="3" class="text-end">Total:</th>
-                <th>@subtotal.ToString("C")</th>
+                <th class="text-end">@subtotal.ToString("N0")</th>
             </tr>
             <tr>
                 <th colspan="3" class="text-end">Status:</th>
                 <th>
-                    <select id="orderStatus" class="form-select">
-                        <option value="1" selected="@(currentStatus == 1)">Pending</option>
-                        <option value="2" selected="@(currentStatus == 2)">Processing</option>
-                        <option value="3" selected="@(currentStatus == 3)">Shipped</option>
-                        <option value="4" selected="@(currentStatus == 4)">Delivered</option>
-                        <option value="5" selected="@(currentStatus == 5)">Completed</option>
-                        <option value="6" selected="@(currentStatus == 6)">Cancelled</option>
+                    <select asp-for="Status"
+                            asp-items="Model.StatusList"
+                            id="orderStatus"
+                            class="form-select">
                     </select>
                 </th>
             </tr>
         </tfoot>
-    }
-</table>
+    </table>
+</form>
 
-
-<a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-secondary">Back to Orders</a>
+<a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-secondary">
+    Back to Orders
+</a>
 
 @section Scripts {
     <script>
-        function getPrintInfo() {
-          const code = $('#orderCode').val() || '';
-          const user = $('#userName').val() || '';
-          const status = $('#orderStatus option:selected').text() || '';
-          return { code, user, status };
-        }
+        $(document).on('change', '#orderStatus', function () {
 
-        new DataTable('#detail_order', {
-          layout: {
-            topStart: {
-              buttons: [
-                {
-                  extend: 'print',
-                  title: '',
-                  customize: function (win) {
-                    const { code, user, status } = getPrintInfo();
+            const orderCode = $('#orderCode').val();
+            const status = $(this).val();
+            const token = $('input[name="__RequestVerificationToken"]').val();
 
-                    $(win.document.body).prepend(`
-                      <div style="margin-bottom:12px;">
-                        <h3 style="margin:0 0 6px 0;">Order Detail</h3>
-                        <div><strong>Order Code:</strong> ${code}</div>
-                        <div><strong>User Name:</strong> ${user}</div>
-                        <div><strong>Status:</strong> ${status}</div>
-                      </div>
-                    `);
-                  }
+            $.ajax({
+                url: '@Url.Action("UpdateOrder", "Order", new { area = "Admin" })',
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: token,
+                    orderCode: orderCode,
+                    status: status
                 },
-                {
-                  extend: 'pdfHtml5',
-                  title: 'Order Detail',
-                  customize: function (doc) {
-                    const { code, user, status } = getPrintInfo();
-                    doc.content.unshift({
-                      text: `Order Code: ${code}\nUser Name: ${user}\nStatus: ${status}`,
-                      margin: [0, 0, 0, 12]
-                    });
-                  }
+                success: function (res) {
+                    if (res.success) {
+                        location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                },
+                error: function () {
+                    alert("Update failed!");
                 }
-              ]
-            }
-          }
+            });
         });
     </script>
 }
-
-

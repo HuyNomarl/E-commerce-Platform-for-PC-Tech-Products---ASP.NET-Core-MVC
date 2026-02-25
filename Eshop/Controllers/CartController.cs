@@ -2,6 +2,7 @@
 using Eshop.Models.ViewModel;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Eshop.Controllers
 {
@@ -78,17 +79,20 @@ namespace Eshop.Controllers
 
         public async Task<IActionResult> Increase(int id)
         {
+            ProductModel product = await _dataContext.Products.Where(x => x.Id == id).FirstOrDefaultAsync();
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
             CartItemModel cartItem = cart.Where(x => x.ProductId == id).FirstOrDefault();
 
-            if (cartItem.Quantity >= 1)
+            if (cartItem.Quantity >= 1 && product.Quantity > cartItem.Quantity)
             {
                 ++cartItem.Quantity;
             }
             else
             {
-                cart.RemoveAll(x => x.ProductId == id);
+                cartItem.Quantity = product.Quantity;
+                //cart.RemoveAll(x => x.ProductId == id);
+                TempData["Error"] = "Cannot increase quantity. Not enough stock available.";
             }
 
             if (cart.Count == 0)

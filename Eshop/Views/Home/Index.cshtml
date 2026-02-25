@@ -34,7 +34,13 @@
                                 <p>Nhà xuất bản: @item.Publisher.Name</p>
                             </a>
                             @* <a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a> *@
-                            <button type="button" class="btn btn-default add-to-cart" data-product_id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                            @if (item.Quantity > 0)
+                            {
+                                <button type="button" class="btn btn-default add-to-cart" data-product_id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                            }else
+                            {
+                                <button type="button" class="btn btn-default"><i class="fa fa-shopping-cart"></i>Sold Out</button>
+                            }
                         </div>
 
 

@@ -44,10 +44,20 @@
                         <span>US @Model.ProductDetail.Price.ToString("#, ##0 VND")</span>
                         <label>Quantity: 1</label>
                         <input type="text" value="3" />
+                        @if (Model.ProductDetail.Quantity > 0)
+                        {
                         <button type="button" class="btn btn-fefault cart">
                             <i class="fa fa-shopping-cart"></i>
                             Add to cart
                         </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-fefault cart">
+                                <i class="fa fa-shopping-cart"></i>
+                                Sold Out
+                            </button>
+                        }
                     </span>
                     <p><b>Availability:</b> In Stock</p>
                     <p><b>Condition:</b> New</p>

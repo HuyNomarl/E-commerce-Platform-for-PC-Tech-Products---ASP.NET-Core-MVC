@@ -198,8 +198,15 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> AddQuantity(int Id)
         {
+            var logs = await _dataContext.productQuantityModels
+                .Where(pq => pq.ProductId == Id)
+                .OrderByDescending(pq => pq.DateCreate)
+                .ToListAsync();
+
+            ViewBag.ProductQuantityLogs = logs;
             ViewBag.Id = Id;
-            return View();
+
+            return View(new ProductQuantityModel { ProductId = Id, Quantity = 1 });
         }
 
         [HttpPost]

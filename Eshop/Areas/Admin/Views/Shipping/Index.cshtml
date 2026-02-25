@@ -1,0 +1,263 @@
+﻿@using Eshop.Models
+@model ShippingModel
+@{
+    ViewData["Title"] = "Create Shipping";
+
+    var shippingList = ViewBag.ShippingList as List<ShippingModel> ?? new List<ShippingModel>();
+}
+
+<style type="text/css">
+    .css_select_div {
+        text-align: center;
+    }
+
+    .css_select {
+        display: inline-table;
+        width: 25%;
+        padding: 5px;
+        margin: 5px 2%;
+        border: solid 1px #686868;
+        border-radius: 5px;
+    }
+</style>
+
+<h4>Create Shipping</h4>
+
+<div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label>Tỉnh thành phố</label>
+        <select class="css_select" id="tinh" name="tinh" title="Chọn Tỉnh Thành">
+            <option value="0">Tỉnh Thành</option>
+        </select>
+    </div>
+
+    <!-- v2 không có quận/huyện -> ẩn bằng JS -->
+    <div class="form-group">
+        <label>Quận huyện</label>
+        <select class="css_select" id="quan" name="quan" title="Chọn Quận Huyện">
+            <option value="0">Quận Huyện</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Phường xã</label>
+        <select class="css_select" id="phuong" name="phuong" title="Chọn Phường Xã">
+            <option value="0">Phường Xã</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Giá</label>
+        <input type="number" class="form-control" id="cost" name="cost"
+               placeholder="Nhập giá vận chuyển" min="0" step="1">
+    </div>
+
+    <div class="form-group mt-2">
+        <button type="button" class="btn btn-primary btn-add-shipping">Create</button>
+    </div>
+
+    <a asp-action="Index" asp-controller="Shipping" asp-area="Admin">Back to Shipping Index</a>
+</div>
+
+<hr />
+
+<h4>Shipping List</h4>
+
+<table class="table" id="myTable">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Tỉnh/TP</th>
+            <th>Quận/Huyện</th>
+            <th>Phường/Xã</th>
+            <th>Cost</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in shippingList)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.City</td>
+                <td>@item.District</td>
+                <td>@item.Ward</td>
+                <td>@item.ShippingCost</td>
+                <td class="d-flex gap-2">
+                    <a asp-area="Admin"
+                       asp-controller="Shipping"
+                       asp-action="Edit"
+                       asp-route-id="@item.Id"
+                       class="btn btn-primary">
+                        Edit
+                    </a>
+
+                    <form asp-area="Admin"
+                          asp-controller="Shipping"
+                          asp-action="DeleteShipping"
+                          asp-route-id="@item.Id"
+                          method="post"
+                          class="delete-form"
+                          style="display:inline;">
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-danger js-delete"
+                                data-name="@($"{item.City} - {item.District} - {item.Ward}")">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // ====== PROXY API trên server của bạn ======
+        const API = "/Admin/Shipping";
+
+        function getAntiForgeryToken() {
+            return $('input[name="__RequestVerificationToken"]').val();
+        }
+
+        $(document).ready(function () {
+
+            // v2 không có quận/huyện -> ẩn dropdown quận
+            $("#quan").closest(".form-group").hide();
+
+            // Load tỉnh (qua proxy)
+            $.getJSON(`${API}/GetProvincesV2`)
+                .done(function (provinces) {
+                    $("#tinh").html('<option value="0">Tỉnh Thành</option>');
+                    (provinces || []).forEach(p => {
+                        $("#tinh").append(`<option value="${p.code}">${p.name}</option>`);
+                    });
+                })
+                .fail(function (xhr) {
+                    console.error("GetProvincesV2 failed:", xhr.status, xhr.responseText);
+                    Swal.fire("Không load được danh sách Tỉnh/TP!");
+                });
+
+            // Chọn tỉnh -> load phường/xã theo tỉnh (v2)
+            $("#tinh").on("change", function () {
+                const provinceCode = $(this).val();
+
+                $("#phuong").html('<option value="0">Phường Xã</option>');
+                if (provinceCode == "0") return;
+
+                $.getJSON(`${API}/GetWardsByProvinceV2?provinceCode=${provinceCode}`)
+                    .done(function (pDetail) {
+
+                        const wards = pDetail?.wards || [];
+
+                        if (!wards.length) {
+                            console.warn("No wards returned for province:", provinceCode, pDetail);
+                        }
+
+                        wards.forEach(w => {
+                            $("#phuong").append(`<option value="${w.code}">${w.name}</option>`);
+                        });
+                    })
+                    .fail(function (xhr) {
+                        console.error("GetWardsByProvinceV2 failed:", xhr.status, xhr.responseText);
+                        Swal.fire("Không load được danh sách Phường/Xã!");
+                    });
+            });
+
+            // ====== ADD SHIPPING (AJAX) - v2 ======
+            $(".btn-add-shipping").on("click", function () {
+
+                const cityCode = $("#tinh").val();
+                const wardCode = $("#phuong").val();
+
+                const cityName = $("#tinh option:selected").text();
+                const wardName = $("#phuong option:selected").text();
+
+                const cost = $("#cost").val();
+
+                if (cityCode === "0" || wardCode === "0" || cost === "" || Number(cost) <= 0) {
+                    Swal.fire("Vui lòng nhập đầy đủ thông tin hợp lệ!");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("StoreShippingV2", "Shipping", new { area = "Admin" })',
+                    type: "POST",
+                    headers: {
+                        "RequestVerificationToken": getAntiForgeryToken()
+                    },
+                    data: {
+                        cityCode: cityCode,
+                        wardCode: wardCode,
+                        cityName: cityName,
+                        wardName: wardName,
+                        cost: cost
+                    },
+                    success: function (result) {
+                        if (result.duplicate) {
+                            Swal.fire(result.message);
+                            return;
+                        }
+                        if (result.success) {
+                            Swal.fire(result.message).then(() => location.reload());
+                            return;
+                        }
+                        Swal.fire(result.message || "Không xác định được kết quả!");
+                    },
+                    error: function () {
+                        Swal.fire("Đã xảy ra lỗi khi thêm thông tin vận chuyển!");
+                    }
+                });
+            });
+
+        });
+
+        // ====== CONFIRM DELETE (SweetAlert) ======
+        $(document).on("click", ".js-delete", function (e) {
+            e.preventDefault();
+
+            const btn = this;
+            const form = btn.closest("form");
+            const name = btn.getAttribute("data-name") || "";
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+
+            swalWithBootstrapButtons.fire({
+                title: "Are you sure?",
+                text: name ? `Bạn chắc chắn muốn xóa "${name}"? Bạn không thể hoàn tác!` : "Bạn không thể hoàn tác!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, delete it!",
+                cancelButtonText: "No, cancel!",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+
+        // ====== DATATABLE ======
+        new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+            }
+        });
+    </script>
+}

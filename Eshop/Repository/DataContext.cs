@@ -22,6 +22,7 @@ namespace Eshop.Repository
         public DbSet<CompareModel> Compares { get; set; }
         public DbSet<WishlistModel> Wishlists { get; set; }
         public DbSet<ProductQuantityModel> productQuantityModels { get; set; }
+        public DbSet<ShippingModel> Shippings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
