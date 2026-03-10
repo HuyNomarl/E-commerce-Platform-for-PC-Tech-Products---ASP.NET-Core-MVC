@@ -132,7 +132,7 @@
                                         </td>
 
                                         <td class="text-end">
-                                            <span class="fw-bold">@(item.Quantity * item.Price)</span>
+                                            <span class="fw-bold">@(item.Quantity* item.Price)</span>
                                         </td>
 
                                         <td class="text-end">
@@ -164,9 +164,16 @@
 
                         <div class="col-md-6">
                             <div class="d-flex flex-wrap justify-content-md-end align-items-center gap-2">
-                                <div class="me-md-3">
-                                    <span class="text-muted">Grand Total:</span>
-                                    <span class="h5 mb-0 ms-2 fw-bold">@Model.GrandTotal</span>
+                                <div class="card p-3">
+                                    <p>Tạm tính: <strong>@Model.GrandTotal.ToString("N0") đ</strong></p>
+                                    <p>Phí vận chuyển: <strong>@Model.ShippingPrice.ToString("N0") đ</strong></p>
+
+                                    @if (!string.IsNullOrEmpty(Model.CouponCode))
+                                    {
+                                        <p>Mã giảm giá (@Model.CouponCode): <strong>-@Model.DiscountAmount.ToString("N0") đ</strong></p>
+                                    }
+
+                                    <h4>Tổng thanh toán: <strong>@Model.FinalTotal.ToString("N0") đ</strong></h4>
                                 </div>
 
                                 @Html.AntiForgeryToken()
@@ -192,6 +199,23 @@
                                         <option value="0">Phường Xã</option>
                                     </select>
                                 </div>
+                                <div class="form-group">
+                                    <button type="button" class="btn btn-primary btn-add-shipping">
+                                        <i class="fa fa-truck me-1"></i> Tính phí vận chuyển
+                                    </button>
+                                </div>
+                                <form asp-action="ApplyCoupon" asp-controller="Cart" method="post" class="mb-3">
+                                    @Html.AntiForgeryToken()
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" name="couponCode" class="form-control" placeholder="Nhập mã giảm giá" />
+                                        </div>
+                                        <div class="col-md-6 mt-2 mt-md-0">
+                                            <button type="submit" class="btn btn-primary">Áp dụng mã</button>
+                                            <a asp-action="RemoveCoupon" asp-controller="Cart" class="btn btn-danger">Bỏ mã</a>
+                                        </div>
+                                    </div>
+                                </form>
 
                                 <a class="btn btn-outline-danger"
                                    asp-action="Clear"
@@ -270,17 +294,12 @@
                 const provinceCode = $(this).val();
 
                 $("#phuong").html('<option value="0">Phường Xã</option>');
-                if (provinceCode == "0") return;
+
+                if (provinceCode === "0") return;
 
                 $.getJSON(`${API}/GetWardsByProvinceV2?provinceCode=${provinceCode}`)
                     .done(function (pDetail) {
-
                         const wards = pDetail?.wards || [];
-
-                        if (!wards.length) {
-                            console.warn("No wards returned for province:", provinceCode, pDetail);
-                        }
-
                         wards.forEach(w => {
                             $("#phuong").append(`<option value="${w.code}">${w.name}</option>`);
                         });
@@ -291,90 +310,59 @@
                     });
             });
 
-            // ====== ADD SHIPPING (AJAX) - v2 ======
-            $(".btn-add-shipping").on("click", function () {
+            // ====== TÍNH PHÍ VẬN CHUYỂN (POST về Cart) ======
+            $(document).on("click", ".btn-add-shipping", function (e) {
+                e.preventDefault();
 
-                const cityCode = $("#tinh").val();
-                const wardCode = $("#phuong").val();
+                const tinhCode = $("#tinh").val();
+                const phuongCode = $("#phuong").val();
 
-                const cityName = $("#tinh option:selected").text();
-                const wardName = $("#phuong option:selected").text();
+                const tinhName = $("#tinh option:selected").text();
+                const phuongName = $("#phuong option:selected").text();
 
-                const cost = $("#cost").val();
+                // v2 không dùng quận/huyện -> gửi rỗng nếu backend vẫn cần param "quan"
+                const quanName = "";
 
-                if (cityCode === "0" || wardCode === "0" || cost === "" || Number(cost) <= 0) {
-                    Swal.fire("Vui lòng nhập đầy đủ thông tin hợp lệ!");
+                if (tinhCode === "0" || phuongCode === "0") {
+                    Swal.fire("Vui lòng chọn Tỉnh/TP và Phường/Xã!");
                     return;
                 }
 
                 $.ajax({
-                    url: '@Url.Action("StoreShippingV2", "Shipping", new { area = "Admin" })',
                     type: "POST",
+                    url: "@Url.Action("GetShipping", "Cart")",
                     headers: {
                         "RequestVerificationToken": getAntiForgeryToken()
                     },
                     data: {
-                        cityCode: cityCode,
-                        wardCode: wardCode,
-                        cityName: cityName,
-                        wardName: wardName,
-                        cost: cost
+                        tinh: tinhName,
+                        quan: quanName,
+                        phuong: phuongName,
+
                     },
                     success: function (result) {
-                        if (result.duplicate) {
+                        // Nếu server trả true/false
+                        if (result === true || result?.success === true) {
+                            location.reload();
+                            return;
+                        }
+
+                        // Nếu server trả message
+                        if (result?.message) {
                             Swal.fire(result.message);
                             return;
                         }
-                        if (result.success) {
-                            Swal.fire(result.message).then(() => location.reload());
-                            return;
-                        }
-                        Swal.fire(result.message || "Không xác định được kết quả!");
+
+                        // fallback
+                        location.reload();
                     },
-                    error: function () {
-                        Swal.fire("Đã xảy ra lỗi khi thêm thông tin vận chuyển!");
+                    error: function (xhr) {
+                        console.error("GetShipping error:", xhr.status, xhr.responseText);
+                        Swal.fire("Đã xảy ra lỗi khi tính phí vận chuyển!");
                     }
                 });
             });
 
-        });
-
-        // ====== CONFIRM DELETE (SweetAlert) ======
-        $(document).on("click", ".js-delete", function (e) {
-            e.preventDefault();
-
-            const btn = this;
-            const form = btn.closest("form");
-            const name = btn.getAttribute("data-name") || "";
-
-            const swalWithBootstrapButtons = Swal.mixin({
-                customClass: {
-                    confirmButton: "btn btn-success",
-                    cancelButton: "btn btn-danger"
-                },
-                buttonsStyling: false
-            });
-
-            swalWithBootstrapButtons.fire({
-                title: "Are you sure?",
-                text: name ? `Bạn chắc chắn muốn xóa "${name}"? Bạn không thể hoàn tác!` : "Bạn không thể hoàn tác!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonText: "Yes, delete it!",
-                cancelButtonText: "No, cancel!",
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-
-        // ====== DATATABLE ======
-        new DataTable('#myTable', {
-            layout: {
-                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
-            }
         });
     </script>
 }

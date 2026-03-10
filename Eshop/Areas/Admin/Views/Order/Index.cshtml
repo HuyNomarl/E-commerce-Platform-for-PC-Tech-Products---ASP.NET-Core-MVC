@@ -12,6 +12,7 @@
             <th>User Email</th>
             <th>Order Date</th>
             <th>Order Status</th>
+            <th>Shipping Cost</th>
             <th style="width: 180px;">Action</th>
         </tr>
     </thead>
@@ -50,6 +51,7 @@
                                 break;
                         }
                     </td>
+                    <td>@item.ShippingCost</td>
                     <td>
                         <a asp-area="Admin"
                            asp-action="ViewOrder"

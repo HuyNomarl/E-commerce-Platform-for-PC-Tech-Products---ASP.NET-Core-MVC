@@ -1,0 +1,65 @@
+﻿@{
+    var currentSlug = (string)ViewBag.CurrentSlug ?? "";
+    var sortBy = (string)ViewBag.SortBy ?? "";
+    decimal? minPrice = ViewBag.MinPrice;
+    decimal? maxPrice = ViewBag.MaxPrice;
+
+    string BuildUrl(string sort, decimal? minP, decimal? maxP)
+    {
+        return Url.Action("Index", "Category", new
+        {
+            Slug = currentSlug,
+            sort_by = sort,
+            min_price = minP,
+            max_price = maxP
+        });
+    }
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-2">
+            <h5>Sắp xếp theo</h5>
+            <select class="form-control" id="sort_by">
+                <option value="">--------</option>
+                <option value="@BuildUrl("price_increase", minPrice, maxPrice)">Giá tăng dần</option>
+                <option value="@BuildUrl("price_decrease", minPrice, maxPrice)">Giá giảm dần</option>
+                <option value="@BuildUrl("price_newest", minPrice, maxPrice)">Mới nhất</option>
+                <option value="@BuildUrl("price_oldest", minPrice, maxPrice)">Cũ nhất</option>
+            </select>
+        </div>
+
+        <div class="col-md-5">
+            <h5>Lọc theo giá</h5>
+
+            <div class="d-flex gap-2">
+                <input id="min_price" class="form-control" placeholder="Giá từ"
+                       value="@(minPrice?.ToString() ?? "")" />
+                <input id="max_price" class="form-control" placeholder="Giá đến"
+                       value="@(maxPrice?.ToString() ?? "")" />
+                <button id="btnFilterPrice" class="btn btn-danger">Lọc</button>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+                Ví dụ: 10000 - 50000
+            </small>
+        </div>
+    </div>
+</div>
+
+<script>
+    // set selected cho sort_by
+    (function () {
+        var sortBy = "@sortBy";
+        if (sortBy) {
+            // tìm option có url chứa sort_by=sortBy
+            var el = document.getElementById("sort_by");
+            for (var i = 0; i < el.options.length; i++) {
+                if (el.options[i].value.indexOf("sort_by=" + sortBy) !== -1) {
+                    el.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    })();
+</script>

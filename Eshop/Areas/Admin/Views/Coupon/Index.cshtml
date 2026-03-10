@@ -1,0 +1,210 @@
+﻿@model CouponModel
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+}
+
+<h4>Thêm mã giảm giá</h4>
+
+<div class="row">
+    <div class="col-md-5">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-2">
+                <label asp-for="NameCode" class="form-label">Mã giảm giá</label>
+                <input asp-for="NameCode" class="form-control" placeholder="VD: SALE10, GIAM50000" />
+                <span asp-validation-for="NameCode" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Description" class="form-label">Mô tả</label>
+                <textarea asp-for="Description" class="form-control" rows="2" placeholder="Nhập mô tả ngắn về mã giảm giá"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="DiscountType" class="form-label">Loại giảm giá</label>
+                <select asp-for="DiscountType" class="form-control">
+                    <option value="1">Giảm theo phần trăm (%)</option>
+                    <option value="2">Giảm theo số tiền cố định</option>
+                </select>
+                <span asp-validation-for="DiscountType" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Discount" class="form-label">Giá trị giảm</label>
+                <input asp-for="Discount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 10 hoặc 50000" />
+                <small class="text-muted">Nếu loại là %, nhập 10 nghĩa là giảm 10%. Nếu là tiền cố định, nhập số tiền.</small>
+                <span asp-validation-for="Discount" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Quantity" class="form-label">Số lượng</label>
+                <input asp-for="Quantity" type="number" min="0" class="form-control" placeholder="Nhập số lượt sử dụng" />
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="MinOrderAmount" class="form-label">Đơn hàng tối thiểu</label>
+                <input asp-for="MinOrderAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 200000" />
+                <small class="text-muted">Để trống nếu không giới hạn.</small>
+                <span asp-validation-for="MinOrderAmount" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="MaxDiscountAmount" class="form-label">Giảm tối đa</label>
+                <input asp-for="MaxDiscountAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 50000" />
+                <small class="text-muted">Chỉ nên dùng khi giảm theo %.</small>
+                <span asp-validation-for="MaxDiscountAmount" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="DateStart" class="form-label">Ngày bắt đầu</label>
+                <input asp-for="DateStart" type="date" class="form-control" />
+                <span asp-validation-for="DateStart" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="DateEnd" class="form-label">Ngày kết thúc</label>
+                <input asp-for="DateEnd" type="date" class="form-control" />
+                <span asp-validation-for="DateEnd" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Status" class="form-label">Trạng thái</label>
+                <select asp-for="Status" class="form-control">
+                    <option value="1">Kích hoạt</option>
+                    <option value="0">Ẩn</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Thêm mới</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-7">
+        <h5>Danh sách mã giảm giá</h5>
+        <table class="table table-striped table-bordered" id="myTable">
+            <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Loại</th>
+                    <th>Giá trị</th>
+                    <th>Số lượng</th>
+                    <th>Bắt đầu</th>
+                    <th>Kết thúc</th>
+                    <th>Trạng thái</th>
+                    <th>Còn lại</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.Coupons != null)
+                {
+                    foreach (var coupon in ViewBag.Coupons)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@coupon.NameCode</strong>
+                                @if (!string.IsNullOrWhiteSpace(coupon.Description))
+                                {
+                                    <br />
+                                    <small class="text-muted">@coupon.Description</small>
+                                }
+                            </td>
+
+                            <td>
+                                @if (coupon.DiscountType == 1)
+                                {
+                                    <span class="badge bg-info">Phần trăm</span>
+                                }
+                                else if (coupon.DiscountType == 2)
+                                {
+                                    <span class="badge bg-secondary">Tiền cố định</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-dark">Không xác định</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (coupon.DiscountType == 1)
+                                {
+                                    <span>@coupon.Discount %</span>
+                                    @if (coupon.MaxDiscountAmount != null)
+                                    {
+                                        <br />
+                                        <small class="text-muted">Tối đa: @coupon.MaxDiscountAmount.ToString("N0") đ</small>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>@coupon.Discount.ToString("N0") đ</span>
+                                }
+
+                                @if (coupon.MinOrderAmount != null)
+                                {
+                                    <br />
+                                    <small class="text-muted">Đơn tối thiểu: @coupon.MinOrderAmount.ToString("N0") đ</small>
+                                }
+                            </td>
+
+                            <td>@coupon.Quantity</td>
+
+                            <td>@coupon.DateStart.ToString("dd-MM-yyyy")</td>
+                            <td>@coupon.DateEnd.ToString("dd-MM-yyyy")</td>
+
+                            <td>
+                                @if (coupon.Status == 1)
+                                {
+                                    <span class="badge bg-success">Kích hoạt</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Ẩn</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (coupon.DateEnd < DateTime.Now.Date)
+                                {
+                                    <span class="badge bg-danger">Hết hạn</span>
+                                }
+                                else if (coupon.DateStart > DateTime.Now.Date)
+                                {
+                                    <span class="badge bg-warning text-dark">Chưa bắt đầu</span>
+                                }
+                                else if (coupon.Quantity <= 0)
+                                {
+                                    <span class="badge bg-dark">Hết lượt</span>
+                                }
+                                else
+                                {
+                                    var daysRemaining = (coupon.DateEnd.Date - DateTime.Now.Date).Days;
+
+                                    if (daysRemaining == 0)
+                                    {
+                                        <span class="badge bg-warning text-dark">Hết hạn hôm nay</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">@daysRemaining ngày</span>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

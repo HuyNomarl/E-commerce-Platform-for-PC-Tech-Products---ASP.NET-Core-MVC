@@ -1,47 +1,101 @@
 ﻿@{
-	ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home Page";
 }
 
 <div class="col-sm-3">
-	@Html.Partial("_SidebarPartial")
+    @Html.Partial("_SidebarPartial")
 </div>
 <style>
-	product-image-wrapper {
-		height: 450px;
-	}
+    product-image-wrapper {
+        height: 450px;
+    }
 </style>
 
 @model IEnumerable<Eshop.Models.ProductModel>
 
 <div class="col-sm-9 padding-right">
-	<div class="features_items">
-		<!--features_items-->
-		<h2 class="title text-center">Features Items</h2>
+    <partial name="_FilterProductsPartial" />
+    <div class="features_items">
+        <!--features_items-->
+        <h2 class="title text-center">Features Items</h2>
 @foreach (var item in Model)
 {
-			<div class="col-sm-4">
-				<div class="product-image-wrapper">
-					<a>
-						<div class="single-products">
-							<div class="productinfo text-center">
-								<img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
-								<h2>@item.Price.ToString("#,##0 VND")</h2>
-								<p>@item.Name</p>
-								<p>Thể loại: @item.Category.Name</p>
-								<p>Nhà xuất bản: @item.Publisher.Name</p>
-								<a class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
-							</div>
+            <div class="col-sm-4">
+                <div class="product-image-wrapper">
+                    <a>
+                        <div class="single-products">
+                            <div class="productinfo text-center">
+                                <img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
+                                <h2>@item.Price.ToString("#,##0 VND")</h2>
+                                <p>@item.Name</p>
+                                <p>Thể loại: @item.Category.Name</p>
+                                <p>Nhà xuất bản: @item.Publisher.Name</p>
+                                <a class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+                            </div>
 
-						</div>
-					</a>
-					<div class="choose">
-						<ul class="nav nav-pills nav-justified">
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
+                        </div>
+                    </a>
+                    <div class="choose">
+                        <ul class="nav nav-pills nav-justified">
+                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
+                            <li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
 }
-		<div>
-		</div>
+        <div>
+        </div>
+
+@section Scripts {
+            <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+            <script src="https://code.jquery.com/ui/1.14.2/jquery-ui.js"></script>
+            <script>
+                $( function() {
+                  $( "#slider-range" ).slider({
+                    range: true,
+                    min: 0,
+                    max: 500,
+                    values: [ 75, 300 ],
+                    slide: function( event, ui ) {
+                      $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+                    }
+                  });
+                  $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
+                    " - $" + $( "#slider-range" ).slider( "values", 1 ) );
+                } );
+            </script>
+            <script type="text/javascript">
+                $(document).ready(function () {
+
+                    // Sort
+                    $('#sort_by').on('change', function () {
+                        var url = $(this).val();
+                        if (url) window.location = url;
+                        return false;
+                    });
+
+                    // Filter price
+                    $('#btnFilterPrice').on('click', function () {
+                        var minP = $('#min_price').val().trim();
+                        var maxP = $('#max_price').val().trim();
+
+                        // nếu người dùng nhập có dấu phẩy, chấm -> bỏ đi
+                        minP = minP.replace(/[^0-9]/g, '');
+                        maxP = maxP.replace(/[^0-9]/g, '');
+
+                        var currentSlug = "@(ViewBag.CurrentSlug ?? "")";
+                        var sortBy = "@(ViewBag.SortBy ?? "")";
+
+                        var url = '@Url.Action("Index", "Category")' + '?Slug=' + encodeURIComponent(currentSlug);
+
+                        if (sortBy) url += '&sort_by=' + encodeURIComponent(sortBy);
+                        if (minP) url += '&min_price=' + encodeURIComponent(minP);
+                        if (maxP) url += '&max_price=' + encodeURIComponent(maxP);
+
+                        window.location = url;
+                    });
+
+                });
+            </script>
+}
