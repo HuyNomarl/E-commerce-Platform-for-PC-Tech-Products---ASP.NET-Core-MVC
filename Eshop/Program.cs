@@ -6,16 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//Connect to SQL Server Database
-builder.Services.AddDbContext<DataContext>(option =>
+// Connect to SQL Server Database
+builder.Services.AddDbContext<DataContext>(options =>
 {
-       option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();
@@ -27,40 +26,37 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddIdentity<AppUserModel, IdentityRole>()
-    .AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
-
-builder.Services.ConfigureApplicationCookie(options =>
+// Identity
+builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
 {
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-
-    // tránh redirect vòng vòng nếu cookie lỗi
-    options.SlidingExpiration = true;
-});
-
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // Password settings.
+    // Password settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 6;
-    //options.Password.RequiredUniqueChars = 1;
 
-    // Lockout settings.
-    //options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-    //options.Lockout.MaxFailedAccessAttempts = 5;
-    //options.Lockout.AllowedForNewUsers = true;
-
-    // User settings.
-    //options.User.AllowedUserNameCharacters =
-    //"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    // User settings
     options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<DataContext>()
+.AddDefaultTokenProviders();
+
+// Cookie for Identity
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.SlidingExpiration = true;
 });
 
+// Google Login
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
+        options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+    });
 
 var app = builder.Build();
 
@@ -74,7 +70,6 @@ else
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-
 
 // 404 / status code pages
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statuscode={0}");
@@ -95,26 +90,16 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "Categoty",
-    pattern: "/category/{Slug?}",
+    pattern: "category/{Slug?}",
     defaults: new { controller = "Category", action = "Index" });
 
 app.MapControllerRoute(
     name: "Publiser",
-    pattern: "/publisher/{Slug?}",
+    pattern: "publisher/{Slug?}",
     defaults: new { controller = "Publisher", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-// (tuỳ chọn) fallback cho route không match
-// app.MapFallbackToController("Error", "Home", new { statuscode = 404 });
-
-// Seed Data
-//using (var scope = app.Services.CreateScope())
-//{
-//    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-//    SeedData.SeedingData(context);
-//}
 
 app.Run();

@@ -408,3 +408,4 @@ E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\nhkxwv7c05-{0}-2qf1wd7m0u-2qf
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-qtq4xdn8qs-qtq4xdn8qs.gz
+E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.Google.dll

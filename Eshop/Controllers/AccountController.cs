@@ -2,10 +2,14 @@
 using Eshop.Models;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Eshop.Controllers
@@ -49,6 +53,72 @@ namespace Eshop.Controllers
                 ModelState.AddModelError("", "Đăng nhập không thành công!");
             }
             return View(model);
+        }
+
+        public async Task<IActionResult> UpdateAccount()
+        {
+            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _signInManager.UserManager.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return View(user);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateInfoAccount(AppUserModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View("UpdateAccount", model);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var currentUser = await _userManager.FindByIdAsync(userId);
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            // Cập nhật các field cho phép sửa
+            currentUser.UserName = model.UserName;
+            currentUser.Email = model.Email;
+            currentUser.PhoneNumber = model.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(currentUser);
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View("UpdateAccount", model);
+            }
+
+            TempData["success"] = "Cập nhật thông tin tài khoản thành công.";
+            return RedirectToAction("UpdateAccount", "Account");
         }
 
         public async Task<IActionResult> ForgetPass()
@@ -305,6 +375,81 @@ namespace Eshop.Controllers
         {
             ViewBag.ReturnUrl = returnUrl;
             return View();
+        }
+        public IActionResult LoginByGoogle()
+        {
+            var redirectUrl = Url.Action("GoogleResponse", "Account");
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
+            return Challenge(properties, "Google");
+        }
+
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+
+            if (info == null)
+            {
+                TempData["error"] = "Không lấy được thông tin đăng nhập từ Google";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var result = await _signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider,
+                info.ProviderKey,
+                isPersistent: false,
+                bypassTwoFactor: true
+            );
+
+            if (result.Succeeded)
+            {
+                TempData["success"] = "Đăng nhập thành công";
+                return RedirectToAction("Index", "Home");
+            }
+
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["error"] = "Google không trả về email";
+                return RedirectToAction("Login", "Account");
+            }
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                user = new AppUserModel
+                {
+                    UserName = email,
+                    Email = email
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+
+                if (!createResult.Succeeded)
+                {
+                    TempData["error"] = string.Join(" | ", createResult.Errors.Select(e => e.Description));
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+
+            var checkLogin = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+            if (checkLogin == null)
+            {
+                var addLoginResult = await _userManager.AddLoginAsync(user, info);
+
+                if (!addLoginResult.Succeeded)
+                {
+                    TempData["error"] = string.Join(" | ", addLoginResult.Errors.Select(e => e.Description));
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            TempData["success"] = "Đăng nhập thành công";
+            return RedirectToAction("Index", "Home");
         }
     }
 }
