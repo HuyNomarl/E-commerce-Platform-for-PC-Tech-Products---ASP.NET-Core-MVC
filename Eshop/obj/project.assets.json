@@ -2441,6 +2441,19 @@
           }
         }
       },
+      "RestSharp/114.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/RestSharp.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/RestSharp.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.ClientModel/1.5.1": {
         "type": "package",
         "dependencies": {
@@ -6248,6 +6261,31 @@
         "nuget.versioning.nuspec"
       ]
     },
+    "RestSharp/114.0.0": {
+      "sha512": "8pDO4q+K8nIqXbvGCb9ciKcngj36pCXGRDzOYPEPoS2IvBIL+mejmUMAtSNALt/NkDc9LQmHvM95kdniLSbGtg==",
+      "type": "package",
+      "path": "restsharp/114.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/RestSharp.dll",
+        "lib/net10.0/RestSharp.xml",
+        "lib/net471/RestSharp.dll",
+        "lib/net471/RestSharp.xml",
+        "lib/net48/RestSharp.dll",
+        "lib/net48/RestSharp.xml",
+        "lib/net8.0/RestSharp.dll",
+        "lib/net8.0/RestSharp.xml",
+        "lib/net9.0/RestSharp.dll",
+        "lib/net9.0/RestSharp.xml",
+        "lib/netstandard2.0/RestSharp.dll",
+        "lib/netstandard2.0/RestSharp.xml",
+        "restsharp.114.0.0.nupkg.sha512",
+        "restsharp.nuspec",
+        "restsharp.png"
+      ]
+    },
     "System.ClientModel/1.5.1": {
       "sha512": "k2jKSO0X45IqhVOT9iQB4xralNN9foRQsRvXBTyRpAVxyzCJlG895T9qYrQWbcJ6OQXxOouJQ37x5nZH5XKK+A==",
       "type": "package",
@@ -6771,7 +6809,8 @@
       "Microsoft.EntityFrameworkCore.SqlServer >= 10.0.1",
       "Microsoft.EntityFrameworkCore.Tools >= 10.0.1",
       "Microsoft.VisualStudio.Web.CodeGeneration.Design >= 10.0.0",
-      "Newtonsoft.Json >= 13.0.4"
+      "Newtonsoft.Json >= 13.0.4",
+      "RestSharp >= 114.0.0"
     ]
   },
   "packageFolders": {
@@ -6818,7 +6857,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
@@ -6859,6 +6898,10 @@
           "Newtonsoft.Json": {
             "target": "Package",
             "version": "[13.0.4, )"
+          },
+          "RestSharp": {
+            "target": "Package",
+            "version": "[114.0.0, )"
           }
         },
         "imports": [
@@ -6880,7 +6923,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.104/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

@@ -14,7 +14,8 @@
           "Microsoft.EntityFrameworkCore.Design": "10.0.1",
           "Microsoft.EntityFrameworkCore.SqlServer": "10.0.1",
           "Microsoft.VisualStudio.Web.CodeGeneration.Design": "10.0.0",
-          "Newtonsoft.Json": "13.0.4"
+          "Newtonsoft.Json": "13.0.4",
+          "RestSharp": "114.0.0"
         },
         "runtime": {
           "Eshop.dll": {}
@@ -1798,6 +1799,14 @@
           }
         }
       },
+      "RestSharp/114.0.0": {
+        "runtime": {
+          "lib/net10.0/RestSharp.dll": {
+            "assemblyVersion": "114.0.0.0",
+            "fileVersion": "114.0.0.0"
+          }
+        }
+      },
       "System.ClientModel/1.5.1": {
         "dependencies": {
           "System.Memory.Data": "8.0.1"
@@ -2747,6 +2756,13 @@
       "sha512": "sha512-fJ6rFYANDnohFsdpaY79FvrJxI6murmoOxXz6nZlf819F48+IBKMnAIg3oIBRtZq5y498ObMtKnro5IitvizUg==",
       "path": "nuget.versioning/6.12.1",
       "hashPath": "nuget.versioning.6.12.1.nupkg.sha512"
+    },
+    "RestSharp/114.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8pDO4q+K8nIqXbvGCb9ciKcngj36pCXGRDzOYPEPoS2IvBIL+mejmUMAtSNALt/NkDc9LQmHvM95kdniLSbGtg==",
+      "path": "restsharp/114.0.0",
+      "hashPath": "restsharp.114.0.0.nupkg.sha512"
     },
     "System.ClientModel/1.5.1": {
       "type": "package",

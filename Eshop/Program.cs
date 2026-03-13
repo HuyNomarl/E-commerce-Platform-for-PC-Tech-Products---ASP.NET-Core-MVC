@@ -1,10 +1,16 @@
 ﻿using Eshop.Areas.Admin.Repository;
 using Eshop.Models;
+using Eshop.Models.Momo;
 using Eshop.Repository;
+using Eshop.Services;
+using Eshop.Services.Momo;
+using Eshop.Services.VNPay;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Connect to SQL Server Database
 builder.Services.AddDbContext<DataContext>(options =>
@@ -25,6 +31,8 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Identity
 builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
@@ -49,6 +57,14 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.SlidingExpiration = true;
 });
+
+//VNPay
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+//MOMO 
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
+builder.Services.AddScoped<IMomoService, MomoService>();
+
 
 // Google Login
 builder.Services.AddAuthentication()

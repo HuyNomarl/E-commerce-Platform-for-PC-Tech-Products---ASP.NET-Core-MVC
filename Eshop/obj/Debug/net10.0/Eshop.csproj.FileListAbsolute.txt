@@ -409,3 +409,4 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFram
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-qtq4xdn8qs-qtq4xdn8qs.gz
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.Google.dll
+E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\RestSharp.dll
