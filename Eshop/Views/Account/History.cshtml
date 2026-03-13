@@ -1,0 +1,161 @@
+﻿@model IEnumerable<Eshop.Models.ViewModels.OrderHistoryViewModel>
+
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Lịch sử đơn hàng</h3>
+            <p class="text-muted mb-0">Danh sách các đơn hàng bạn đã đặt</p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <table class="table table-striped table-hover align-middle mb-0" id="orderHistoryTable">
+                <thead>
+                    <tr>
+                        <th>Mã đơn hàng</th>
+                        <th>Ngày đặt</th>
+                        <th>Trạng thái</th>
+                        <th>Phí vận chuyển</th>
+                        <th>Tổng tiền</th>
+                        <th style="width: 220px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@item.OrderCode</td>
+                                <td>@item.CreatedTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @switch (item.Status)
+                                    {
+                                        case 1:
+                                            <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                            break;
+                                        case 2:
+                                            <span class="badge bg-info text-dark">Đang xử lý</span>
+                                            break;
+                                        case 3:
+                                            <span class="badge bg-primary">Đang giao</span>
+                                            break;
+                                        case 4:
+                                            <span class="badge bg-success">Đã giao</span>
+                                            break;
+                                        case 5:
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                            break;
+                                        case 6:
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">Mới</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@item.ShippingCost.ToString("N0") đ</td>
+                                <td class="fw-semibold text-danger">@item.TotalAmount.ToString("N0") đ</td>
+                                <td>
+                                    <a asp-controller="Account"
+                                       asp-action="Details"
+                                       asp-route-orderCode="@item.OrderCode"
+                                       class="btn btn-sm btn-primary">
+                                        Xem chi tiết
+                                    </a>
+
+                                    @if (item.Status == 1)
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger btn-cancel-order"
+                                                data-ordercode="@item.OrderCode">
+                                            Hủy đơn
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="btn btn-sm btn-secondary"
+                                                disabled>
+                                            Không thể hủy
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Bạn chưa có đơn hàng nào.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form id="cancelOrderForm" method="post" asp-controller="Account" asp-action="CancelOrder">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="orderCode" id="cancelOrderCode" />
+</form>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).on('click', '.btn-cancel-order', function () {
+            const orderCode = $(this).data('ordercode');
+
+            Swal.fire({
+                title: 'Bạn có chắc muốn hủy đơn hàng?',
+                text: 'Sau khi hủy sẽ không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Có, hủy đơn',
+                cancelButtonText: 'Không',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#cancelOrderCode').val(orderCode);
+                    $('#cancelOrderForm').submit();
+                }
+            });
+        });
+    </script>
+
+    @if (TempData["success"] != null)
+    {
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công',
+                text: '@Html.Raw(TempData["success"])'
+            });
+        </script>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: '@Html.Raw(TempData["error"])'
+            });
+        </script>
+    }
+
+    <script>
+        new DataTable('#orderHistoryTable');
+    </script>
+}

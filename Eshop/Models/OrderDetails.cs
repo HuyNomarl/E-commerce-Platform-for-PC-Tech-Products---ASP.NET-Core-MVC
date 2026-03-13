@@ -12,5 +12,7 @@ namespace Eshop.Models
         public int Quantity { get; set; }
         [ForeignKey(nameof(ProductId))]
         public ProductModel Product { get; set; }
+
+
     }
 }

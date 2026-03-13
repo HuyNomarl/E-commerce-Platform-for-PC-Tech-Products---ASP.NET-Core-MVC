@@ -1,0 +1,149 @@
+﻿@model Eshop.Models.ViewModels.UserOrderDetailViewModel
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    decimal subtotal = Model.OrderDetails?.Sum(x => x.LineTotal) ?? 0;
+    decimal total = subtotal + Model.ShippingCost;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Chi tiết đơn hàng</h3>
+            <p class="text-muted mb-0">Thông tin chi tiết về đơn hàng của bạn</p>
+        </div>
+
+        <a asp-controller="Order" asp-action="History" class="btn btn-secondary">
+            Quay lại
+        </a>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <p class="mb-2"><strong>Mã đơn hàng:</strong> @Model.OrderCode</p>
+                    <p class="mb-2"><strong>Tài khoản:</strong> @Model.UserName</p>
+                    <p class="mb-2"><strong>Ngày đặt:</strong> @Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Trạng thái:</strong>
+                        @switch (Model.Status)
+                        {
+                            case 1:
+                                <span class="badge bg-warning text-dark">Chờ xác nhận</span>
+                                break;
+                            case 2:
+                                <span class="badge bg-info text-dark">Đang xử lý</span>
+                                break;
+                            case 3:
+                                <span class="badge bg-primary">Đang giao</span>
+                                break;
+                            case 4:
+                                <span class="badge bg-success">Đã giao</span>
+                                break;
+                            case 5:
+                                <span class="badge bg-success">Hoàn thành</span>
+                                break;
+                            case 6:
+                                <span class="badge bg-danger">Đã hủy</span>
+                                break;
+                            default:
+                                <span class="badge bg-secondary">Mới</span>
+                                break;
+                        }
+                    </p>
+                    <p class="mb-2"><strong>Phí vận chuyển:</strong> @Model.ShippingCost.ToString("N0") đ</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h5 class="mb-3">Danh sách sản phẩm</h5>
+
+            <table class="table table-bordered table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th class="text-end">Đơn giá</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+                    {
+                        foreach (var item in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td class="text-end">@item.Price.ToString("N0") đ</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.LineTotal.ToString("N0") đ</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Không có sản phẩm nào trong đơn.</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="3" class="text-end">Tạm tính</th>
+                        <th class="text-end">@subtotal.ToString("N0") đ</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3" class="text-end">Phí vận chuyển</th>
+                        <th class="text-end">@Model.ShippingCost.ToString("N0") đ</th>
+                    </tr>
+                    <tr>
+                        <th colspan="3" class="text-end">Tổng cộng</th>
+                        <th class="text-end text-danger">@total.ToString("N0") đ</th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            @if (Model.Status == 1)
+            {
+                <form method="post" asp-controller="Order" asp-action="CancelOrder" id="cancelOrderForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderCode" value="@Model.OrderCode" />
+
+                    <button type="button" id="btnCancelOrder" class="btn btn-danger">
+                        Hủy đơn hàng
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).on('click', '#btnCancelOrder', function () {
+            Swal.fire({
+                title: 'Bạn có chắc muốn hủy đơn hàng?',
+                text: 'Sau khi hủy sẽ không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Có, hủy đơn',
+                cancelButtonText: 'Không',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#cancelOrderForm').submit();
+                }
+            });
+        });
+    </script>
+}

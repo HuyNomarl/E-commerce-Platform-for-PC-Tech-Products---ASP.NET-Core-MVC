@@ -34,5 +34,6 @@ namespace Eshop.Models
         public DateTime CreatedTime { get; set; } = DateTime.Now;
 
         public int Status { get; set; } = 1;
+
     }
 }
