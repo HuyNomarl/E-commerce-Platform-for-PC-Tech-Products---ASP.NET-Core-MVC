@@ -1,313 +1,159 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home | E-Shopper</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - E-Shopper</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/base/jquery-ui.css" />
 
-    <link href="
-https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
-" rel="stylesheet">
+    <link href="~/css/prettyPhoto.css" rel="stylesheet" />
+    <link href="~/css/price-range.css" rel="stylesheet" />
+    <link href="~/css/animate.css" rel="stylesheet" />
+    <link href="~/css/main.css" rel="stylesheet" />
+    <link href="~/css/site-custom.css" rel="stylesheet" />
+    <link href="~/css/responsive.css" rel="stylesheet" />
 
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/base/jquery-ui.css">
+    <link rel="shortcut icon" href="~/images/ico/favicon.ico" />
 
-    <!-- CSS custom của template -->
-    <link href="~/css/prettyPhoto.css" rel="stylesheet">
-    <link href="~/css/price-range.css" rel="stylesheet">
-    <link href="~/css/animate.css" rel="stylesheet">
-    <link href="~/css/main.css" rel="stylesheet">
-    <link href="~/css/responsive.css" rel="stylesheet">
-    @* <link href="~/css/font-awesome.min.css" rel="stylesheet"> *@
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-
-    <link rel="shortcut icon" href="images/ico/favicon.ico">
-
-                        <style>
-                                .support-chat-toggle {
-                                    position: fixed;
-                                    right: 20px;
-                                    bottom: 80px;
-                                    width: 55px;
-                                    height: 55px;
-                                    border-radius: 50%;
-                                    background: #fe980f;
-                                    color: #fff;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 24px;
-                                    cursor: pointer;
-                                    z-index: 9999;
-                                    box-shadow: 0 4px 15px rgba(0,0,0,.25);
-                                }
-
-                                .support-chat-box {
-                                    position: fixed;
-                                    right: 20px;
-                                    bottom: 145px;
-                                    width: 340px;
-                                    max-width: calc(100vw - 30px);
-                                    background: #fff;
-                                    border: 1px solid #ddd;
-                                    border-radius: 10px;
-                                    box-shadow: 0 8px 25px rgba(0,0,0,.2);
-                                    z-index: 9999;
-                                    overflow: hidden;
-                                }
-
-                                .support-chat-header {
-                                    background: #fe980f;
-                                    color: #fff;
-                                    padding: 12px 15px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: space-between;
-                                    font-weight: bold;
-                                }
-
-                                .support-chat-close {
-                                    background: transparent;
-                                    border: none;
-                                    color: #fff;
-                                    font-size: 22px;
-                                    line-height: 1;
-                                    cursor: pointer;
-                                }
-
-                                .support-chat-messages {
-                                    height: 300px;
-                                    overflow-y: auto;
-                                    padding: 10px;
-                                    background: #fafafa;
-                                }
-
-                                .support-chat-item {
-                                    margin-bottom: 10px;
-                                    display: flex;
-                                }
-
-                                    .support-chat-item.me {
-                                        justify-content: flex-end;
-                                    }
-
-                                    .support-chat-item.other {
-                                        justify-content: flex-start;
-                                    }
-
-                                .support-chat-bubble {
-                                    max-width: 78%;
-                                    padding: 8px 12px;
-                                    border-radius: 12px;
-                                    font-size: 13px;
-                                    line-height: 1.4;
-                                    word-break: break-word;
-                                }
-
-                                .support-chat-item.me .support-chat-bubble {
-                                    background: #d9edf7;
-                                    color: #333;
-                                }
-
-                                .support-chat-item.other .support-chat-bubble {
-                                    background: #f5f5f5;
-                                    color: #333;
-                                }
-
-                                .support-chat-time {
-                                    display: block;
-                                    margin-top: 4px;
-                                    font-size: 11px;
-                                    color: #777;
-                                }
-
-                                .support-chat-input-wrap {
-                                    display: flex;
-                                    gap: 8px;
-                                    padding: 10px;
-                                    border-top: 1px solid #eee;
-                                    background: #fff;
-                                }
-
-                                    .support-chat-input-wrap input {
-                                        flex: 1;
-                                    }
-                        </style>
-
+   
 </head>
-
-                    @if (User.Identity != null && User.Identity.IsAuthenticated)
-                    {
-                        <div id="supportChatToggle" class="support-chat-toggle" title="Chat với admin">
-                            <i class="fa fa-comments"></i>
-                        </div>
-
-                        <div id="supportChatBox" class="support-chat-box" style="display:none;">
-                            <div class="support-chat-header">
-                                <span id="supportChatTitle">Hỗ trợ trực tuyến</span>
-                                <button type="button" id="supportChatClose" class="support-chat-close">&times;</button>
-                            </div>
-
-                            <div id="supportChatMessages" class="support-chat-messages"></div>
-
-                            <div class="support-chat-input-wrap">
-                                <input type="text" id="supportChatInput" class="form-control" placeholder="Nhập tin nhắn..." />
-                                <button type="button" id="supportChatSend" class="btn btn-danger">Gửi</button>
-                            </div>
-                        </div>
-                    }
-
 <body>
-    <header id="header">
-        <!--header-->
-        <div class="header_top">
-            <!--header_top-->
+    <partial name="_SupportChatPartial" />
+
+    <header class="tt-header">
+        <div class="tt-header-top">
             <div class="container">
-                <div class="row">
-                    <div class="col-sm-6">
-                        <div class="contactinfo">
-                            <ul class="nav nav-pills">
-                                <li><a href="#"><i class="fa fa-phone"></i> +2 95 01 88 821</a></li>
-                                <li><a href="#"><i class="fa fa-envelope"></i> info@domain.com</a></li>
-                            </ul>
-                        </div>
+                <div class="tt-top-inner">
+                    <div class="tt-top-left">
+                        <a href="#">Hệ thống showroom</a>
+                        <a href="#">Bán hàng trực tuyến</a>
+                        <a href="#">Trang tin công nghệ</a>
+                        <a href="#">TƯ VẤN BUILD PC</a>
+                        <a href="#">Phần mềm hay</a>
                     </div>
-                    <div class="col-sm-6">
-                        <div class="social-icons pull-right">
-                            <ul class="nav navbar-nav">
-                                <li><a href="#"><i class="fa fa-facebook"></i></a></li>
-                                <li><a href="#"><i class="fa fa-twitter"></i></a></li>
-                                <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-                                <li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-                                <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-                            </ul>
-                        </div>
+
+                    <div class="tt-top-right">
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <a asp-controller="Account" asp-action="UpdateAccount">Tài khoản</a>
+                            <span>|</span>
+                            <a asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Register">Đăng ký</a>
+                            <span>|</span>
+                            <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                        }
                     </div>
                 </div>
             </div>
-        </div><!--/header_top-->
+        </div>
 
-        <div class="header-middle">
-            <!--header-middle-->
+        <div class="tt-header-main">
             <div class="container">
-                <div class="row">
-                    <div class="col-sm-4">
-                        <div class="logo pull-left">
-                            <a href="index.html"><img src="images/home/logo.png" alt="" /></a>
-                        </div>
-                        <div class="btn-group pull-right">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-                                    USA
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Canada</a></li>
-                                    <li><a href="#">UK</a></li>
-                                </ul>
-                            </div>
-
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-                                    DOLLAR
-                                    <span class="caret"></span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Canadian Dollar</a></li>
-                                    <li><a href="#">Pound</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="tt-main-row">
+                    <div class="tt-logo-col">
+                        <a asp-controller="Home" asp-action="Index" class="tt-logo">
+                            <img src="~/images/home/logo.png" alt="TTSHOP" />
+                        </a>
                     </div>
-                    <div class="col-sm-8">
-                        <div class="shop-menu pull-right">
-                            <ul class="nav navbar-nav">
-                                @if (User.Identity?.IsAuthenticated ?? false)
-                                {
-                                    <li class="dropdown">
-                                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                                            <i class="fa fa-user"></i> Chào @User.Identity.Name <b class="caret"></b>
-                                        </a>
-                                        <ul class="dropdown-menu">
-                                            <li><a asp-action="History" asp-controller="Account"><i class="fa fa-history"></i> Lịch sử đơn hàng</a></li>
-                                            <li><a asp-action="UpdateAccount" asp-controller="Account"><i class="fa fa-edit"></i> Thay đổi thông tin</a></li>
-                                            <li><a asp-action="ChangePassword" asp-controller="Account"><i class="fa fa-key"></i> Đổi mật khẩu</a></li>
-                                            <li class="divider"></li>
-                                            <li><a asp-controller="Account" asp-action="Logout"><i class="fa fa-sign-out"></i> Đăng xuất</a></li>
-                                        </ul>
-                                    </li>
 
-                                    <li><a asp-action="Wishlist" asp-controller="Home"><i class="fa fa-star"></i> Wishlist</a></li>
-                                    <li><a asp-action="Compare" asp-controller="Home"><i class="fa fa-star"></i> Compare</a></li>
-                                    <li><a href="checkout.html"><i class="fa fa-crosshairs"></i> Checkout</a></li>
-                                    <li><a href="cart.html"><i class="fa fa-shopping-cart"></i> Cart</a></li>
-                                }
-                                else
-                                {
-                                    <li><a asp-action="Login" asp-controller="Account"><i class="fa fa-lock"></i> Login</a></li>
-                                    <li><a asp-action="Register" asp-controller="Account"><i class="fa fa-user"></i> Đăng ký</a></li>
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div><!--/header-middle-->
+                    <div class="tt-search-col">
+                        <form asp-controller="Product" asp-action="Search" method="post" class="tt-search-form">
+                            <select name="categoryId" class="tt-search-select">
+                                <option value="">Tất cả danh mục</option>
+                            </select>
 
-        <div class="header-bottom">
-            <!--header-bottom-->
-            <div class="container">
-                <div class="row">
-                    <div class="col-sm-9">
-                        <div class="navbar-header">
-                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                <span class="sr-only">Toggle navigation</span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
-                                <span class="icon-bar"></span>
+                            <input type="text" name="searchTerm" class="tt-search-input" placeholder="Tìm kiếm sản phẩm..." />
+
+                            <button type="submit" class="tt-search-btn">
+                                <i class="fa fa-search"></i>
                             </button>
-                        </div>
-                        <div class="mainmenu pull-left">
-                            <ul class="nav navbar-nav collapse navbar-collapse">
-                                <li><a asp-controller="Home" class="active">Home</a></li>
-                                <li class="dropdown">
-                                    <a asp-controller="Product">Shop<i class="fa fa-angle-down"></i></a>
-                                    <ul role="menu" class="sub-menu">
-                                        <li><a asp-controller="Category"> Categories</a></li>
-                                        <li><a asp-action="Details" asp-controller="Product">Product Details</a></li>
-                                        <li><a asp-controller="Cart" asp-action="Checkout">Checkout</a></li>
-                                        <li><a asp-controller="Cart">Cart</a></li>
-                                        <li><a>Login</a></li>
-                                    </ul>
-                                </li>
-                                <li class="dropdown">
-                                    <a href="#">Blog<i class="fa fa-angle-down"></i></a>
-                                    <ul role="menu" class="sub-menu">
-                                        <li><a href="blog.html">Blog List</a></li>
-                                        <li><a href="blog-single.html">Blog Single</a></li>
-                                    </ul>
-                                </li>
-                                <li><a href="404.html">404</a></li>
+                        </form>
 
-                                <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
-                            </ul>
+                        <div class="tt-quick-links">
+                            <a href="#">PC Gaming</a>
+                            <a href="#">Linh kiện máy tính</a>
+                            <a href="#">Màn hình</a>
                         </div>
                     </div>
-                    <div class="col-sm-3">
-                        <form asp-controller="Product" asp-action="Search" method="post">
-                            <div class="search_box pull-right">
-                                <input type="text" name="searchTerm" placeholder="Search" />
-                                <button class="btn btn-danger" type="submit">Search</button>
+
+                    <div class="tt-action-col">
+                        <a href="#" class="tt-action-item">
+                            <div class="tt-action-icon">
+                                <i class="fa fa-phone"></i>
                             </div>
-                        </form>
+                            <div class="tt-action-text">
+                                <span>Hotline mua hàng</span>
+                                <strong>098.655.2233</strong>
+                            </div>
+                        </a>
+
+                        <a href="#" class="tt-action-item">
+                            <div class="tt-action-icon">
+                                <i class="fa fa-desktop"></i>
+                            </div>
+                            <div class="tt-action-text">
+                                <span>Xây dựng</span>
+                                <strong>Cấu hình PC</strong>
+                            </div>
+                        </a>
+
+                        <a asp-controller="Cart" asp-action="Index" class="tt-action-item tt-cart-item">
+                            <div class="tt-action-icon">
+                                <i class="fa fa-shopping-cart"></i>
+                            </div>
+                            <div class="tt-action-text">
+                                <strong>Giỏ hàng</strong>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
-        </div><!--/header-bottom-->
-    </header><!--/header-->
+        </div>
+
+        <div class="tt-header-bottom">
+            <div class="container">
+                <div class="tt-bottom-row">
+                    <div class="tt-category-col">
+                        @await Component.InvokeAsync("CategoryMenu")
+                    </div>
+
+                    <div class="tt-feature-col">
+                        <a href="#" class="tt-feature-item">
+                            <i class="fa fa-desktop"></i>
+                            <span>PC GAMING</span>
+                        </a>
+
+                        <a href="#" class="tt-feature-item">
+                            <i class="fa fa-desktop"></i>
+                            <span>PC WORKSTATION 2D 3D</span>
+                        </a>
+
+                        <a href="#" class="tt-feature-item">
+                            <i class="fa fa-desktop"></i>
+                            <span>PC AMD GAMING</span>
+                        </a>
+
+                        <a href="#" class="tt-feature-item">
+                            <i class="fa fa-desktop"></i>
+                            <span>PC MINI</span>
+                        </a>
+
+                        <a href="#" class="tt-feature-item">
+                            <i class="fa fa-desktop"></i>
+                            <span>PC VĂN PHÒNG</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
     <section>
         <div class="container">
@@ -319,75 +165,7 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
     </section>
 
     <footer id="footer">
-        <!--Footer-->
         <partial name="_FooterPartial" />
-
-        @* <div class="footer-widget">
-            <div class="container">
-                <div class="row">
-                    <div class="col-sm-2">
-                        <div class="single-widget">
-                            <h2>Service</h2>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li><a href="#">Online Help</a></li>
-                                <li><a href="#">Contact Us</a></li>
-                                <li><a href="#">Order Status</a></li>
-                                <li><a href="#">Change Location</a></li>
-                                <li><a href="#">FAQ’s</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-sm-2">
-                        <div class="single-widget">
-                            <h2>Quock Shop</h2>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li><a href="#">T-Shirt</a></li>
-                                <li><a href="#">Mens</a></li>
-                                <li><a href="#">Womens</a></li>
-                                <li><a href="#">Gift Cards</a></li>
-                                <li><a href="#">Shoes</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-sm-2">
-                        <div class="single-widget">
-                            <h2>Policies</h2>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li><a href="#">Terms of Use</a></li>
-                                <li><a href="#">Privecy Policy</a></li>
-                                <li><a href="#">Refund Policy</a></li>
-                                <li><a href="#">Billing System</a></li>
-                                <li><a href="#">Ticket System</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-sm-2">
-                        <div class="single-widget">
-                            <h2>About Shopper</h2>
-                            <ul class="nav nav-pills nav-stacked">
-                                <li><a href="#">Company Information</a></li>
-                                <li><a href="#">Careers</a></li>
-                                <li><a href="#">Store Location</a></li>
-                                <li><a href="#">Affillate Program</a></li>
-                                <li><a href="#">Copyright</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="col-sm-3 col-sm-offset-1">
-                        <div class="single-widget">
-                            <h2>About Shopper</h2>
-                            <form action="#" class="searchform">
-                                <input type="text" placeholder="Your email address" />
-                                <button type="submit" class="btn btn-default"><i class="fa fa-arrow-circle-o-right"></i></button>
-                                <p>Get the most recent updates from <br />our site and be updated your self...</p>
-                            </form>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </div> *@
-
         <div class="footer-bottom">
             <div class="container">
                 <div class="row">
@@ -395,171 +173,19 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
                 </div>
             </div>
         </div>
-
-    </footer><!--/Footer-->
-
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
-
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
-    <!-- Template JS -->
+
     <script src="~/js/jquery.scrollUp.min.js"></script>
     <script src="~/js/price-range.js"></script>
     <script src="~/js/jquery.prettyPhoto.js"></script>
     <script src="~/js/main.js"></script>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script src="~/js/support-chat.js"></script>
 
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            <script>
-                                (function () {
-                                const toggleBtn = document.getElementById("supportChatToggle");
-                                const chatBox = document.getElementById("supportChatBox");
-                                const closeBtn = document.getElementById("supportChatClose");
-                                const sendBtn = document.getElementById("supportChatSend");
-                                const input = document.getElementById("supportChatInput");
-                                const messagesBox = document.getElementById("supportChatMessages");
-                                const title = document.getElementById("supportChatTitle");
-
-                                if (!toggleBtn || !chatBox || !sendBtn || !input || !messagesBox) return;
-
-                                let adminId = null;
-                                let adminName = "Admin";
-                                let started = false;
-
-                                const connection = new signalR.HubConnectionBuilder()
-                                .withUrl("/chatHub")
-                                .withAutomaticReconnect()
-                                .build();
-
-                                function appendMessage(message, isMe) {
-                                const item = document.createElement("div");
-                                item.className = "support-chat-item " + (isMe ? "me" : "other");
-
-                                const bubble = document.createElement("div");
-                                bubble.className = "support-chat-bubble";
-
-                                const content = document.createElement("div");
-                                content.textContent = message.content;
-
-                                const time = document.createElement("small");
-                                time.className = "support-chat-time";
-                                time.textContent = message.createdAt || "";
-
-                                bubble.appendChild(content);
-                                bubble.appendChild(time);
-                                item.appendChild(bubble);
-                                messagesBox.appendChild(item);
-
-                                messagesBox.scrollTop = messagesBox.scrollHeight;
-                                }
-
-                                function clearMessages() {
-                                messagesBox.innerHTML = "";
-                                }
-
-                                async function loadAdmin() {
-                                const res = await fetch('/Chat/GetAdminInfo');
-                                const data = await res.json();
-
-                                if (!data.success) {
-                                throw new Error(data.message || "Không lấy được admin.");
-                                }
-
-                                adminId = data.adminId;
-                                adminName = data.adminName || "Admin";
-                                title.textContent = "Chat với " + adminName;
-                                }
-
-                                async function loadHistory() {
-                                if (!adminId) return;
-
-                                const res = await fetch('/Chat/GetSupportMessages?adminId=' + encodeURIComponent(adminId));
-                                const data = await res.json();
-
-                                clearMessages();
-
-                                data.forEach(msg => {
-                                const isMe = msg.senderId !== adminId;
-                                appendMessage({
-                                content: msg.content,
-                                createdAt: msg.createdAt
-                                }, isMe);
-                                });
-                                }
-
-                                async function ensureStarted() {
-                                if (started) return;
-                                await connection.start();
-                                started = true;
-                                }
-
-                                connection.on("ReceiveSupportMessage", function (message) {
-                                if (!adminId) return;
-
-                                const related =
-                                (message.senderId === adminId || message.receiverId === adminId);
-
-                                if (!related) return;
-
-                                const isMe = message.senderId !== adminId;
-                                appendMessage(message, isMe);
-                                });
-
-                                toggleBtn.addEventListener("click", async function () {
-                                const isHidden = chatBox.style.display === "none" || chatBox.style.display === "";
-
-                                if (isHidden) {
-                                chatBox.style.display = "block";
-
-                                try {
-                                await loadAdmin();
-                                await ensureStarted();
-                                await loadHistory();
-                                } catch (err) {
-                                console.error(err);
-                                Swal.fire("Lỗi", err.message || "Không mở được hộp chat", "error");
-                                }
-                                } else {
-                                chatBox.style.display = "none";
-                                }
-                                });
-
-                                closeBtn.addEventListener("click", function () {
-                                chatBox.style.display = "none";
-                                });
-
-                                sendBtn.addEventListener("click", async function () {
-                                const content = input.value.trim();
-                                if (!content) return;
-
-                                if (!adminId) {
-                                Swal.fire("Thông báo", "Chưa tìm thấy admin để chat.", "warning");
-                                return;
-                                }
-
-                                try {
-                                await ensureStarted();
-                                await connection.invoke("SendMessage", adminId, content);
-                                input.value = "";
-                                } catch (err) {
-                                console.error(err);
-                                Swal.fire("Lỗi", "Gửi tin nhắn thất bại.", "error");
-                                }
-                                });
-
-                                input.addEventListener("keypress", function (e) {
-                                if (e.key === "Enter") {
-                                e.preventDefault();
-                                sendBtn.click();
-                                }
-                                });
-                                })();
-                            </script>
-                        }
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>

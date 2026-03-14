@@ -8,34 +8,43 @@ namespace Eshop.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required, MinLength(4, ErrorMessage = "Yêu cầu nhập tên Sản phẩm")]
+
+        [Required, MinLength(4, ErrorMessage = "Yêu cầu nhập tên sản phẩm")]
         public string Name { get; set; }
+
         public string Slug { get; set; }
-        [Required, MinLength(4, ErrorMessage = "Yêu cầu nhập mô tả Sản phẩm")]
+
+        [Required, MinLength(4, ErrorMessage = "Yêu cầu nhập mô tả sản phẩm")]
         public string Description { get; set; }
-        //[Required, MinLength(4, ErrorMessage = "Yêu cầu nhập giá sản phẩm")]
+
         public int Quantity { get; set; }
         public int Sold { get; set; }
 
-        [Required(ErrorMessage ="Yêu cầu nhập giá sản phẩm!")]
+        [Required(ErrorMessage = "Yêu cầu nhập giá sản phẩm!")]
         [Range(0.01, double.MaxValue)]
-        [Column(TypeName = "decimal(8,2)")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
+
         [ForeignKey("PublisherId")]
         [Required, Range(1, int.MaxValue, ErrorMessage = "Yêu cầu chọn thương hiệu!")]
         public int PublisherId { get; set; }
+
         [ForeignKey("CategoryId")]
         [Required, Range(1, int.MaxValue, ErrorMessage = "Yêu cầu chọn danh mục!")]
-        public int CategoryId { get; set; } 
+        public int CategoryId { get; set; }
+
         public CategoryModel Category { get; set; }
         public PublisherModel Publisher { get; set; }
+
         public ICollection<RatingModel> RatingModel { get; set; } = new List<RatingModel>();
 
-        public string? Image { get; set; } 
+        public string? Image { get; set; }
 
         [NotMapped]
         [FileExtension]
         public IFormFile? ImageUpload { get; set; }
 
+        public ICollection<ProductOptionGroupModel> OptionGroups { get; set; } = new List<ProductOptionGroupModel>();
+        public ICollection<ProductQuantityModel> ProductQuantities { get; set; } = new List<ProductQuantityModel>();
     }
 }

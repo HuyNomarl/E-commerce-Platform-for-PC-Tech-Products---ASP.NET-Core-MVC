@@ -6,6 +6,7 @@ wwwroot\css\main.css
 wwwroot\css\prettyPhoto.css
 wwwroot\css\price-range.css
 wwwroot\css\responsive.css
+wwwroot\css\site-custom.css
 wwwroot\favicon.ico
 wwwroot\images\dune.jpg
 wwwroot\images\gallery1.jpg
@@ -19,6 +20,7 @@ wwwroot\js\jquery.prettyPhoto.js
 wwwroot\js\jquery.scrollUp.min.js
 wwwroot\js\main.js
 wwwroot\js\price-range.js
+wwwroot\js\support-chat.js
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -163,3 +165,5 @@ E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
 E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
+E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css

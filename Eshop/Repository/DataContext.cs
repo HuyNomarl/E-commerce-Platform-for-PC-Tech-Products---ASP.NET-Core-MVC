@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Eshop.Repository
 {
@@ -25,6 +26,8 @@ namespace Eshop.Repository
         public DbSet<ShippingModel> Shippings { get; set; }
         public DbSet<CouponModel> Coupons { get; set; }
         public DbSet<MessageModel> Messages { get; set; }
+        public DbSet<ProductOptionGroupModel> ProductOptionGroups { get; set; }
+        public DbSet<ProductOptionValueModel> ProductOptionValues { get; set; }
 
 
 
@@ -66,6 +69,31 @@ namespace Eshop.Repository
 
             builder.Entity<MessageModel>()
                 .HasIndex(m => m.CreatedAt);
+
+            builder.Entity<CategoryModel>()
+        .HasOne(c => c.ParentCategory)
+        .WithMany(c => c.Children)
+        .HasForeignKey(c => c.ParentCategoryId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ProductModel>()
+                .HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ProductOptionGroupModel>()
+                .HasOne(g => g.Product)
+                .WithMany(p => p.OptionGroups)
+                .HasForeignKey(g => g.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductOptionValueModel>()
+                .HasOne(v => v.ProductOptionGroup)
+                .WithMany(g => g.OptionValues)
+                .HasForeignKey(v => v.ProductOptionGroupId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
 
     }

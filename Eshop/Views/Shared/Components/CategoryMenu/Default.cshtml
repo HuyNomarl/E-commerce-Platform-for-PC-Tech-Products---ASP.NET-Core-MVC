@@ -1,0 +1,59 @@
+﻿@model List<Eshop.Models.CategoryModel>
+
+<div class="tt-category-box">
+    <button type="button" class="tt-category-toggle" id="ttCategoryToggle">
+        <i class="fa fa-bars"></i>
+        <span>DANH MỤC SẢN PHẨM</span>
+    </button>
+
+    <div class="tt-category-dropdown" id="ttCategoryDropdown">
+        <div class="tt-category-sidebar">
+            <ul class="tt-parent-list">
+                @foreach (var parent in Model)
+                {
+                    <li class="tt-parent-item @(parent.Children != null && parent.Children.Any() ? "has-child" : "")">
+                        <a asp-controller="Category"
+                               asp-action="Index"
+                               asp-route-slug="@parent.Slug"
+                               class="tt-parent-link">
+                            <span>@parent.Name</span>
+                            @if (parent.Children != null && parent.Children.Any())
+                            {
+                                <i class="fa fa-angle-right"></i>
+                            }
+                        </a>
+
+                        @if (parent.Children != null && parent.Children.Any())
+                        {
+                            <div class="tt-child-panel">
+                                <div class="tt-child-inner">
+                                    <div class="tt-child-grid">
+                                        <div class="tt-child-column">
+                                            <h4>@parent.Name</h4>
+                                            <ul>
+                                                @foreach (var child in parent.Children.OrderBy(x => x.Id))
+                                                {
+                                                    <li>
+                                                        <a asp-controller="Category"
+                                                               asp-action="Index"
+                                                               asp-route-slug="@child.Slug">
+                                                            @child.Name
+                                                        </a>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+
+                                        @* <div class="tt-child-banner">
+                                            <img src="~/images/banner-linhkien.jpg" alt="Banner danh mục" />
+                                        </div> *@
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

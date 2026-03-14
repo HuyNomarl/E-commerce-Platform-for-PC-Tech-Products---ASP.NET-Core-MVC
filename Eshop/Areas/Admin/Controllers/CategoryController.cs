@@ -20,24 +20,23 @@ namespace Eshop.Areas.Admin.Controllers
         }
         public async Task<IActionResult> Index(int pg = 1)
         {
-            List<CategoryModel> category = _dataContext.Categories.ToList(); //33 datas
+            List<CategoryModel> categories = _dataContext.Categories
+                .Include(c => c.ParentCategory)
+                .OrderBy(c => c.ParentCategoryId)
+                .ThenBy(c => c.Id)
+                .ToList();
 
+            const int pageSize = 10;
 
-            const int pageSize = 10; //10 items/trang
+            if (pg < 1)
+                pg = 1;
 
-            if (pg < 1) //page < 1;
-            {
-                pg = 1; //page ==1
-            }
-            int recsCount = category.Count(); //33 items;
-
+            int recsCount = categories.Count();
             var pager = new Paginate(recsCount, pg, pageSize);
 
-            int recSkip = (pg - 1) * pageSize; //(3 - 1) * 10; 
+            int recSkip = (pg - 1) * pageSize;
 
-            //category.Skip(20).Take(10).ToList()
-
-            var data = category.Skip(recSkip).Take(pager.PageSize).ToList();
+            var data = categories.Skip(recSkip).Take(pager.PageSize).ToList();
 
             ViewBag.Pager = pager;
 

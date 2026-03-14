@@ -1,0 +1,29 @@
+﻿@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    <button id="supportChatToggle" class="support-chat-fab" type="button" title="Chat hỗ trợ">
+        <i class="fa fa-comments"></i>
+    </button>
+
+    <div id="supportChatBox" class="support-chat-popup is-hidden" aria-hidden="true">
+        <div class="support-chat-header">
+            <span id="supportChatTitle">Hỗ trợ trực tuyến</span>
+            <button type="button" id="supportChatClose" class="support-chat-close" aria-label="Đóng chat">
+                &times;
+            </button>
+        </div>
+
+        <div id="supportChatMessages" class="support-chat-messages">
+            <div class="support-chat-empty">Bắt đầu cuộc trò chuyện...</div>
+        </div>
+
+        <div class="support-chat-input-wrap">
+            <input type="text"
+                   id="supportChatInput"
+                   class="form-control"
+                   placeholder="Nhập tin nhắn..." />
+            <button type="button" id="supportChatSend" class="btn btn-warning">
+                Gửi
+            </button>
+        </div>
+    </div>
+}

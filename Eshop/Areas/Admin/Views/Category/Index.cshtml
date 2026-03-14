@@ -1,6 +1,7 @@
 ﻿@model IEnumerable<Eshop.Models.CategoryModel>
+
 @{
-    ViewData["title"] = "Category Index";
+    ViewData["title"] = "Danh sách danh mục";
 
     Paginate pager = new Paginate();
     int pageNo = 0;
@@ -9,47 +10,88 @@
         pager = ViewBag.Pager;
         pageNo = pager.CurrentPage;
     }
-
 }
 
-<h3>Category Index View</h3>
-<a asp-area="Admin" asp-action="Create" asp-controller="Category">Add Category</a>
-<table class="table">
-    <thead>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Danh sách danh mục</h3>
+    <a asp-area="Admin" asp-action="Create" asp-controller="Category" class="btn btn-success">
+        Thêm danh mục
+    </a>
+</div>
+
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
         <tr>
-            <th scope="col">Id</th>
-            <th scope="col">Category Name</th>
-            <th scope="col">Category Description</th>
-            <th scope="col">Category Slug</th>
-            <th scope="col">Status</th>
+            <th style="width: 70px;">Id</th>
+            <th>Tên danh mục</th>
+            <th>Mô tả</th>
+            <th>Slug</th>
+            <th>Danh mục cha</th>
+            <th style="width: 120px;">Cấp</th>
+            <th style="width: 120px;">Trạng thái</th>
+            <th style="width: 180px;">Thao tác</th>
         </tr>
     </thead>
     <tbody>
-
-        @foreach (var item in Model)
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>
+                        @if (item.ParentCategoryId != null)
+                        {
+                            <span>&nbsp;&nbsp;&nbsp;&nbsp;↳ @item.Name</span>
+                        }
+                        else
+                        {
+                            <strong>@item.Name</strong>
+                        }
+                    </td>
+                    <td>@item.Description</td>
+                    <td>@item.Slug</td>
+                    <td>
+                        @(item.ParentCategory != null ? item.ParentCategory.Name : "Danh mục gốc")
+                    </td>
+                    <td>
+                        @if (item.ParentCategoryId == null)
+                        {
+                            <span class="badge bg-primary">Cha</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Con</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.Status == 1)
+                        {
+                            <span class="badge bg-success">Hiển thị</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">Ẩn</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                            Sửa
+                        </a>
+                        <a asp-action="Delete" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-sm btn-danger confirmDeletion">
+                            Xóa
+                        </a>
+                    </td>
+                </tr>
+            }
+        }
+        else
         {
             <tr>
-                <th scope="row">@item.Id</th>
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Slug</td>
-                <td>
-                    @if (item.Status == 1)
-                    {
-                        <span>Hiển thị</span>
-                    }
-                    else
-                    {
-                        <span>Ẩn</span>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-primary">Edit</a>
-                    <a asp-action="Delete" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-primary confirmDeletion">Delete</a>
-                </td>
+                <td colspan="8" class="text-center">Chưa có danh mục nào.</td>
             </tr>
-
         }
     </tbody>
 </table>
+
 <partial name="../Shared/_Paging" model="pager" />
