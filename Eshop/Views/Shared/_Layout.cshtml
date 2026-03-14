@@ -25,7 +25,140 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
 
 
     <link rel="shortcut icon" href="images/ico/favicon.ico">
+
+                        <style>
+                                .support-chat-toggle {
+                                    position: fixed;
+                                    right: 20px;
+                                    bottom: 80px;
+                                    width: 55px;
+                                    height: 55px;
+                                    border-radius: 50%;
+                                    background: #fe980f;
+                                    color: #fff;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 24px;
+                                    cursor: pointer;
+                                    z-index: 9999;
+                                    box-shadow: 0 4px 15px rgba(0,0,0,.25);
+                                }
+
+                                .support-chat-box {
+                                    position: fixed;
+                                    right: 20px;
+                                    bottom: 145px;
+                                    width: 340px;
+                                    max-width: calc(100vw - 30px);
+                                    background: #fff;
+                                    border: 1px solid #ddd;
+                                    border-radius: 10px;
+                                    box-shadow: 0 8px 25px rgba(0,0,0,.2);
+                                    z-index: 9999;
+                                    overflow: hidden;
+                                }
+
+                                .support-chat-header {
+                                    background: #fe980f;
+                                    color: #fff;
+                                    padding: 12px 15px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    font-weight: bold;
+                                }
+
+                                .support-chat-close {
+                                    background: transparent;
+                                    border: none;
+                                    color: #fff;
+                                    font-size: 22px;
+                                    line-height: 1;
+                                    cursor: pointer;
+                                }
+
+                                .support-chat-messages {
+                                    height: 300px;
+                                    overflow-y: auto;
+                                    padding: 10px;
+                                    background: #fafafa;
+                                }
+
+                                .support-chat-item {
+                                    margin-bottom: 10px;
+                                    display: flex;
+                                }
+
+                                    .support-chat-item.me {
+                                        justify-content: flex-end;
+                                    }
+
+                                    .support-chat-item.other {
+                                        justify-content: flex-start;
+                                    }
+
+                                .support-chat-bubble {
+                                    max-width: 78%;
+                                    padding: 8px 12px;
+                                    border-radius: 12px;
+                                    font-size: 13px;
+                                    line-height: 1.4;
+                                    word-break: break-word;
+                                }
+
+                                .support-chat-item.me .support-chat-bubble {
+                                    background: #d9edf7;
+                                    color: #333;
+                                }
+
+                                .support-chat-item.other .support-chat-bubble {
+                                    background: #f5f5f5;
+                                    color: #333;
+                                }
+
+                                .support-chat-time {
+                                    display: block;
+                                    margin-top: 4px;
+                                    font-size: 11px;
+                                    color: #777;
+                                }
+
+                                .support-chat-input-wrap {
+                                    display: flex;
+                                    gap: 8px;
+                                    padding: 10px;
+                                    border-top: 1px solid #eee;
+                                    background: #fff;
+                                }
+
+                                    .support-chat-input-wrap input {
+                                        flex: 1;
+                                    }
+                        </style>
+
 </head>
+
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <div id="supportChatToggle" class="support-chat-toggle" title="Chat với admin">
+                            <i class="fa fa-comments"></i>
+                        </div>
+
+                        <div id="supportChatBox" class="support-chat-box" style="display:none;">
+                            <div class="support-chat-header">
+                                <span id="supportChatTitle">Hỗ trợ trực tuyến</span>
+                                <button type="button" id="supportChatClose" class="support-chat-close">&times;</button>
+                            </div>
+
+                            <div id="supportChatMessages" class="support-chat-messages"></div>
+
+                            <div class="support-chat-input-wrap">
+                                <input type="text" id="supportChatInput" class="form-control" placeholder="Nhập tin nhắn..." />
+                                <button type="button" id="supportChatSend" class="btn btn-danger">Gửi</button>
+                            </div>
+                        </div>
+                    }
 
 <body>
     <header id="header">
@@ -276,6 +409,156 @@ https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
     <script src="~/js/price-range.js"></script>
     <script src="~/js/jquery.prettyPhoto.js"></script>
     <script src="~/js/main.js"></script>
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                        {
+                            <script>
+                                (function () {
+                                const toggleBtn = document.getElementById("supportChatToggle");
+                                const chatBox = document.getElementById("supportChatBox");
+                                const closeBtn = document.getElementById("supportChatClose");
+                                const sendBtn = document.getElementById("supportChatSend");
+                                const input = document.getElementById("supportChatInput");
+                                const messagesBox = document.getElementById("supportChatMessages");
+                                const title = document.getElementById("supportChatTitle");
+
+                                if (!toggleBtn || !chatBox || !sendBtn || !input || !messagesBox) return;
+
+                                let adminId = null;
+                                let adminName = "Admin";
+                                let started = false;
+
+                                const connection = new signalR.HubConnectionBuilder()
+                                .withUrl("/chatHub")
+                                .withAutomaticReconnect()
+                                .build();
+
+                                function appendMessage(message, isMe) {
+                                const item = document.createElement("div");
+                                item.className = "support-chat-item " + (isMe ? "me" : "other");
+
+                                const bubble = document.createElement("div");
+                                bubble.className = "support-chat-bubble";
+
+                                const content = document.createElement("div");
+                                content.textContent = message.content;
+
+                                const time = document.createElement("small");
+                                time.className = "support-chat-time";
+                                time.textContent = message.createdAt || "";
+
+                                bubble.appendChild(content);
+                                bubble.appendChild(time);
+                                item.appendChild(bubble);
+                                messagesBox.appendChild(item);
+
+                                messagesBox.scrollTop = messagesBox.scrollHeight;
+                                }
+
+                                function clearMessages() {
+                                messagesBox.innerHTML = "";
+                                }
+
+                                async function loadAdmin() {
+                                const res = await fetch('/Chat/GetAdminInfo');
+                                const data = await res.json();
+
+                                if (!data.success) {
+                                throw new Error(data.message || "Không lấy được admin.");
+                                }
+
+                                adminId = data.adminId;
+                                adminName = data.adminName || "Admin";
+                                title.textContent = "Chat với " + adminName;
+                                }
+
+                                async function loadHistory() {
+                                if (!adminId) return;
+
+                                const res = await fetch('/Chat/GetSupportMessages?adminId=' + encodeURIComponent(adminId));
+                                const data = await res.json();
+
+                                clearMessages();
+
+                                data.forEach(msg => {
+                                const isMe = msg.senderId !== adminId;
+                                appendMessage({
+                                content: msg.content,
+                                createdAt: msg.createdAt
+                                }, isMe);
+                                });
+                                }
+
+                                async function ensureStarted() {
+                                if (started) return;
+                                await connection.start();
+                                started = true;
+                                }
+
+                                connection.on("ReceiveSupportMessage", function (message) {
+                                if (!adminId) return;
+
+                                const related =
+                                (message.senderId === adminId || message.receiverId === adminId);
+
+                                if (!related) return;
+
+                                const isMe = message.senderId !== adminId;
+                                appendMessage(message, isMe);
+                                });
+
+                                toggleBtn.addEventListener("click", async function () {
+                                const isHidden = chatBox.style.display === "none" || chatBox.style.display === "";
+
+                                if (isHidden) {
+                                chatBox.style.display = "block";
+
+                                try {
+                                await loadAdmin();
+                                await ensureStarted();
+                                await loadHistory();
+                                } catch (err) {
+                                console.error(err);
+                                Swal.fire("Lỗi", err.message || "Không mở được hộp chat", "error");
+                                }
+                                } else {
+                                chatBox.style.display = "none";
+                                }
+                                });
+
+                                closeBtn.addEventListener("click", function () {
+                                chatBox.style.display = "none";
+                                });
+
+                                sendBtn.addEventListener("click", async function () {
+                                const content = input.value.trim();
+                                if (!content) return;
+
+                                if (!adminId) {
+                                Swal.fire("Thông báo", "Chưa tìm thấy admin để chat.", "warning");
+                                return;
+                                }
+
+                                try {
+                                await ensureStarted();
+                                await connection.invoke("SendMessage", adminId, content);
+                                input.value = "";
+                                } catch (err) {
+                                console.error(err);
+                                Swal.fire("Lỗi", "Gửi tin nhắn thất bại.", "error");
+                                }
+                                });
+
+                                input.addEventListener("keypress", function (e) {
+                                if (e.key === "Enter") {
+                                e.preventDefault();
+                                sendBtn.click();
+                                }
+                                });
+                                })();
+                            </script>
+                        }
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

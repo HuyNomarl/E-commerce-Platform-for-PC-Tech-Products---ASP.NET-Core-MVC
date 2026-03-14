@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Chat hỗ trợ";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <h3>Khách hàng</h3>
+        <ul id="userList" class="list-group"></ul>
+    </div>
+
+    <div class="col-md-8">
+        <h3 id="chatTitle">Chọn khách hàng để chat</h3>
+
+        <div id="chatMessages" style="height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:10px;">
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." />
+            <span class="input-group-btn">
+                <button id="sendBtn" class="btn btn-primary">Gửi</button>
+            </span>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+    <script>
+        let selectedUserId = null;
+
+        const userList = document.getElementById("userList");
+        const chatMessages = document.getElementById("chatMessages");
+        const chatTitle = document.getElementById("chatTitle");
+        const messageInput = document.getElementById("messageInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .withAutomaticReconnect()
+        .build();
+
+        function appendMessage(msg, isMe) {
+        const div = document.createElement("div");
+        div.style.textAlign = isMe ? "right" : "left";
+        div.style.margin = "8px 0";
+
+        div.innerHTML = `
+        <span style="
+        display:inline-block;
+        padding:8px 12px;
+        border-radius:10px;
+        background:${isMe ? '#d9edf7' : '#f5f5f5'};
+        ">
+        ${msg.content}
+        <br>
+        <small style="color:#888;">${msg.createdAt || ''}</small>
+        </span>
+        `;
+
+        chatMessages.appendChild(div);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function loadUsers() {
+        const res = await fetch('/Admin/Chat/GetUsersChatted');
+        const users = await res.json();
+
+        userList.innerHTML = "";
+
+        users.forEach(user => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        li.style.cursor = "pointer";
+        li.textContent = `${user.userName} (${user.email})`;
+
+        li.addEventListener("click", async () => {
+        selectedUserId = user.id;
+        chatTitle.textContent = "Đang chat với: " + user.userName;
+        await loadMessages(user.id);
+        });
+
+        userList.appendChild(li);
+        });
+        }
+
+        async function loadMessages(userId) {
+        const res = await fetch('/Admin/Chat/GetMessages?userId=' + encodeURIComponent(userId));
+        const messages = await res.json();
+
+        chatMessages.innerHTML = "";
+        messages.forEach(msg => {
+        const isMe = msg.senderId !== userId;
+        appendMessage(msg, isMe);
+        });
+        }
+
+        connection.on("ReceiveSupportMessage", function (msg) {
+        if (!selectedUserId) return;
+
+        const related =
+        msg.senderId === selectedUserId || msg.receiverId === selectedUserId;
+
+        if (!related) return;
+
+        const isMe = msg.senderId !== selectedUserId;
+        appendMessage(msg, isMe);
+        });
+
+        sendBtn.addEventListener("click", async function () {
+        const content = messageInput.value.trim();
+        if (!content || !selectedUserId) return;
+
+        try {
+        await connection.invoke("SendMessage", selectedUserId, content);
+        messageInput.value = "";
+        } catch (err) {
+        console.error(err);
+        }
+        });
+
+        messageInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+        sendBtn.click();
+        }
+        });
+
+        async function start() {
+        await connection.start();
+        await loadUsers();
+        }
+
+        start();
+    </script>
+}

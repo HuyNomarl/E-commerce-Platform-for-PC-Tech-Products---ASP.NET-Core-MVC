@@ -24,6 +24,8 @@ namespace Eshop.Repository
         public DbSet<ProductQuantityModel> productQuantityModels { get; set; }
         public DbSet<ShippingModel> Shippings { get; set; }
         public DbSet<CouponModel> Coupons { get; set; }
+        public DbSet<MessageModel> Messages { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -46,6 +48,24 @@ namespace Eshop.Repository
             builder.Entity<OrderDetails>()
             .Property(x => x.Price)
             .HasPrecision(18, 2);
+
+            builder.Entity<MessageModel>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MessageModel>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<MessageModel>()
+                .HasIndex(m => new { m.SenderId, m.ReceiverId });
+
+            builder.Entity<MessageModel>()
+                .HasIndex(m => m.CreatedAt);
         }
 
     }

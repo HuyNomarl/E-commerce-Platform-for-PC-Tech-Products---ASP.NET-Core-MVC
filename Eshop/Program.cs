@@ -1,4 +1,5 @@
 ﻿using Eshop.Areas.Admin.Repository;
+using Eshop.Hubs;
 using Eshop.Models;
 using Eshop.Models.Momo;
 using Eshop.Repository;
@@ -10,9 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-
-// Connect to SQL Server Database
+// Connect SQL Server
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -20,7 +19,6 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-// Add services to the container
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();
@@ -37,34 +35,24 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 // Identity
 builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
 {
-    // Password settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = true;
     options.Password.RequiredLength = 6;
 
-    // User settings
     options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders();
 
-// Cookie for Identity
+// Cookie
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.SlidingExpiration = true;
 });
-
-//VNPay
-builder.Services.AddScoped<IVnPayService, VnPayService>();
-
-//MOMO 
-builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
-builder.Services.AddScoped<IMomoService, MomoService>();
-
 
 // Google Login
 builder.Services.AddAuthentication()
@@ -74,9 +62,23 @@ builder.Services.AddAuthentication()
         options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
     });
 
+// VNPay
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+// Momo
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
+builder.Services.AddScoped<IMomoService, MomoService>();
+
+// SignalR
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = false;
+    options.MaximumReceiveMessageSize = 32 * 1024;
+});
+
 var app = builder.Build();
 
-// Error handling FIRST
+// Error handling
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -87,7 +89,6 @@ else
     app.UseHsts();
 }
 
-// 404 / status code pages
 app.UseStatusCodePagesWithReExecute("/Home/Error", "?statuscode={0}");
 
 app.UseHttpsRedirection();
@@ -100,22 +101,29 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Route area
 app.MapControllerRoute(
     name: "Areas",
     pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}");
 
+// Route category
 app.MapControllerRoute(
-    name: "Categoty",
+    name: "Category",
     pattern: "category/{Slug?}",
     defaults: new { controller = "Category", action = "Index" });
 
+// Route publisher
 app.MapControllerRoute(
-    name: "Publiser",
+    name: "Publisher",
     pattern: "publisher/{Slug?}",
     defaults: new { controller = "Publisher", action = "Index" });
 
+// Default
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// SignalR Hub
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

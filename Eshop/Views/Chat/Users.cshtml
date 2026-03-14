@@ -1,0 +1,29 @@
+﻿@model List<Eshop.Models.AppUserModel>
+
+<h2>Danh sách người dùng</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Tên</th>
+            <th>Email</th>
+            <th>Nghề nghiệp</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.Occupation</td>
+                <td>
+                    <a asp-controller="Chat" asp-action="Index" asp-route-userId="@user.Id" class="btn btn-primary">
+                        Chat
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
