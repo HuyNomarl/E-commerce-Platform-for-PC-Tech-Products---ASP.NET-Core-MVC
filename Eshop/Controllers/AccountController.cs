@@ -55,55 +55,57 @@ namespace Eshop.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> UpdateAccount()
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> UpdateAccount(string tab = "home")
         {
-            if (User.Identity == null || !User.Identity.IsAuthenticated)
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var userEmail = User.FindFirstValue(ClaimTypes.Email);
-
-            if (string.IsNullOrEmpty(userEmail))
+            var vm = new AccountDashboardViewModel
             {
-                return RedirectToAction("Login", "Account");
+                User = currentUser,
+                ActiveTab = string.IsNullOrWhiteSpace(tab) ? "home" : tab.ToLower()
+            };
+
+            if (vm.ActiveTab == "orders")
+            {
+                vm.Orders = await GetUserOrdersAsync(currentUser.Email);
             }
 
-            var user = await _signInManager.UserManager.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return View(user);
+            return View(vm);
         }
 
         [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateInfoAccount(AppUserModel model)
+        public async Task<IActionResult> UpdateInfoAccount(AccountDashboardViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View("UpdateAccount", model);
-            }
+            ModelState.Remove("ChangePassword.CurrentPassword");
+            ModelState.Remove("ChangePassword.NewPassword");
+            ModelState.Remove("ChangePassword.ConfirmNewPassword");
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var currentUser = await _userManager.FindByIdAsync(userId);
-            if (currentUser == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                model.User = currentUser;
+                model.ActiveTab = "profile";
+                return View("UpdateAccount", model);
             }
 
-            // Cập nhật các field cho phép sửa
-            currentUser.UserName = model.UserName;
-            currentUser.Email = model.Email;
-            currentUser.PhoneNumber = model.PhoneNumber;
+            currentUser.UserName = model.User.UserName;
+            currentUser.Email = model.User.Email;
+            currentUser.Address = model.User.Address;
+            currentUser.PhoneNumber = model.User.PhoneNumber;
 
             var result = await _userManager.UpdateAsync(currentUser);
 
@@ -114,11 +116,13 @@ namespace Eshop.Controllers
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
 
+                model.User = currentUser;
+                model.ActiveTab = "profile";
                 return View("UpdateAccount", model);
             }
 
             TempData["success"] = "Cập nhật thông tin tài khoản thành công.";
-            return RedirectToAction("UpdateAccount", "Account");
+            return RedirectToAction("UpdateAccount", new { tab = "profile" });
         }
 
         public async Task<IActionResult> ForgetPass()
@@ -343,25 +347,45 @@ namespace Eshop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserModel user)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                AppUserModel newUser = new AppUserModel
-                {
-                    UserName = user.UserName,
-                    Email = user.Email
-                };
-                IdentityResult result = await _userManager.CreateAsync(newUser, user.Password);
-
-                if (result.Succeeded)
-                {
-                    TempData["success"] = "Tài khoản đã được tạo thành công!";
-                    return RedirectToAction("Login", "Account");
-                }
-                foreach (IdentityError error in result.Errors)
-                {
-                    ModelState.AddModelError("", error.Description);
-                }
+                return View(user);
             }
+
+            var existingEmail = await _userManager.FindByEmailAsync(user.Email);
+            if (existingEmail != null)
+            {
+                ModelState.AddModelError("Email", "Email đã tồn tại.");
+                return View(user);
+            }
+
+            var existingUserName = await _userManager.FindByNameAsync(user.UserName);
+            if (existingUserName != null)
+            {
+                ModelState.AddModelError("UserName", "Tên tài khoản đã tồn tại.");
+                return View(user);
+            }
+
+            AppUserModel newUser = new AppUserModel
+            {
+                UserName = user.UserName,
+                Email = user.Email,
+                Address = user.Address
+            };
+
+            var result = await _userManager.CreateAsync(newUser, user.Password);
+
+            if (result.Succeeded)
+            {
+                TempData["success"] = "Tài khoản đã được tạo thành công!";
+                return RedirectToAction("Login", "Account");
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+
             return View(user);
         }
         public async Task<IActionResult> Logout(string returnURL = "/")
@@ -450,6 +474,76 @@ namespace Eshop.Controllers
 
             TempData["success"] = "Đăng nhập thành công";
             return RedirectToAction("Index", "Home");
+        }
+        private async Task<List<OrderHistoryViewModel>> GetUserOrdersAsync(string email)
+        {
+            var orders = await _dataContext.Orders
+                .Where(o => o.UserName == email)
+                .OrderByDescending(o => o.CreatedTime)
+                .ToListAsync();
+
+            var orderCodes = orders.Select(o => o.OrderCode).ToList();
+
+            var detailTotals = await _dataContext.OrderDetails
+                .Where(d => orderCodes.Contains(d.OrderCode))
+                .GroupBy(d => d.OrderCode)
+                .Select(g => new
+                {
+                    OrderCode = g.Key,
+                    Total = g.Sum(x => x.Price * x.Quantity)
+                })
+                .ToListAsync();
+
+            return orders.Select(o => new OrderHistoryViewModel
+            {
+                OrderId = o.OrderId,
+                OrderCode = o.OrderCode,
+                CreatedTime = o.CreatedTime,
+                Status = o.Status,
+                ShippingCost = o.ShippingCost,
+                TotalAmount = (detailTotals.FirstOrDefault(x => x.OrderCode == o.OrderCode)?.Total ?? 0) + o.ShippingCost
+            }).ToList();
+        }
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(AccountDashboardViewModel model)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.User = currentUser;
+                model.ActiveTab = "password";
+                return View("UpdateAccount", model);
+            }
+
+            var result = await _userManager.ChangePasswordAsync(
+                currentUser,
+                model.ChangePassword.CurrentPassword,
+                model.ChangePassword.NewPassword
+            );
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                model.User = currentUser;
+                model.ActiveTab = "password";
+                return View("UpdateAccount", model);
+            }
+
+            await _signInManager.RefreshSignInAsync(currentUser);
+
+            TempData["success"] = "Đổi mật khẩu thành công.";
+            return RedirectToAction("UpdateAccount", new { tab = "password" });
         }
     }
 }

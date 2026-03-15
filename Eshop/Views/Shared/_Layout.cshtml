@@ -39,7 +39,7 @@
                     <div class="tt-top-right">
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
-                            <a asp-controller="Account" asp-action="UpdateAccount">Tài khoản</a>
+                            <a asp-controller="Account" asp-action="UpdateAccount" asp-route-tab="home">Tài khoản</a>
                             <span>|</span>
                             <a asp-controller="Account" asp-action="Logout">Đăng xuất</a>
                         }

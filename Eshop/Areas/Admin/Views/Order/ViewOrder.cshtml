@@ -28,8 +28,48 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Người dùng</div>
+                    <div class="info-label">Tài khoản</div>
                     <div class="info-value">@Model.UserName</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Người nhận</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.FullName) ? "-" : Model.FullName)</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Phone) ? "-" : Model.Phone)</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</div>
+                </div>
+
+                <div class="info-item full-row">
+                    <div class="info-label">Địa chỉ giao hàng</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Address) ? "-" : Model.Address)</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Tỉnh/Thành</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Province) ? "-" : Model.Province)</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Quận/Huyện</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.District) ? "-" : Model.District)</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Phường/Xã</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Ward) ? "-" : Model.Ward)</div>
+                </div>
+
+                <div class="info-item full-row">
+                    <div class="info-label">Ghi chú</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Không có ghi chú" : Model.Note)</div>
                 </div>
             </div>
         </div>
@@ -120,6 +160,10 @@
 </div>
 
 <style>
+    .info-item.full-row {
+        min-width: 100%;
+    }
+
     .order-detail-page .page-subtitle {
         opacity: .75;
     }
@@ -136,9 +180,13 @@
     }
 
     .info-grid {
-        display: flex;
-        gap: 32px;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .info-item.full-row {
+        grid-column: 1 / -1;
     }
 
     .info-item {

@@ -43,17 +43,27 @@ namespace Eshop.Areas.Admin.Controllers
             {
                 OrderCode = order.OrderCode,
                 UserName = order.UserName,
+
+                FullName = order.FullName,
+                Phone = order.Phone,
+                Email = order.Email,
+                Address = order.Address,
+                Province = order.Province,
+                District = order.District,
+                Ward = order.Ward,
+                Note = order.Note,
+
                 Status = order.Status,
                 OrderDetails = details,
                 StatusList = new List<SelectListItem>
-        {
-            new("Pending","1"),
-            new("Processing","2"),
-            new("Shipped","3"),
-            new("Delivered","4"),
-            new("Completed","5"),
-            new("Cancelled","6"),
-        }
+    {
+        new("Pending", "1"),
+        new("Processing", "2"),
+        new("Shipped", "3"),
+        new("Delivered", "4"),
+        new("Completed", "5"),
+        new("Cancelled", "6"),
+    }
             };
 
             return View(vm);

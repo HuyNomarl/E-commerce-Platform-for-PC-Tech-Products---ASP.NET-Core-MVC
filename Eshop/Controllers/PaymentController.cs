@@ -1,5 +1,7 @@
 ﻿using Eshop.Models;
+using Eshop.Models.ViewModel;
 using Eshop.Models.VNPay;
+using Eshop.Repository;
 using Eshop.Services;
 using Eshop.Services.Momo;
 using Eshop.Services.VNPay;
@@ -24,21 +26,35 @@ namespace Eshop.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreatePaymentUrlVnpay(PaymentInformationModel model)
+        [ValidateAntiForgeryToken]
+        public IActionResult CreatePaymentUrlVnpay(PaymentInformationModel paymentModel, CheckoutInputViewModel checkoutModel)
         {
-            if (model == null)
+            if (paymentModel == null)
             {
                 TempData["error"] = "Dữ liệu thanh toán VNPAY không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
-            if (model.Amount <= 0)
+            if (paymentModel.Amount <= 0)
             {
                 TempData["error"] = "Số tiền thanh toán không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
-            var url = _vnPayService.CreatePaymentUrl(model, HttpContext);
+            if (string.IsNullOrWhiteSpace(checkoutModel.FullName) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Phone) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Email) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Address) ||
+                string.IsNullOrWhiteSpace(checkoutModel.tinh) ||
+                string.IsNullOrWhiteSpace(checkoutModel.phuong))
+            {
+                TempData["error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            HttpContext.Session.SetJson("CheckoutInfo", checkoutModel);
+
+            var url = _vnPayService.CreatePaymentUrl(paymentModel, HttpContext);
             return Redirect(url);
         }
 
@@ -59,13 +75,22 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User);
+            var checkoutInfo = HttpContext.Session.GetJson<CheckoutInputViewModel>("CheckoutInfo");
+            if (checkoutInfo == null)
+            {
+                TempData["error"] = "Không tìm thấy thông tin đặt hàng trong phiên làm việc.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, checkoutInfo);
 
             if (string.IsNullOrEmpty(orderCode))
             {
                 TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
                 return RedirectToAction("Index", "Cart");
             }
+
+            HttpContext.Session.Remove("CheckoutInfo");
 
             TempData["success"] = $"Thanh toán VNPAY thành công. Mã đơn: {orderCode}";
             return RedirectToAction("Index", "Home");

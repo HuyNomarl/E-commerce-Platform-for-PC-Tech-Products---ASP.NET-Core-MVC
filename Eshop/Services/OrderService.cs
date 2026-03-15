@@ -19,7 +19,7 @@ namespace Eshop.Services
             _emailSender = emailSender;
         }
 
-        public async Task<string?> CreateOrderFromSessionAsync(HttpContext httpContext, ClaimsPrincipal user)
+        public async Task<string?> CreateOrderFromSessionAsync(HttpContext httpContext, ClaimsPrincipal user, CheckoutInputViewModel model)
         {
             var userEmail = user.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(userEmail))
@@ -91,10 +91,22 @@ namespace Eshop.Services
 
             var orderCode = Guid.NewGuid().ToString("N");
 
+            var fullAddress = $"{model.Address}, {model.phuong}"
+                + $"{(string.IsNullOrWhiteSpace(model.quan) ? "" : ", " + model.quan)}"
+                + $", {model.tinh}";
+
             var order = new OrderModel
             {
                 OrderCode = orderCode,
                 UserName = userEmail,
+                FullName = model.FullName,
+                Phone = model.Phone,
+                Email = model.Email,
+                Address = fullAddress,
+                Province = model.tinh,
+                District = model.quan,
+                Ward = model.phuong,
+                Note = model.Note,
                 Status = 1,
                 CreatedTime = DateTime.Now,
                 SubTotal = subTotal,
@@ -124,6 +136,11 @@ namespace Eshop.Services
             var body = $@"
                 <h3>Cảm ơn bạn đã đặt hàng!</h3>
                 <p>Mã đơn hàng: <b>{orderCode}</b></p>
+                <p>Người nhận: <b>{model.FullName}</b></p>
+                <p>SĐT: <b>{model.Phone}</b></p>
+                <p>Email: <b>{model.Email}</b></p>
+                <p>Địa chỉ: <b>{fullAddress}</b></p>
+                <p>Ghi chú: <b>{model.Note}</b></p>
                 <p>Tạm tính: <b>{subTotal:N0} đ</b></p>
                 <p>Giảm giá: <b>{discountAmount:N0} đ</b></p>
                 <p>Phí ship: <b>{shippingCost:N0} đ</b></p>

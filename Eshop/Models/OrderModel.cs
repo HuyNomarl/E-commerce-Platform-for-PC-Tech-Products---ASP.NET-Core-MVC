@@ -31,9 +31,32 @@ namespace Eshop.Models
         [StringLength(256)]
         public string UserName { get; set; }
 
+        [StringLength(150)]
+        public string? FullName { get; set; }
+
+        [StringLength(20)]
+        public string? Phone { get; set; }
+
+        [StringLength(150)]
+        public string? Email { get; set; }
+
+        [StringLength(500)]
+        public string? Address { get; set; }
+
+        [StringLength(100)]
+        public string? Province { get; set; }
+
+        [StringLength(100)]
+        public string? District { get; set; }
+
+        [StringLength(100)]
+        public string? Ward { get; set; }
+
+        [StringLength(1000)]
+        public string? Note { get; set; }
+
         public DateTime CreatedTime { get; set; } = DateTime.Now;
 
         public int Status { get; set; } = 1;
-
     }
 }

@@ -2,6 +2,7 @@
 using Eshop.Models.ViewModel;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -11,10 +12,11 @@ namespace Eshop.Controllers
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
-
-        public CartController(DataContext dataContext)
+        private readonly UserManager<AppUserModel> _userManager;
+        public CartController(DataContext dataContext, UserManager<AppUserModel> userManager)
         {
             _dataContext = dataContext;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -84,6 +86,19 @@ namespace Eshop.Controllers
                 CouponCode = couponCode,
                 FinalTotal = finalTotal
             };
+
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                var currentUser = await _userManager.GetUserAsync(User);
+
+                if (currentUser != null)
+                {
+                    ViewBag.FullName = currentUser.UserName ?? "";
+                    ViewBag.Phone = currentUser.PhoneNumber ?? "";
+                    ViewBag.Email = currentUser.Email ?? "";
+                    ViewBag.Address = currentUser.Address ?? "";
+                }
+            }
 
             return View(cartItemViewModel);
         }

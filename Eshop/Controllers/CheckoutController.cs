@@ -19,9 +19,16 @@ namespace Eshop.Controllers
             _orderService = orderService;
         }
         [HttpPost]
-        public async Task<IActionResult> Checkout()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Checkout(CheckoutInputViewModel model)
         {
-            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User);
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, model);
 
             if (string.IsNullOrEmpty(orderCode))
             {

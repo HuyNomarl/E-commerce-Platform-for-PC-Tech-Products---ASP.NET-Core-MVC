@@ -1,4 +1,5 @@
 wwwroot\backend\js\site.js
+wwwroot\css\account-dashboard.css
 wwwroot\css\animate.css
 wwwroot\css\bootstrap.min.css
 wwwroot\css\font-awesome.min.css
@@ -176,3 +177,4 @@ E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
 E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\home-index.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\account-dashboard.css

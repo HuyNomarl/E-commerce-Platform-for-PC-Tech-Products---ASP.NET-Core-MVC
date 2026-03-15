@@ -491,27 +491,23 @@
                                 @if (isLoggedIn)
                                 {
                                     <div class="mb-3">
-                                        <label class="form-label-custom">Họ tên</label>
-                                        <div class="readonly-box">@fullName</div>
-                                        <input type="hidden" name="FullName" value="@fullName" />
+                                        <label class="form-label-custom">Họ tên<span class="required-star">*</span></label>
+                                        <input type="text" name="FullName" id="FullNameInput" class="form-control-custom" value="@fullName" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">SĐT</label>
-                                        <div class="readonly-box">@phone</div>
-                                        <input type="hidden" name="Phone" value="@phone" />
+                                        <label class="form-label-custom">SĐT<span class="required-star">*</span></label>
+                                        <input type="text" name="Phone" class="form-control-custom" value="@phone" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">Email</label>
-                                        <div class="readonly-box">@email</div>
-                                        <input type="hidden" name="Email" value="@email" />
+                                        <label class="form-label-custom">Email<span class="required-star">*</span></label>
+                                        <input type="email" name="Email" class="form-control-custom" value="@email" />
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">Địa chỉ</label>
-                                        <div class="readonly-box">@address</div>
-                                        <input type="hidden" name="Address" value="@address" />
+                                        <label class="form-label-custom">Địa chỉ<span class="required-star">*</span></label>
+                                        <textarea name="Address" class="form-textarea-custom">@address</textarea>
                                     </div>
                                 }
                                 else
