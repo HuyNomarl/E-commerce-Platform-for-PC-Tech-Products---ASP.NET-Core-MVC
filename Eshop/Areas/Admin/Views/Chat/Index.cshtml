@@ -2,26 +2,291 @@
     ViewData["Title"] = "Chat hỗ trợ";
 }
 
-<div class="row">
-    <div class="col-md-4">
-        <h3>Khách hàng</h3>
-        <ul id="userList" class="list-group"></ul>
+<div class="row g-3 chat-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Chat hỗ trợ</h4>
+                <div class="small page-subtitle">Trao đổi trực tiếp với khách hàng qua hệ thống hỗ trợ</div>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-8">
-        <h3 id="chatTitle">Chọn khách hàng để chat</h3>
+    <div class="col-12 col-lg-4">
+        <div class="card-soft users-card">
+            <div class="panel-head">
+                <div>
+                    <div class="section-title mb-0">Khách hàng</div>
+                    <div class="section-subtitle">Danh sách người dùng đã từng nhắn tin</div>
+                </div>
+            </div>
 
-        <div id="chatMessages" style="height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:10px;">
+            <div id="userList" class="user-list"></div>
         </div>
+    </div>
 
-        <div class="input-group">
-            <input type="text" id="messageInput" class="form-control" placeholder="Nhập tin nhắn..." />
-            <span class="input-group-btn">
-                <button id="sendBtn" class="btn btn-primary">Gửi</button>
-            </span>
+    <div class="col-12 col-lg-8">
+        <div class="card-soft chat-card">
+            <div class="panel-head chat-head">
+                <div>
+                    <div class="section-title mb-0">Hội thoại</div>
+                    <div id="chatTitle" class="section-subtitle">Chọn khách hàng để chat</div>
+                </div>
+            </div>
+
+            <div id="chatMessages" class="chat-messages empty-state">
+                <div class="empty-wrap">
+                    <i class="fa fa-comments-o empty-icon"></i>
+                    <div>Chưa có cuộc trò chuyện nào được chọn.</div>
+                </div>
+            </div>
+
+            <div class="chat-input-wrap">
+                <div class="chat-input-group">
+                    <input type="text"
+                           id="messageInput"
+                           class="form-control input-soft"
+                           placeholder="Nhập tin nhắn..." />
+                    <button id="sendBtn" class="btn btn-accent" type="button">
+                        <i class="fa fa-paper-plane me-1"></i> Gửi
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .chat-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
+    }
+
+    .users-card,
+    .chat-card {
+        min-height: 620px;
+    }
+
+    .panel-head {
+        padding: 20px 22px 14px 22px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .chat-head {
+        background: #fafafa;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .user-list {
+        padding: 14px;
+        max-height: 540px;
+        overflow-y: auto;
+    }
+
+    .user-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 14px;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+        .user-item:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .user-item.active {
+            background: #111827;
+            border-color: #111827;
+            color: #fff;
+        }
+
+    .user-name {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .user-meta {
+        font-size: 12px;
+        color: #6b7280;
+        word-break: break-word;
+    }
+
+    .user-item.active .user-meta {
+        color: rgba(255,255,255,.78);
+    }
+
+    .chat-messages {
+        height: 440px;
+        overflow-y: auto;
+        padding: 18px;
+        background: #fcfcfd;
+    }
+
+        .chat-messages.empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    .empty-wrap {
+        color: #6b7280;
+        text-align: center;
+    }
+
+    .empty-icon {
+        font-size: 30px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .message-row {
+        display: flex;
+        margin: 10px 0;
+    }
+
+        .message-row.me {
+            justify-content: flex-end;
+        }
+
+        .message-row.other {
+            justify-content: flex-start;
+        }
+
+    .message-bubble {
+        max-width: 72%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.45;
+        word-break: break-word;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    }
+
+    .message-row.me .message-bubble {
+        background: #dbeafe;
+        color: #111827;
+        border-bottom-right-radius: 6px;
+    }
+
+    .message-row.other .message-bubble {
+        background: #f3f4f6;
+        color: #111827;
+        border-bottom-left-radius: 6px;
+    }
+
+    .message-time {
+        display: block;
+        margin-top: 6px;
+        font-size: 11px;
+        color: #6b7280;
+    }
+
+    .chat-input-wrap {
+        padding: 16px 18px 18px 18px;
+        border-top: 1px solid #eef2f7;
+        background: #fff;
+    }
+
+    .chat-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 46px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+        }
+
+    .btn-accent {
+        background: #111827;
+        border: 1px solid #111827;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+        min-width: 110px;
+    }
+
+        .btn-accent:hover,
+        .btn-accent:focus {
+            color: #fff;
+            background: #0f172a;
+            border-color: #0f172a;
+        }
+
+    @@media (max-width: 991px) {
+        .users-card,
+        .chat-card {
+            min-height: unset;
+        }
+
+        .user-list {
+            max-height: 300px;
+        }
+
+        .chat-messages {
+            height: 380px;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .panel-head {
+            padding: 16px 18px 12px 18px;
+        }
+
+        .chat-input-wrap {
+            padding: 14px 16px 16px 16px;
+        }
+
+        .chat-input-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-accent {
+            width: 100%;
+        }
+
+        .message-bubble {
+            max-width: 88%;
+        }
+    }
+</style>
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
@@ -39,26 +304,39 @@
         .withAutomaticReconnect()
         .build();
 
-        function appendMessage(msg, isMe) {
-        const div = document.createElement("div");
-        div.style.textAlign = isMe ? "right" : "left";
-        div.style.margin = "8px 0";
+        function renderEmptyChat() {
+        chatMessages.classList.add("empty-state");
+        chatMessages.innerHTML = `
+        <div class="empty-wrap">
+        <i class="fa fa-comments-o empty-icon"></i>
+        <div>Chưa có tin nhắn trong cuộc trò chuyện này.</div>
+        </div>
+        `;
+        }
 
-        div.innerHTML = `
-        <span style="
-        display:inline-block;
-        padding:8px 12px;
-        border-radius:10px;
-        background:${isMe ? '#d9edf7' : '#f5f5f5'};
-        ">
-        ${msg.content}
-        <br>
-        <small style="color:#888;">${msg.createdAt || ''}</small>
-        </span>
+        function appendMessage(msg, isMe) {
+        if (chatMessages.classList.contains("empty-state")) {
+        chatMessages.classList.remove("empty-state");
+        chatMessages.innerHTML = "";
+        }
+
+        const row = document.createElement("div");
+        row.className = `message-row ${isMe ? "me" : "other"}`;
+
+        row.innerHTML = `
+        <div class="message-bubble">
+        <div>${msg.content}</div>
+        <small class="message-time">${msg.createdAt || ''}</small>
+        </div>
         `;
 
-        chatMessages.appendChild(div);
+        chatMessages.appendChild(row);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function setActiveUser(selectedLi) {
+        document.querySelectorAll(".user-item").forEach(x => x.classList.remove("active"));
+        if (selectedLi) selectedLi.classList.add("active");
         }
 
         async function loadUsers() {
@@ -67,19 +345,33 @@
 
         userList.innerHTML = "";
 
-        users.forEach(user => {
-        const li = document.createElement("li");
-        li.className = "list-group-item";
-        li.style.cursor = "pointer";
-        li.textContent = `${user.userName} (${user.email})`;
+        if (!users || !users.length) {
+        userList.innerHTML = `
+        <div class="empty-wrap" style="padding: 24px 12px;">
+        <i class="fa fa-user-o empty-icon"></i>
+        <div>Chưa có khách hàng nào nhắn tin.</div>
+        </div>
+        `;
+        return;
+        }
 
-        li.addEventListener("click", async () => {
+        users.forEach(user => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "user-item";
+        item.innerHTML = `
+        <div class="user-name">${user.userName}</div>
+        <div class="user-meta">${user.email}</div>
+        `;
+
+        item.addEventListener("click", async () => {
         selectedUserId = user.id;
         chatTitle.textContent = "Đang chat với: " + user.userName;
+        setActiveUser(item);
         await loadMessages(user.id);
         });
 
-        userList.appendChild(li);
+        userList.appendChild(item);
         });
         }
 
@@ -88,6 +380,13 @@
         const messages = await res.json();
 
         chatMessages.innerHTML = "";
+        chatMessages.classList.remove("empty-state");
+
+        if (!messages || !messages.length) {
+        renderEmptyChat();
+        return;
+        }
+
         messages.forEach(msg => {
         const isMe = msg.senderId !== userId;
         appendMessage(msg, isMe);
@@ -113,6 +412,7 @@
         try {
         await connection.invoke("SendMessage", selectedUserId, content);
         messageInput.value = "";
+        messageInput.focus();
         } catch (err) {
         console.error(err);
         }

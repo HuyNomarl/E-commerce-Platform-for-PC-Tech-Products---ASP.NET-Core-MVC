@@ -4,85 +4,296 @@
     ViewData["Title"] = "Edit Product";
 }
 
-<h4>Edit Product</h4>
-
-<div class="row">
-    <div class="col-md-8">
-        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
-
-            <input type="hidden" asp-for="Id" />
-            <input type="hidden" asp-for="Image" />
-            <input type="hidden" asp-for="Slug" />
-
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label">Tên sản phẩm</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Description" class="control-label">Mô tả</label>
-                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Price" class="control-label">Giá</label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="CategoryId" class="control-label">Danh mục</label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
-                    <option value="">-- Select Category --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="PublisherId" class="control-label">Thương hiệu</label>
-                <select asp-for="PublisherId" class="form-control" asp-items="ViewBag.Publishers">
-                    <option value="">-- Select Brand --</option>
-                </select>
-                <span asp-validation-for="PublisherId" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <div class="form-check">
-                    <input asp-for="IsPcBuild" class="form-check-input" />
-                    <label asp-for="IsPcBuild" class="form-check-label">Đây là PC có cấu hình nâng cấp</label>
-                </div>
-                <span asp-validation-for="IsPcBuild" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label>Ảnh hiện tại</label>
-                <div class="mb-2">
-                    <img src="~/media/products/@Model.Image" alt="@Model.Name" style="max-width:200px; max-height:200px;" class="img-thumbnail" />
+<div class="row g-3 product-edit-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Chỉnh sửa sản phẩm</h4>
+                <div class="small page-subtitle">
+                    Cập nhật thông tin và ảnh sản phẩm
                 </div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ImageUpload" class="control-label">Chọn ảnh mới</label>
-                <input asp-for="ImageUpload" type="file" class="form-control" accept="image/*" />
-                <span asp-validation-for="ImageUpload" class="text-danger"></span>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </div>
 
-                <div class="mt-3">
-                    <img id="imgpreview" src="#" alt="Preview" style="display:none; max-width:300px; max-height:300px;" class="img-thumbnail" />
-                </div>
-            </div>
+    <div class="col-12 col-xl-9">
+        <div class="card-soft form-card">
+            <div class="card-body-custom">
+                <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
 
-            <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary">Update</button>
-                <a asp-action="Index" class="btn btn-secondary">Back to Index</a>
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="Image" />
+                    <input type="hidden" asp-for="Slug" />
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row form-grid">
+                        <div class="col-xs-12 col-md-8 form-col">
+                            <label asp-for="Name" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="Name" class="form-control input-soft" placeholder="Ví dụ: PC Gaming RTX 4060..." />
+                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-4 form-col">
+                            <label asp-for="Price" class="form-label">Giá</label>
+                            <input asp-for="Price" class="form-control input-soft" placeholder="Nhập giá sản phẩm" />
+                            <span asp-validation-for="Price" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 form-col">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description"
+                                      class="form-control input-soft textarea-soft"
+                                      rows="5"
+                                      placeholder="Mô tả về sản phẩm..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="CategoryId" class="form-label">Danh mục sản phẩm</label>
+                            <select asp-for="CategoryId" class="form-control input-soft" asp-items="ViewBag.Categories">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="PublisherId" class="form-label">Thương hiệu</label>
+                            <select asp-for="PublisherId" class="form-control input-soft" asp-items="ViewBag.Publishers">
+                                <option value="">-- Chọn thương hiệu --</option>
+                            </select>
+                            <span asp-validation-for="PublisherId" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 form-col">
+                            <label asp-for="IsPcBuild" class="form-label">Loại sản phẩm</label>
+
+                            <div class="pc-build-box">
+                                <div class="checkbox-wrap">
+                                    <input asp-for="IsPcBuild" class="form-check-input-custom" />
+                                    <label asp-for="IsPcBuild" class="form-check-label-custom">
+                                        Đây là PC có cấu hình nâng cấp
+                                    </label>
+                                </div>
+
+                                <div class="small text-muted mt-2">
+                                    Bật tùy chọn này nếu đây là sản phẩm PC build có thể nâng cấp cấu hình.
+                                </div>
+                            </div>
+
+                            <span asp-validation-for="IsPcBuild" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 form-col">
+                            <label class="form-label">Ảnh hiện tại</label>
+
+                            <div class="image-section">
+                                <div class="img-item current-image-box">
+                                    <img src="~/media/products/@Model.Image" alt="@Model.Name" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-xs-12 form-col">
+                            <label asp-for="ImageUpload" class="form-label">Chọn ảnh mới</label>
+                            <input asp-for="ImageUpload" type="file" class="form-control input-soft" accept="image/*" />
+                            <span asp-validation-for="ImageUpload" class="text-danger small d-block mt-1"></span>
+
+                            <div class="small text-muted mt-2">
+                                Chọn ảnh mới nếu bạn muốn thay ảnh hiện tại.
+                            </div>
+
+                            <div class="image-section mt-3">
+                                <div class="img-item preview-box">
+                                    <img id="imgpreview" src="#" alt="Preview" style="display:none;" />
+                                    <div id="preview-placeholder" class="preview-placeholder">
+                                        Chưa chọn ảnh mới
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-4">
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fa fa-floppy-o me-1"></i> Cập nhật
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-1"></i> Quay lại danh sách
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<style>
+    .product-edit-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .form-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .card-body-custom {
+        padding: 24px;
+    }
+
+    .form-grid {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .form-col {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+        }
+
+    .textarea-soft {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .pc-build-box {
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 14px 16px;
+    }
+
+    .checkbox-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-check-input-custom {
+        margin: 0 !important;
+        width: 16px;
+        height: 16px;
+    }
+
+    .form-check-label-custom {
+        margin: 0;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .image-section {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .img-item {
+        position: relative;
+        width: 220px;
+        min-height: 160px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+        .img-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .current-image-box {
+        background: #fff;
+    }
+
+    .preview-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+    }
+
+    .preview-placeholder {
+        color: #6b7280;
+        font-size: 14px;
+        text-align: center;
+        padding: 16px;
+    }
+
+    .btn-accent {
+        background: #111827;
+        border: 1px solid #111827;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+    }
+
+        .btn-accent:hover,
+        .btn-accent:focus {
+            color: #fff;
+            background: #0f172a;
+            border-color: #0f172a;
+        }
+
+    .btn-outline-secondary {
+        border-radius: 12px;
+        padding: 10px 18px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .text-danger.small {
+        font-size: 12px;
+    }
+
+    @@media (max-width: 767px) {
+        .card-body-custom {
+            padding: 16px;
+        }
+
+        .img-item {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+</style>
 
 @section Scripts {
     @{
@@ -91,16 +302,19 @@
 
     <script>
         function readURL(input) {
+            const preview = $("#imgpreview");
+            const placeholder = $("#preview-placeholder");
+
             if (input.files && input.files[0]) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $("#imgpreview")
-                        .attr("src", e.target.result)
-                        .show();
+                    preview.attr("src", e.target.result).show();
+                    placeholder.hide();
                 };
                 reader.readAsDataURL(input.files[0]);
             } else {
-                $("#imgpreview").attr("src", "#").hide();
+                preview.attr("src", "#").hide();
+                placeholder.show();
             }
         }
 

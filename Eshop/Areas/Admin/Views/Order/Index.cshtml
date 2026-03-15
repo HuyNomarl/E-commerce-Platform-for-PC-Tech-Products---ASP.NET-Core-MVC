@@ -3,83 +3,363 @@
     ViewData["Title"] = "Orders";
 }
 
-<h3>Orders</h3>
+<div class="row g-3 orders-index-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Đơn hàng</h4>
+                <div class="small page-subtitle">Quản lý danh sách đơn hàng và trạng thái xử lý</div>
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped table-hover align-middle" id="myTable">
-    <thead>
-        <tr>
-            <th>Order Code</th>
-            <th>User Email</th>
-            <th>Order Date</th>
-            <th>Order Status</th>
-            <th>Shipping Cost</th>
-            <th style="width: 180px;">Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            foreach (var item in Model)
-            {
-                <tr>
-                    <td class="fw-semibold">@item.OrderCode</td>
-                    <td>@item.UserName</td>
-                    <td>@item.CreatedTime.ToString("yyyy-MM-dd HH:mm")</td>
-                    <td>
-                        @switch (item.Status)
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-toolbar">
+                <div>
+                    <div class="section-title mb-0">Danh sách đơn hàng</div>
+                    <div class="section-subtitle">Theo dõi mã đơn, khách hàng, trạng thái và phí vận chuyển</div>
+                </div>
+
+                <div class="toolbar-right">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
+                    </div>
+
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@Model.Count()</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table order-table" id="myTable">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Email người dùng</th>
+                            <th>Ngày đặt</th>
+                            <th>Trạng thái</th>
+                            <th>Phí vận chuyển</th>
+                            <th style="width: 150px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
                         {
-                            case 1:
-                                <span class="badge bg-warning text-dark">Pending</span>
-                                break;
-                            case 2:
-                                <span class="badge bg-info text-dark">Processing</span>
-                                break;
-                            case 3:
-                                <span class="badge bg-success">Shipped</span>
-                                break;
-                            case 4:
-                                <span class="badge bg-danger">Delivered</span>
-                                break;
-                            case 5:
-                                <span class="badge bg-danger">Completed</span>
-                                break;
-                            case 6:
-                                <span class="badge bg-danger">Cancelled</span>
-                                break;
-                            default:
-                                <span class="badge bg-secondary">New</span>
-                                break;
-                        }
-                    </td>
-                    <td>@item.ShippingCost</td>
-                    <td>
-                        <a asp-area="Admin"
-                           asp-action="ViewOrder"
-                           asp-controller="Order"
-                           asp-route-orderCode="@item.OrderCode"
-                           class="btn btn-sm btn-primary">
-                            View
-                        </a>
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="code-pill">@item.OrderCode</span>
+                                    </td>
 
-                        <a asp-area="Admin"
-                           asp-action="Delete"
-                           asp-controller="Order"
-                           asp-route-id="@item.OrderId"
-                           class="btn btn-sm btn-danger confirmDeletion">
-                            Delete
-                        </a>
-                    </td>
-                </tr>
-            }
+                                    <td>
+                                        <div class="cell-main">@item.UserName</div>
+                                    </td>
+
+                                    <td>
+                                        <span class="date-text">@item.CreatedTime.ToString("yyyy-MM-dd HH:mm")</span>
+                                    </td>
+
+                                    <td>
+                                        @switch (item.Status)
+                                        {
+                                            case 1:
+                                                <span class="badge-soft badge-warn">Pending</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge-soft badge-info">Processing</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge-soft badge-show">Shipped</span>
+                                                break;
+                                            case 4:
+                                                <span class="badge-soft badge-danger">Delivered</span>
+                                                break;
+                                            case 5:
+                                                <span class="badge-soft badge-success-dark">Completed</span>
+                                                break;
+                                            case 6:
+                                                <span class="badge-soft badge-delete">Cancelled</span>
+                                                break;
+                                            default:
+                                                <span class="badge-soft badge-secondary">New</span>
+                                                break;
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="price-pill">@item.ShippingCost</span>
+                                    </td>
+
+                                    <td class="text-right">
+                                        <div class="action-group">
+                                            <a asp-area="Admin"
+                                               asp-action="ViewOrder"
+                                               asp-controller="Order"
+                                               asp-route-orderCode="@item.OrderCode"
+                                               class="icon-btn icon-view"
+                                               title="Xem">
+                                                <i class="fa fa-eye"></i>
+                                            </a>
+
+                                            <a asp-area="Admin"
+                                               asp-action="Delete"
+                                               asp-controller="Order"
+                                               asp-route-id="@item.OrderId"
+                                               class="icon-btn icon-delete confirmDeletion"
+                                               title="Xóa">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="empty-cell text-center">
+                                    <div class="empty-wrap">
+                                        <i class="fa fa-folder-open-o empty-icon"></i>
+                                        <div>Không có đơn hàng nào.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .orders-index-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 22px 22px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 260px;
+    }
+
+    .search-box .form-control {
+        height: 42px;
+        border-radius: 12px;
+        padding-left: 40px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .order-table {
+        margin-bottom: 0;
+    }
+
+    .order-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 700;
+        border-bottom: 1px solid #e5e7eb !important;
+        vertical-align: middle !important;
+        padding: 14px 12px !important;
+    }
+
+    .order-table tbody td {
+        vertical-align: middle !important;
+        padding: 14px 12px !important;
+        border-top: 1px solid #eef2f7 !important;
+    }
+
+    .order-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    .code-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .date-text {
+        font-size: 13px;
+        color: #374151;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .price-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #f8fafc;
+        border: 1px solid #dbe3ee;
+        color: #374151;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+        white-space: nowrap;
+    }
+
+    .badge-warn { color: #b45309; }
+    .badge-info { color: #0284c7; }
+    .badge-show { color: #15803d; }
+    .badge-danger { color: #dc2626; }
+    .badge-success-dark { color: #166534; }
+    .badge-delete { color: #991b1b; }
+    .badge-secondary { color: #6b7280; }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+    .icon-btn:hover {
+        background: #f3f4f6;
+        border-color: #d1d5db;
+    }
+
+    .icon-view { color: #2563eb; }
+    .icon-delete { color: #ef4444; }
+
+    .empty-cell {
+        padding: 40px 20px !important;
+    }
+
+    .empty-wrap {
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    div.dt-container .dt-search {
+        display: none;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
+    }
+
+    @@media (max-width: 767px) {
+        .table-toolbar {
+            padding: 18px 18px 0 18px;
+            flex-direction: column;
+            align-items: stretch;
         }
-        else
-        {
-            <tr>
-                <td colspan="5" class="text-center text-muted">No orders found.</td>
-            </tr>
+
+        .search-box {
+            min-width: 100%;
         }
-    </tbody>
-</table>
+
+        .toolbar-right {
+            width: 100%;
+        }
+    }
+</style>
 
 @section Scripts {
     <script>
@@ -89,12 +369,28 @@
             }
         });
     </script>
-  <script>
-    new DataTable('#myTable', {
-      layout: {
-        topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
-      }
-    });
-  </script>
 
+    <script>
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] },
+                topEnd: null
+            }
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            const totalEl = document.getElementById('totalRows');
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
+            }
+        });
+    </script>
 }

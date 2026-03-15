@@ -2,6 +2,7 @@ wwwroot\backend\js\site.js
 wwwroot\css\animate.css
 wwwroot\css\bootstrap.min.css
 wwwroot\css\font-awesome.min.css
+wwwroot\css\home-index.css
 wwwroot\css\main.css
 wwwroot\css\prettyPhoto.css
 wwwroot\css\price-range.css
@@ -82,35 +83,22 @@ wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
 wwwroot\media\contact\f965aa01-51b6-4a70-8dff-8480bb3bf660_109193186.jpg
+wwwroot\media\products\0015d491-dc68-4630-9be9-0fa5040184c6_1047534235_nguon_asus_rog_thor_1600t_1_d58829c550404f8ab56b915720ec80d2.jpg
+wwwroot\media\products\0d8f0897-e96a-404f-a26e-2cf7025fb086_1054409252_71170_lt520_wh__2__f09857bcbd784023bf3c432ea5e7e9aa.jpg
 wwwroot\media\products\13225791-7277-4bfc-acd4-76ec46f88911_1071344848_12816_case_aigo_q15_matx_usb_3_0_b689fc496588470aac1353dea0a0f3c8.jpg
 wwwroot\media\products\18d20899-3f12-4600-94e8-7c8458df636d_1072100265_12721_dsc04995.jpg
 wwwroot\media\products\2eba827b-e80f-4022-94f4-d4f09343fb2b_1072100277_pcm_dsc03236.jpg
+wwwroot\media\products\32984806-92ab-4918-bc94-35daad3c344b_1071760709_vga_zotac_gaming_geforce_rtx_3060_twin_edge_oc_1_afff6c5928f549419c37d121ff64260b.jpg
+wwwroot\media\products\3556503a-d994-4d8f-8d31-12cf79a9a396_shopping.webp
+wwwroot\media\products\3cef891b-844c-46b5-a2b2-357ae21253fe_1071491008_mainboard_asus_rog_strix_x870e_h_gaming_wifi_7_hatsune_miku_edition_9_59cbcbfb4bbc42758c4d4203c650e717.jpg
 wwwroot\media\products\554dbf34-e371-4c0a-ad91-3118029f8461_download (1).jfif
 wwwroot\media\products\9e33f872-33c4-490b-b28c-2fc43077522c_download.jfif
 wwwroot\media\sliders\33c94fdb-5168-47f3-930f-0f666be2fe6f.jpg
 wwwroot\media\sliders\7e95033a-80e9-4279-82c5-6f099fbb45cb.jpg
 wwwroot\media\sliders\84bbfe4a-f523-4936-9092-f88a6e01d2cd.jpg
-wwwroot\css\home-index.css
-E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
-E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css
 E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
-E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
+E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -170,4 +158,21 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\LICENSE.txt
+E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
+E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
+E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
+E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\home-index.css

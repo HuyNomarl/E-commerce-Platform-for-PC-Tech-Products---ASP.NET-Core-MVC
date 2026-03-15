@@ -12,86 +12,367 @@
     }
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Danh sách danh mục</h3>
-    <a asp-area="Admin" asp-action="Create" asp-controller="Category" class="btn btn-success">
-        Thêm danh mục
-    </a>
+<div class="row g-3 category-index-page">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start flex-column flex-md-row gap-2">
+            <div>
+                <h4 class="mb-1">Danh mục</h4>
+                <div class="small page-subtitle">Quản lý danh sách danh mục sản phẩm</div>
+            </div>
+
+            <a asp-area="Admin"
+                   asp-action="Create"
+                   asp-controller="Category"
+                   class="icon-btn icon-add"
+                   title="Thêm danh mục">
+                <i class="fa fa-plus-circle"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-toolbar">
+                <div>
+                    <div class="section-title mb-0">Danh sách danh mục</div>
+                    <div class="section-subtitle">Hiển thị danh mục cha, danh mục con và trạng thái hoạt động</div>
+                </div>
+
+                <span class="total-badge">
+                    Tổng: @(Model?.Count() ?? 0)
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table category-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Tên danh mục</th>
+                            <th>Mô tả</th>
+                            <th>Slug</th>
+                            <th>Danh mục cha</th>
+                            <th style="width: 110px;">Cấp</th>
+                            <th style="width: 130px;">Trạng thái</th>
+                            <th style="width: 150px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="code-pill">C@item.Id</span>
+                                    </td>
+
+                                    <td>
+                                        @if (item.ParentCategoryId != null)
+                                        {
+                                            <div class="cell-main child-name">
+                                                <span class="child-arrow">↳</span> @item.Name
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="cell-main">@item.Name</div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="desc-text">@item.Description</div>
+                                    </td>
+
+                                    <td>
+                                        <span class="slug-text">@item.Slug</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="cell-sub">
+                                            @(item.ParentCategory != null ? item.ParentCategory.Name : "Danh mục gốc")
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (item.ParentCategoryId == null)
+                                        {
+                                            <span class="badge-soft badge-parent">Cha</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft badge-child">Con</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.Status == 1)
+                                        {
+                                            <span class="badge-soft badge-show">Hiển thị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft badge-hide">Ẩn</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-right">
+                                        <div class="action-group">
+                                            <a asp-action="Edit"
+                                                   asp-controller="Category"
+                                                   asp-route-id="@item.Id"
+                                                   class="icon-btn icon-edit"
+                                                   title="Sửa">
+                                                <i class="fa fa-pencil-square-o"></i>
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                                   asp-controller="Category"
+                                                   asp-route-id="@item.Id"
+                                                   class="icon-btn icon-delete confirmDeletion"
+                                                   title="Xóa">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="empty-cell text-center">
+                                    <div class="empty-wrap">
+                                        <i class="fa fa-folder-open-o empty-icon"></i>
+                                        <div>Chưa có danh mục nào.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="paging-wrap">
+                <partial name="../Shared/_Paging" model="pager" />
+            </div>
+        </div>
+    </div>
 </div>
 
-<table class="table table-bordered table-striped align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th style="width: 70px;">Id</th>
-            <th>Tên danh mục</th>
-            <th>Mô tả</th>
-            <th>Slug</th>
-            <th>Danh mục cha</th>
-            <th style="width: 120px;">Cấp</th>
-            <th style="width: 120px;">Trạng thái</th>
-            <th style="width: 180px;">Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.Id</td>
-                    <td>
-                        @if (item.ParentCategoryId != null)
-                        {
-                            <span>&nbsp;&nbsp;&nbsp;&nbsp;↳ @item.Name</span>
-                        }
-                        else
-                        {
-                            <strong>@item.Name</strong>
-                        }
-                    </td>
-                    <td>@item.Description</td>
-                    <td>@item.Slug</td>
-                    <td>
-                        @(item.ParentCategory != null ? item.ParentCategory.Name : "Danh mục gốc")
-                    </td>
-                    <td>
-                        @if (item.ParentCategoryId == null)
-                        {
-                            <span class="badge bg-primary">Cha</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">Con</span>
-                        }
-                    </td>
-                    <td>
-                        @if (item.Status == 1)
-                        {
-                            <span class="badge bg-success">Hiển thị</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">Ẩn</span>
-                        }
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
-                            Sửa
-                        </a>
-                        <a asp-action="Delete" asp-controller="Category" asp-route-id="@item.Id" class="btn btn-sm btn-danger confirmDeletion">
-                            Xóa
-                        </a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="8" class="text-center">Chưa có danh mục nào.</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<style>
+    .category-index-page .page-subtitle {
+        opacity: .75;
+    }
 
-<partial name="../Shared/_Paging" model="pager" />
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 22px 22px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .category-table {
+        margin-bottom: 0;
+    }
+
+        .category-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .category-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .category-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .code-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .cell-sub {
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .child-name {
+        padding-left: 8px;
+    }
+
+    .child-arrow {
+        color: #6b7280;
+        margin-right: 4px;
+    }
+
+    .desc-text {
+        color: #4b5563;
+        max-width: 280px;
+        line-height: 1.45;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .slug-text {
+        color: #6b7280;
+        font-size: 12px;
+        word-break: break-word;
+    }
+
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+    }
+
+    .badge-parent {
+        color: #1d4ed8;
+    }
+
+    .badge-child {
+        color: #6b7280;
+    }
+
+    .badge-show {
+        color: #15803d;
+    }
+
+    .badge-hide {
+        color: #dc2626;
+    }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-add {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        color: #16a34a;
+    }
+
+    .icon-edit {
+        color: #f59e0b;
+    }
+
+    .icon-delete {
+        color: #ef4444;
+    }
+
+    .empty-cell {
+        padding: 40px 20px !important;
+    }
+
+    .empty-wrap {
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .paging-wrap {
+        padding: 16px 22px 22px 22px;
+        border-top: 1px solid #eef2f7;
+    }
+
+    @@media (max-width: 767px) {
+        .table-toolbar {
+            padding: 18px 18px 0 18px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .paging-wrap {
+            padding: 14px 18px 18px 18px;
+        }
+    }
+</style>

@@ -1,66 +1,420 @@
 ﻿@model IEnumerable<Eshop.Models.ProductModel>
+
 @{
     ViewData["title"] = "Product Index";
 }
 
-<h3>Product Index View</h3>
-<a asp-area="Admin" asp-action="Create" asp-controller="Product">Add Product</a>
+<div class="row g-3 product-index-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Sản phẩm</h4>
+                <div class="small page-subtitle">Quản lý danh sách sản phẩm</div>
+            </div>
 
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th scope="col">Id</th>
-            <th scope="col">Product Name</th>
-            <th scope="col">Product Quantity</th>
-            <th scope="col">Product Sold</th>
-            <th scope="col">Product Description</th>
-            <th scope="col">Product Price</th>
-            <th scope="col">Product Image</th>
-            <th scope="col">Product Slug</th>
-            <th scope="col">Product Category</th>
-            <th scope="col">Product Brand</th>
-            <th scope="col">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+            <a asp-area="Admin"
+                   asp-action="Create"
+                   asp-controller="Product"
+                   class="icon-btn icon-add"
+                   title="Thêm sản phẩm">
+                <i class="fa fa-plus-circle"></i>
+            </a>
+        </div>
+    </div>
 
-        @foreach (var item in Model)
-        {
-            <tr>
-                <th scope="row">@item.Id</th>
-                <td>@item.Name</td>
-                <td><b>@item.Quantity</b><a asp-controller="Product" asp-action="AddQuantity" asp-route-id="@item.Id">Add Quantity</a></td>
-                <td>@item.Sold</td>
-                <td>@item.Description</td>
-                <td>@item.Price</td>
-                <td><img src="~/media/products/@item.Image" width="100" height="80" /></td>
-                <td>@item.Slug</td>
-                <td>@item.Category.Name</td>
-                <td>@item.Publisher.Name</td>
-                <td>
-                    <a asp-action="Edit" asp-controller="Product" asp-route-id="@item.Id" class="btn btn-primary">Edit</a>
-                    <a asp-area="Admin"
-                           asp-controller="ProductOption"
-                           asp-action="Index"
-                           asp-route-productId="@item.Id"
-                           class="btn btn-info btn-sm">
-                        Option
-                    </a>
-                    <a asp-action="Delete" asp-controller="Product" asp-route-id="@item.Id" class="btn btn-primary confirmDeletion">Delete</a>
-                </td>
-            </tr>
-        
+    <div class="col-12">
+        <div class="card-soft toolbar-card">
+            <div class="toolbar-inner">
+                <div class="toolbar-left">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm theo tên sản phẩm..." />
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@Model.Count()</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-responsive">
+                <table class="table product-table" id="myTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Mã SP</th>
+                            <th style="width: 110px;">Ảnh</th>
+                            <th>Tên sản phẩm</th>
+                            <th style="width: 120px;">Tồn kho</th>
+                            <th style="width: 120px;">Đã bán</th>
+                            <th style="width: 150px;">Giá</th>
+                            <th style="width: 150px;">Slug</th>
+                            <th style="width: 140px;">Danh mục</th>
+                            <th style="width: 140px;">Thương hiệu</th>
+                            <th style="width: 240px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="code-pill">P@item.Id</span>
+                                </td>
+
+                                <td>
+                                    <div class="thumb-wrap">
+                                        <img src="~/media/products/@item.Image" alt="@item.Name" class="thumb" />
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="name-main">@item.Name</div>
+                                        <div class="name-sub text-muted">
+                                            @item.Description
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="qty-cell">
+                                        <span class="qty-badge">@item.Quantity</span>
+                                        <div class="mt-1">
+                                            <a asp-controller="Product"
+                                                   asp-action="AddQuantity"
+                                                   asp-route-id="@item.Id"
+                                                   class="mini-link">
+                                                Add Quantity
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="sold-badge">@item.Sold</span>
+                                </td>
+
+                                <td>
+                                    <span class="price-text">@item.Price</span>
+                                </td>
+
+                                <td>
+                                    <span class="slug-text">@item.Slug</span>
+                                </td>
+
+                                <td>
+                                    <span class="unit-badge">@item.Category.Name</span>
+                                </td>
+
+                                <td>
+                                    <span class="unit-badge">@item.Publisher.Name</span>
+                                </td>
+
+                                <td class="text-right">
+                                    <div class="action-group">
+                                        <a asp-action="Edit"
+                                               asp-controller="Product"
+                                               asp-route-id="@item.Id"
+                                               class="icon-btn icon-edit"
+                                               title="Chỉnh sửa">
+                                            <i class="fa fa-pencil-square-o"></i>
+                                        </a>
+
+                                        <a asp-area="Admin"
+                                               asp-controller="ProductOption"
+                                               asp-action="Index"
+                                               asp-route-productId="@item.Id"
+                                               class="icon-btn icon-option"
+                                               title="Option">
+                                            <i class="fa fa-sliders"></i>
+                                        </a>
+
+                                        <a asp-action="Delete"
+                                               asp-controller="Product"
+                                               asp-route-id="@item.Id"
+                                               class="icon-btn icon-delete confirmDeletion"
+                                               title="Xóa">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .product-index-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .toolbar-card {
+        padding: 16px 18px;
+    }
+
+    .toolbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+        flex: 1;
+        min-width: 260px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 420px;
+    }
+
+        .search-box .form-control {
+            height: 42px;
+            border-radius: 12px;
+            padding-left: 40px;
+            border: 1px solid #d1d5db;
+            box-shadow: none;
         }
 
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
+    }
 
-    </tbody>
-</table>
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .product-table {
+        margin-bottom: 0;
+    }
+
+        .product-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .product-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .product-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .code-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .thumb-wrap {
+        display: flex;
+        align-items: center;
+    }
+
+    .thumb {
+        width: 84px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .name-main {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .name-sub {
+        font-size: 12px;
+        line-height: 1.45;
+        max-width: 280px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .qty-badge,
+    .sold-badge,
+    .unit-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+        color: #374151;
+    }
+
+    .price-text {
+        font-weight: 700;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+    .slug-text {
+        font-size: 12px;
+        color: #6b7280;
+        word-break: break-word;
+    }
+
+    .mini-link {
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .mini-link:hover {
+            text-decoration: underline;
+        }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-add {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        color: #16a34a;
+    }
+
+    .icon-edit {
+        color: #f59e0b;
+    }
+
+    .icon-option {
+        color: #2563eb;
+    }
+
+    .icon-delete {
+        color: #ef4444;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
+    }
+
+    @@media (max-width: 991px) {
+        .name-sub {
+            max-width: 180px;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .toolbar-inner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-left,
+        .search-box {
+            max-width: 100%;
+        }
+    }
+</style>
+
 @section Scripts {
     <script>
-        new DataTable('#myTable', {
-          layout: {
-            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
-          }
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+            }
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            const totalEl = document.getElementById('totalRows');
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
+            }
         });
     </script>
 }

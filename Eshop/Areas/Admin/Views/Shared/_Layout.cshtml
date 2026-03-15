@@ -1,31 +1,23 @@
 ﻿@using System.Text.Json
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+}
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home | E-Shopper</title>
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | E-Shopper</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
-    <!-- Sweet Alert -->
-    <link href="
-    https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css
-    " rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css" rel="stylesheet">
 
-    <style>
-            .swal2-actions {
-                gap: 12px;
-            }
-    </style>
-    <!-- CSS custom của template -->
     <link href="~/css/prettyPhoto.css" rel="stylesheet">
         <link href="//cdn.datatables.net/2.3.6/css/dataTables.dataTables.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.min.css">
-
 
         <link href="~/css/price-range.css" rel="stylesheet">
             <link href="~/css/animate.css" rel="stylesheet">
@@ -33,87 +25,380 @@
                     <link href="~/css/responsive.css" rel="stylesheet">
 
                         <link rel="shortcut icon" href="images/ico/favicon.ico">
+
+                        <style>
+                                .swal2-actions {
+                                    gap: 12px;
+                                }
+
+                                body {
+                                    background: #f6f8fb;
+                                    color: #1f2937;
+                                }
+
+                                .admin-shell {
+                                    min-height: 100vh;
+                                    display: flex;
+                                    flex-direction: column;
+                                }
+
+                                .admin-topbar {
+                                    background: #ffffff;
+                                    border-bottom: 1px solid #e5e7eb;
+                                    position: sticky;
+                                    top: 0;
+                                    z-index: 1000;
+                                }
+
+                                .admin-topbar-inner {
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    gap: 15px;
+                                    padding: 14px 0;
+                                }
+
+                                .admin-brand {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                }
+
+                                    .admin-brand img {
+                                        max-height: 42px;
+                                        width: auto;
+                                        object-fit: contain;
+                                    }
+
+                                .admin-brand-text h4 {
+                                    margin: 0;
+                                    font-size: 20px;
+                                    font-weight: 700;
+                                    color: #111827;
+                                }
+
+                                .admin-brand-text .small {
+                                    color: #6b7280;
+                                }
+
+                                .admin-topbar-right {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 10px;
+                                }
+
+                                .admin-search {
+                                    min-width: 240px;
+                                }
+
+                                    .admin-search input {
+                                        border-radius: 10px;
+                                        border: 1px solid #d1d5db;
+                                        box-shadow: none;
+                                        height: 40px;
+                                    }
+
+                                .admin-main {
+                                    flex: 1;
+                                    padding: 24px 0;
+                                }
+
+                                .admin-grid {
+                                    display: flex;
+                                    gap: 24px;
+                                    align-items: flex-start;
+                                }
+
+                                .admin-sidebar {
+                                    width: 280px;
+                                    flex: 0 0 280px;
+                                }
+
+                                .admin-content {
+                                    flex: 1;
+                                    min-width: 0;
+                                }
+
+                                .card-soft {
+                                    background: #ffffff;
+                                    border: 1px solid #e5e7eb;
+                                    border-radius: 16px;
+                                    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+                                }
+
+                                .sidebar-card {
+                                    padding: 18px;
+                                    position: sticky;
+                                    top: 92px;
+                                }
+
+                                .sidebar-title {
+                                    font-size: 13px;
+                                    text-transform: uppercase;
+                                    letter-spacing: .06em;
+                                    color: #6b7280;
+                                    margin-bottom: 14px;
+                                    font-weight: 700;
+                                }
+
+                                .sidebar-menu {
+                                    list-style: none;
+                                    padding: 0;
+                                    margin: 0;
+                                }
+
+                                    .sidebar-menu li + li {
+                                        margin-top: 8px;
+                                    }
+
+                                    .sidebar-menu li a {
+                                        display: flex;
+                                        align-items: center;
+                                        gap: 10px;
+                                        text-decoration: none;
+                                        color: #374151;
+                                        padding: 11px 14px;
+                                        border-radius: 12px;
+                                        transition: all .2s ease;
+                                        font-weight: 500;
+                                    }
+
+                                        .sidebar-menu li a:hover {
+                                            background: #f3f4f6;
+                                            color: #111827;
+                                        }
+
+                                        .sidebar-menu li a.active,
+                                        .sidebar-menu li.active a {
+                                            background: #111827;
+                                            color: #ffffff;
+                                        }
+
+                                        .sidebar-menu li a i {
+                                            width: 18px;
+                                            text-align: center;
+                                            font-size: 14px;
+                                        }
+
+                                .content-card {
+                                    padding: 22px;
+                                }
+
+                                .page-head {
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    gap: 12px;
+                                    margin-bottom: 18px;
+                                }
+
+                                    .page-head h3 {
+                                        margin: 0;
+                                        font-size: 24px;
+                                        font-weight: 700;
+                                        color: #111827;
+                                    }
+
+                                    .page-head .small {
+                                        color: #6b7280;
+                                        margin-top: 4px;
+                                    }
+
+                                .admin-footer {
+                                    padding: 18px 0 24px;
+                                    color: #6b7280;
+                                    font-size: 13px;
+                                }
+
+                                    .admin-footer .footer-card {
+                                        padding: 14px 18px;
+                                    }
+
+                                .render-body-wrap > .row {
+                                    margin-left: 0;
+                                    margin-right: 0;
+                                }
+
+                                    .render-body-wrap > .row > [class*="col-"] {
+                                        padding-left: 0;
+                                        padding-right: 0;
+                                    }
+
+                                @@media (max-width: 991px) {
+                                    .admin-grid {
+                                        flex-direction: column;
+                                    }
+
+                                    .admin-sidebar {
+                                        width: 100%;
+                                        flex: unset;
+                                    }
+
+                                    .sidebar-card {
+                                        position: static;
+                                    }
+
+                                    .admin-search {
+                                        min-width: 180px;
+                                        width: 100%;
+                                    }
+
+                                    .admin-topbar-inner {
+                                        flex-direction: column;
+                                        align-items: stretch;
+                                    }
+
+                                    .admin-topbar-right {
+                                        width: 100%;
+                                        justify-content: flex-end;
+                                    }
+                                }
+
+                                @@media (max-width: 767px) {
+                                    .admin-main {
+                                        padding: 16px 0;
+                                    }
+
+                                    .content-card {
+                                        padding: 16px;
+                                    }
+
+                                    .page-head {
+                                        flex-direction: column;
+                                        align-items: flex-start;
+                                    }
+                                }
+                        </style>
                     </head>
-
                     <body>
-                        <header id="header">
-                            <!--header-->
-                            <div class="header_top">
-                                <!--header_top-->
-                                <div class="container">
-                                    <div class="row">
-                                    </div>
-                                </div>
-                            </div><!--/header_top-->
-
-                            <div class="header-middle">
-                                <!--header-middle-->
-                                <div class="container">
-                                    <div class="row">
-                                        <div class="col-sm-4">
-                                            <div class="logo pull-left">
-                                                <a href="index.html"><img src="images/home/logo.png" alt="" /></a>
+                        <div class="admin-shell">
+                            <header class="admin-topbar">
+                                <div class="container-fluid">
+                                    <div class="admin-topbar-inner">
+                                        <div class="admin-brand">
+                                            <a asp-controller="Home" asp-action="Index">
+                                                <img src="~/images/home/logo.png" alt="E-Shopper Logo" />
+                                            </a>
+                                            <div class="admin-brand-text">
+                                                <h4>E-Shopper Admin</h4>
+                                                <div class="small">Quản trị hệ thống cửa hàng</div>
                                             </div>
-
                                         </div>
 
+                                        <div class="admin-topbar-right">
+                                            <div class="admin-search">
+                                                <input type="text" class="form-control" placeholder="Search..." />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div><!--/header-middle-->
+                            </header>
 
-                            <div class="header-bottom">
-                                <!--header-bottom-->
-                                <div class="container">
-                                    <div class="row">
-                                        <div class="col-sm-9">
-                                            <div class="navbar-header">
-                                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                                                    <span class="sr-only">Toggle navigation</span>
-                                                    <span class="icon-bar"></span>
-                                                    <span class="icon-bar"></span>
-                                                    <span class="icon-bar"></span>
-                                                </button>
-                                            </div>
-                                            <div class="mainmenu pull-left">
-                                                <ul class="nav navbar-nav collapse navbar-collapse">
-                                                    <li><a asp-controller="Home" class="active">Home</a></li>
-                                                    <li><a asp-controller="Dashboard">Dashboard</a></li>
-                                                    <li><a asp-controller="Slider">Slider</a></li>
-                                                    <li><a asp-controller="Shipping">Shipping</a></li>
-                                                    <li><a asp-controller="Product">Product</a></li>
-                                                    <li><a asp-controller="Category">Categories</a></li>
-                                                    <li><a asp-controller="Publisher">Brand</a></li>
-                                                    <li><a asp-controller="Coupon">Coupons</a></li>
-                                                    <li><a asp-controller="Order" asp-action="Index">Orders</a></li>
-                                                    <li><a asp-controller="User" asp-action="Index">Users</a></li>
-                                                    <li><a asp-controller="Role" asp-action="Index">Roles</a></li>
-                                                    <li><a asp-controller="Chat" asp-action="Index">Chat</a></li>
-                                                    <li><a asp-controller="Contact" asp-action="Index">Contacts</a></li>
+                            <main class="admin-main">
+                                <div class="container-fluid">
+                                    <div class="admin-grid">
+                                        <aside class="admin-sidebar">
+                                            <div class="card-soft sidebar-card">
+                                                <div class="sidebar-title">Điều hướng quản trị</div>
+
+                                                <ul class="sidebar-menu">
+                                                    <li>
+                                                        <a asp-controller="Home" asp-action="Index" class="@(currentController == "Home" ? "active" : "")">
+                                                            <i class="fa fa-home"></i> <span>Home</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Dashboard" asp-action="Index" class="@(currentController == "Dashboard" ? "active" : "")">
+                                                            <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Slider" asp-action="Index" class="@(currentController == "Slider" ? "active" : "")">
+                                                            <i class="fa fa-image"></i> <span>Slider</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Shipping" asp-action="Index" class="@(currentController == "Shipping" ? "active" : "")">
+                                                            <i class="fa fa-truck"></i> <span>Shipping</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Product" asp-action="Index" class="@(currentController == "Product" ? "active" : "")">
+                                                            <i class="fa fa-cube"></i> <span>Product</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Category" asp-action="Index" class="@(currentController == "Category" ? "active" : "")">
+                                                            <i class="fa fa-list"></i> <span>Categories</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Publisher" asp-action="Index" class="@(currentController == "Publisher" ? "active" : "")">
+                                                            <i class="fa fa-tag"></i> <span>Brand</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Coupon" asp-action="Index" class="@(currentController == "Coupon" ? "active" : "")">
+                                                            <i class="fa fa-ticket"></i> <span>Coupons</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Order" asp-action="Index" class="@(currentController == "Order" ? "active" : "")">
+                                                            <i class="fa fa-shopping-bag"></i> <span>Orders</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="User" asp-action="Index" class="@(currentController == "User" ? "active" : "")">
+                                                            <i class="fa fa-users"></i> <span>Users</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Role" asp-action="Index" class="@(currentController == "Role" ? "active" : "")">
+                                                            <i class="fa fa-user-secret"></i> <span>Roles</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Chat" asp-action="Index" class="@(currentController == "Chat" ? "active" : "")">
+                                                            <i class="fa fa-comments"></i> <span>Chat</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Contact" asp-action="Index" class="@(currentController == "Contact" ? "active" : "")">
+                                                            <i class="fa fa-address-book"></i> <span>Contacts</span>
+                                                        </a>
+                                                    </li>
                                                 </ul>
                                             </div>
-                                        </div>
-                                        <div class="col-sm-3">
-                                            <div class="search_box pull-right">
-                                                <input type="text" placeholder="Search" />
+                                        </aside>
+
+                                        <section class="admin-content">
+                                            <div class="card-soft content-card">
+                                                <div class="page-head">
+                                                    <div>
+                                                        <h3>@(ViewData["Title"] ?? "Dashboard")</h3>
+                                                        <div class="small">Khu vực quản trị và thao tác dữ liệu hệ thống</div>
+                                                    </div>
+                                                </div>
+
+                                                @Html.Partial("_NotificationPartial")
+
+                                                <div class="render-body-wrap">
+                                                    @RenderBody()
+                                                </div>
                                             </div>
-                                        </div>
+                                        </section>
                                     </div>
                                 </div>
-                            </div><!--/header-bottom-->
-                        </header><!--/header-->
-                        <section>
-                            <div class="container">
-                                <div class="row">
-                                    @Html.Partial("_NotificationPartial")
-                                    @RenderBody()
+                            </main>
+
+                            <footer class="admin-footer">
+                                <div class="container-fluid">
+                                    <div class="card-soft footer-card">
+                                        © @DateTime.Now.Year - E-Shopper Admin Panel
+                                    </div>
                                 </div>
-                            </div>
-                        </section>
-
-                        <footer id="footer">
-                        </footer><!--/Footer-->
-
-
+                            </footer>
+                        </div>
 
                         <script src="~/js/jquery.js"></script>
                         <script src="~/js/bootstrap.min.js"></script>
@@ -122,8 +407,8 @@
                         <script src="~/js/jquery.prettyPhoto.js"></script>
                         <script src="~/js/main.js"></script>
                         <script src="~/backend/js/site.js"></script>
-                        <script src="//cdn.datatables.net/2.3.6/js/dataTables.min.js"></script>
 
+                        <script src="//cdn.datatables.net/2.3.6/js/dataTables.min.js"></script>
                         <script src="https://cdn.datatables.net/2.3.6/js/dataTables.min.js"></script>
                         <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.min.js"></script>
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -133,9 +418,9 @@
                         <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
 
                         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
+
                         <script>
                             $(function () {
-
                             const successMessage = @Html.Raw(JsonSerializer.Serialize(TempData["SuccessMessage"]));
                             if (successMessage) {
                             Swal.fire({
@@ -158,7 +443,6 @@
                             });
                             }
 
-                            // Confirm trước khi submit các form có class js-confirm-save
                             $(document).on('submit', 'form.js-confirm-save', function (e) {
                             e.preventDefault();
 
@@ -172,18 +456,15 @@
                             denyButtonText: "Don't save"
                             }).then((result) => {
                             if (result.isConfirmed) {
-                            // submit
                             form.submit();
                             } else if (result.isDenied) {
                             Swal.fire("Changes are not saved", "", "info");
                             }
-                            // Cancel
                             });
                             });
 
-                            });
+                         
                         </script>
-
 
                         @await RenderSectionAsync("Scripts", required: false)
                     </body>

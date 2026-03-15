@@ -5,68 +5,302 @@
     decimal subtotal = 0;
 }
 
-<h3>Order Detail View</h3>
+<div class="row g-3 order-detail-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Chi tiết đơn hàng</h4>
+                <div class="small page-subtitle">Xem sản phẩm trong đơn và cập nhật trạng thái xử lý</div>
+            </div>
 
-<p><strong>Order Code:</strong> @Model.OrderCode</p>
-<p><strong>User Name:</strong> @Model.UserName</p>
+            <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </div>
 
-<form id="updateForm">
-    @Html.AntiForgeryToken()
-    <input type="hidden" id="orderCode" value="@Model.OrderCode" />
+    <div class="col-12">
+        <div class="card-soft info-card">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Mã đơn</div>
+                    <div class="info-value code-pill">@Model.OrderCode</div>
+                </div>
 
-    <table class="table" id="detail_order">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th class="text-end">Price</th>
-                <th class="text-center">Quantity</th>
-                <th class="text-end">Line Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.OrderDetails.Any())
-            {
-                subtotal = Model.OrderDetails.Sum(x => x.Price * x.Quantity);
+                <div class="info-item">
+                    <div class="info-label">Người dùng</div>
+                    <div class="info-value">@Model.UserName</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                foreach (var item in Model.OrderDetails)
-                {
-                    <tr>
-                        <td>@item.Product?.Name</td>
-                        <td class="text-end">@item.Price.ToString("N0")</td>
-                        <td class="text-center">@item.Quantity</td>
-                        <td class="text-end">@((item.Price * item.Quantity).ToString("N0"))</td>
-                    </tr>
-                }
-            }
-        </tbody>
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-toolbar">
+                <div>
+                    <div class="section-title mb-0">Sản phẩm trong đơn</div>
+                    <div class="section-subtitle">Theo dõi giá, số lượng và tổng tiền của từng dòng sản phẩm</div>
+                </div>
+            </div>
 
-        <tfoot>
-            <tr>
-                <th colspan="3" class="text-end">Total:</th>
-                <th class="text-end">@subtotal.ToString("N0")</th>
-            </tr>
-            <tr>
-                <th colspan="3" class="text-end">Status:</th>
-                <th>
-                    <select asp-for="Status"
-                            asp-items="Model.StatusList"
-                            id="orderStatus"
-                            class="form-select">
-                    </select>
-                </th>
-            </tr>
-        </tfoot>
-    </table>
-</form>
+            <form id="updateForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="orderCode" value="@Model.OrderCode" />
 
-<a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-secondary">
-    Back to Orders
-</a>
+                <div class="table-responsive">
+                    <table class="table detail-table" id="detail_order">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-right">Giá</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-right">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.OrderDetails.Any())
+                            {
+                                subtotal = Model.OrderDetails.Sum(x => x.Price * x.Quantity);
+
+                                foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="cell-main">@item.Product?.Name</div>
+                                        </td>
+                                        <td class="text-right">
+                                            <span class="money-text">@item.Price.ToString("N0")</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="qty-pill">@item.Quantity</span>
+                                        </td>
+                                        <td class="text-right">
+                                            <span class="money-text">@((item.Price * item.Quantity).ToString("N0"))</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="empty-cell text-center">
+                                        <div class="empty-wrap">
+                                            <i class="fa fa-folder-open-o empty-icon"></i>
+                                            <div>Không có chi tiết đơn hàng.</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-right">Tổng tiền:</th>
+                                <th class="text-right">
+                                    <span class="total-text">@subtotal.ToString("N0")</span>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-right">Trạng thái:</th>
+                                <th>
+                                    <select asp-for="Status"
+                                            asp-items="Model.StatusList"
+                                            id="orderStatus"
+                                            class="form-control input-soft status-select">
+                                    </select>
+                                </th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-detail-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .info-card {
+        padding: 20px 22px;
+    }
+
+    .info-grid {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+
+    .info-item {
+        min-width: 220px;
+    }
+
+    .info-label {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 6px;
+        font-weight: 600;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .code-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 22px 22px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .detail-table {
+        margin-bottom: 0;
+    }
+
+        .detail-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .detail-table tbody td,
+        .detail-table tfoot th {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .detail-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .money-text {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .total-text {
+        font-weight: 800;
+        color: #111827;
+        font-size: 16px;
+    }
+
+    .qty-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+        }
+
+    .status-select {
+        min-width: 180px;
+    }
+
+    .btn-outline-secondary {
+        border-radius: 12px;
+        padding: 10px 18px;
+    }
+
+    .empty-cell {
+        padding: 40px 20px !important;
+    }
+
+    .empty-wrap {
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    @@media (max-width: 767px) {
+        .info-card {
+            padding: 16px 18px;
+        }
+
+        .table-toolbar {
+            padding: 18px 18px 0 18px;
+        }
+
+        .status-select {
+            min-width: 100%;
+        }
+    }
+</style>
 
 @section Scripts {
     <script>
         $(document).on('change', '#orderStatus', function () {
-
             const orderCode = $('#orderCode').val();
             const status = $(this).val();
             const token = $('input[name="__RequestVerificationToken"]').val();

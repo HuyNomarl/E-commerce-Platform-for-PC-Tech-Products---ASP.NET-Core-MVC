@@ -3,205 +3,501 @@
     ViewData["Title"] = "Quản lý mã giảm giá";
 }
 
-<h4>Thêm mã giảm giá</h4>
-
-<div class="row">
-    <div class="col-md-5">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-2">
-                <label asp-for="NameCode" class="form-label">Mã giảm giá</label>
-                <input asp-for="NameCode" class="form-control" placeholder="VD: SALE10, GIAM50000" />
-                <span asp-validation-for="NameCode" class="text-danger"></span>
+<div class="row g-3 coupon-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Mã giảm giá</h4>
+                <div class="small page-subtitle">Tạo và quản lý các chương trình giảm giá</div>
             </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="Description" class="form-label">Mô tả</label>
-                <textarea asp-for="Description" class="form-control" rows="2" placeholder="Nhập mô tả ngắn về mã giảm giá"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="DiscountType" class="form-label">Loại giảm giá</label>
-                <select asp-for="DiscountType" class="form-control">
-                    <option value="1">Giảm theo phần trăm (%)</option>
-                    <option value="2">Giảm theo số tiền cố định</option>
-                </select>
-                <span asp-validation-for="DiscountType" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="Discount" class="form-label">Giá trị giảm</label>
-                <input asp-for="Discount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 10 hoặc 50000" />
-                <small class="text-muted">Nếu loại là %, nhập 10 nghĩa là giảm 10%. Nếu là tiền cố định, nhập số tiền.</small>
-                <span asp-validation-for="Discount" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="Quantity" class="form-label">Số lượng</label>
-                <input asp-for="Quantity" type="number" min="0" class="form-control" placeholder="Nhập số lượt sử dụng" />
-                <span asp-validation-for="Quantity" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="MinOrderAmount" class="form-label">Đơn hàng tối thiểu</label>
-                <input asp-for="MinOrderAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 200000" />
-                <small class="text-muted">Để trống nếu không giới hạn.</small>
-                <span asp-validation-for="MinOrderAmount" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="MaxDiscountAmount" class="form-label">Giảm tối đa</label>
-                <input asp-for="MaxDiscountAmount" type="number" step="0.01" min="0" class="form-control" placeholder="Ví dụ: 50000" />
-                <small class="text-muted">Chỉ nên dùng khi giảm theo %.</small>
-                <span asp-validation-for="MaxDiscountAmount" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="DateStart" class="form-label">Ngày bắt đầu</label>
-                <input asp-for="DateStart" type="date" class="form-control" />
-                <span asp-validation-for="DateStart" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-2">
-                <label asp-for="DateEnd" class="form-label">Ngày kết thúc</label>
-                <input asp-for="DateEnd" type="date" class="form-control" />
-                <span asp-validation-for="DateEnd" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Status" class="form-label">Trạng thái</label>
-                <select asp-for="Status" class="form-control">
-                    <option value="1">Kích hoạt</option>
-                    <option value="0">Ẩn</option>
-                </select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Thêm mới</button>
-            </div>
-        </form>
+        </div>
     </div>
 
-    <div class="col-md-7">
-        <h5>Danh sách mã giảm giá</h5>
-        <table class="table table-striped table-bordered" id="myTable">
-            <thead>
-                <tr>
-                    <th>Mã</th>
-                    <th>Loại</th>
-                    <th>Giá trị</th>
-                    <th>Số lượng</th>
-                    <th>Bắt đầu</th>
-                    <th>Kết thúc</th>
-                    <th>Trạng thái</th>
-                    <th>Còn lại</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (ViewBag.Coupons != null)
-                {
-                    foreach (var coupon in ViewBag.Coupons)
-                    {
+    <div class="col-12 col-xl-5">
+        <div class="card-soft form-card">
+            <div class="card-body-custom">
+                <div class="section-title">Thêm mã giảm giá</div>
+                <div class="section-subtitle">Nhập thông tin mã khuyến mãi và thiết lập điều kiện áp dụng</div>
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row form-grid">
+                        <div class="col-xs-12 form-col">
+                            <label asp-for="NameCode" class="form-label">Mã giảm giá</label>
+                            <input asp-for="NameCode" class="form-control input-soft" placeholder="VD: SALE10, GIAM50000" />
+                            <span asp-validation-for="NameCode" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 form-col">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description"
+                                      class="form-control input-soft textarea-soft"
+                                      rows="3"
+                                      placeholder="Nhập mô tả ngắn về mã giảm giá"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="DiscountType" class="form-label">Loại giảm giá</label>
+                            <select asp-for="DiscountType" class="form-control input-soft">
+                                <option value="1">Giảm theo phần trăm (%)</option>
+                                <option value="2">Giảm theo số tiền cố định</option>
+                            </select>
+                            <span asp-validation-for="DiscountType" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="Discount" class="form-label">Giá trị giảm</label>
+                            <input asp-for="Discount"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control input-soft"
+                                   placeholder="Ví dụ: 10 hoặc 50000" />
+                            <div class="helper-text">Nếu loại là %, nhập 10 nghĩa là giảm 10%.</div>
+                            <span asp-validation-for="Discount" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="Quantity" class="form-label">Số lượng</label>
+                            <input asp-for="Quantity"
+                                   type="number"
+                                   min="0"
+                                   class="form-control input-soft"
+                                   placeholder="Nhập số lượt sử dụng" />
+                            <span asp-validation-for="Quantity" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="Status" class="form-label">Trạng thái</label>
+                            <select asp-for="Status" class="form-control input-soft">
+                                <option value="1">Kích hoạt</option>
+                                <option value="0">Ẩn</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="MinOrderAmount" class="form-label">Đơn hàng tối thiểu</label>
+                            <input asp-for="MinOrderAmount"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control input-soft"
+                                   placeholder="Ví dụ: 200000" />
+                            <div class="helper-text">Để trống nếu không giới hạn.</div>
+                            <span asp-validation-for="MinOrderAmount" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="MaxDiscountAmount" class="form-label">Giảm tối đa</label>
+                            <input asp-for="MaxDiscountAmount"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   class="form-control input-soft"
+                                   placeholder="Ví dụ: 50000" />
+                            <div class="helper-text">Chỉ nên dùng khi giảm theo %.</div>
+                            <span asp-validation-for="MaxDiscountAmount" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="DateStart" class="form-label">Ngày bắt đầu</label>
+                            <input asp-for="DateStart" type="date" class="form-control input-soft" />
+                            <span asp-validation-for="DateStart" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-xs-12 col-md-6 form-col">
+                            <label asp-for="DateEnd" class="form-label">Ngày kết thúc</label>
+                            <input asp-for="DateEnd" type="date" class="form-control input-soft" />
+                            <span asp-validation-for="DateEnd" class="text-danger small d-block mt-1"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions mt-3">
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fa fa-plus-circle me-1"></i> Thêm mới
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card-soft table-card">
+            <div class="table-toolbar">
+                <div>
+                    <div class="section-title mb-0">Danh sách mã giảm giá</div>
+                    <div class="section-subtitle">Theo dõi loại giảm, điều kiện áp dụng và thời gian hiệu lực</div>
+                </div>
+
+                <span class="total-badge">
+                    Tổng: @(ViewBag.Coupons != null ? ((IEnumerable<dynamic>)ViewBag.Coupons).Count() : 0)
+                </span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table coupon-table" id="myTable">
+                    <thead>
                         <tr>
-                            <td>
-                                <strong>@coupon.NameCode</strong>
-                                @if (!string.IsNullOrWhiteSpace(coupon.Description))
-                                {
-                                    <br />
-                                    <small class="text-muted">@coupon.Description</small>
-                                }
-                            </td>
-
-                            <td>
-                                @if (coupon.DiscountType == 1)
-                                {
-                                    <span class="badge bg-info">Phần trăm</span>
-                                }
-                                else if (coupon.DiscountType == 2)
-                                {
-                                    <span class="badge bg-secondary">Tiền cố định</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-dark">Không xác định</span>
-                                }
-                            </td>
-
-                            <td>
-                                @if (coupon.DiscountType == 1)
-                                {
-                                    <span>@coupon.Discount %</span>
-                                    @if (coupon.MaxDiscountAmount != null)
-                                    {
-                                        <br />
-                                        <small class="text-muted">Tối đa: @coupon.MaxDiscountAmount.ToString("N0") đ</small>
-                                    }
-                                }
-                                else
-                                {
-                                    <span>@coupon.Discount.ToString("N0") đ</span>
-                                }
-
-                                @if (coupon.MinOrderAmount != null)
-                                {
-                                    <br />
-                                    <small class="text-muted">Đơn tối thiểu: @coupon.MinOrderAmount.ToString("N0") đ</small>
-                                }
-                            </td>
-
-                            <td>@coupon.Quantity</td>
-
-                            <td>@coupon.DateStart.ToString("dd-MM-yyyy")</td>
-                            <td>@coupon.DateEnd.ToString("dd-MM-yyyy")</td>
-
-                            <td>
-                                @if (coupon.Status == 1)
-                                {
-                                    <span class="badge bg-success">Kích hoạt</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary">Ẩn</span>
-                                }
-                            </td>
-
-                            <td>
-                                @if (coupon.DateEnd < DateTime.Now.Date)
-                                {
-                                    <span class="badge bg-danger">Hết hạn</span>
-                                }
-                                else if (coupon.DateStart > DateTime.Now.Date)
-                                {
-                                    <span class="badge bg-warning text-dark">Chưa bắt đầu</span>
-                                }
-                                else if (coupon.Quantity <= 0)
-                                {
-                                    <span class="badge bg-dark">Hết lượt</span>
-                                }
-                                else
-                                {
-                                    var daysRemaining = (coupon.DateEnd.Date - DateTime.Now.Date).Days;
-
-                                    if (daysRemaining == 0)
-                                    {
-                                        <span class="badge bg-warning text-dark">Hết hạn hôm nay</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success">@daysRemaining ngày</span>
-                                    }
-                                }
-                            </td>
+                            <th>Mã</th>
+                            <th>Loại</th>
+                            <th>Giá trị</th>
+                            <th style="width: 90px;">Số lượng</th>
+                            <th style="width: 110px;">Bắt đầu</th>
+                            <th style="width: 110px;">Kết thúc</th>
+                            <th style="width: 120px;">Trạng thái</th>
+                            <th style="width: 140px;">Còn lại</th>
                         </tr>
-                    }
-                }
-            </tbody>
-        </table>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.Coupons != null)
+                        {
+                            foreach (var coupon in ViewBag.Coupons)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="cell-main">@coupon.NameCode</div>
+                                        @if (!string.IsNullOrWhiteSpace(coupon.Description))
+                                        {
+                                            <div class="desc-text">@coupon.Description</div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (coupon.DiscountType == 1)
+                                        {
+                                            <span class="badge-soft badge-info">Phần trăm</span>
+                                        }
+                                        else if (coupon.DiscountType == 2)
+                                        {
+                                            <span class="badge-soft badge-secondary">Tiền cố định</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft badge-dark">Không xác định</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="value-cell">
+                                            @if (coupon.DiscountType == 1)
+                                            {
+                                                <div class="cell-main">@coupon.Discount %</div>
+                                                @if (coupon.MaxDiscountAmount != null)
+                                                {
+                                                    <div class="desc-text">Tối đa: @coupon.MaxDiscountAmount.ToString("N0") đ</div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <div class="cell-main">@coupon.Discount.ToString("N0") đ</div>
+                                            }
+
+                                            @if (coupon.MinOrderAmount != null)
+                                            {
+                                                <div class="desc-text">Đơn tối thiểu: @coupon.MinOrderAmount.ToString("N0") đ</div>
+                                            }
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="qty-pill">@coupon.Quantity</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="date-text">@coupon.DateStart.ToString("dd-MM-yyyy")</span>
+                                    </td>
+
+                                    <td>
+                                        <span class="date-text">@coupon.DateEnd.ToString("dd-MM-yyyy")</span>
+                                    </td>
+
+                                    <td>
+                                        @if (coupon.Status == 1)
+                                        {
+                                            <span class="badge-soft badge-show">Kích hoạt</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-soft badge-hide">Ẩn</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (coupon.DateEnd < DateTime.Now.Date)
+                                        {
+                                            <span class="badge-soft badge-expired">Hết hạn</span>
+                                        }
+                                        else if (coupon.DateStart > DateTime.Now.Date)
+                                        {
+                                            <span class="badge-soft badge-warn">Chưa bắt đầu</span>
+                                        }
+                                        else if (coupon.Quantity <= 0)
+                                        {
+                                            <span class="badge-soft badge-dark">Hết lượt</span>
+                                        }
+                                        else
+                                        {
+                                            var daysRemaining = (coupon.DateEnd.Date - DateTime.Now.Date).Days;
+
+                                            if (daysRemaining == 0)
+                                            {
+                                                <span class="badge-soft badge-warn">Hết hạn hôm nay</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-soft badge-show">@daysRemaining ngày</span>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .coupon-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .form-card,
+    .table-card {
+        overflow: hidden;
+    }
+
+    .card-body-custom {
+        padding: 24px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .form-grid {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .form-col {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 18px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+        }
+
+    .textarea-soft {
+        min-height: 92px;
+        resize: vertical;
+    }
+
+    .helper-text {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 6px;
+        line-height: 1.4;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-accent {
+        background: #111827;
+        border: 1px solid #111827;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+    }
+
+        .btn-accent:hover,
+        .btn-accent:focus {
+            color: #fff;
+            background: #0f172a;
+            border-color: #0f172a;
+        }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 22px 22px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .coupon-table {
+        margin-bottom: 0;
+    }
+
+        .coupon-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .coupon-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .coupon-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .desc-text {
+        color: #6b7280;
+        font-size: 12px;
+        margin-top: 4px;
+        line-height: 1.45;
+    }
+
+    .value-cell {
+        min-width: 150px;
+    }
+
+    .qty-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .date-text {
+        font-size: 13px;
+        color: #374151;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .badge-soft {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+        white-space: nowrap;
+    }
+
+    .badge-info {
+        color: #0284c7;
+    }
+
+    .badge-secondary {
+        color: #6b7280;
+    }
+
+    .badge-dark {
+        color: #111827;
+    }
+
+    .badge-show {
+        color: #15803d;
+    }
+
+    .badge-hide {
+        color: #6b7280;
+    }
+
+    .badge-expired {
+        color: #dc2626;
+    }
+
+    .badge-warn {
+        color: #b45309;
+    }
+
+    .text-danger.small {
+        font-size: 12px;
+    }
+
+    @@media (max-width: 767px) {
+        .card-body-custom {
+            padding: 16px;
+        }
+
+        .table-toolbar {
+            padding: 18px 18px 0 18px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
 
 @section Scripts {
     @{

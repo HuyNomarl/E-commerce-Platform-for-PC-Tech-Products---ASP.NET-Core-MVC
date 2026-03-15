@@ -4,75 +4,201 @@
     ViewData["Title"] = "Create Product";
 }
 
-<h4>Create Product</h4>
-
-<div class="row">
-    <div class="col-md-8">
-        <form asp-action="Create" method="post" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
-
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label">Tên sản phẩm</label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+<div class="row g-3 product-create-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Tạo sản phẩm</h4>
+                <div class="small page-subtitle">Nhập thông tin sản phẩm và tạo mới</div>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Description" class="control-label">Mô tả</label>
-                <textarea asp-for="Description" class="form-control" rows="5"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Price" class="control-label">Giá</label>
-                <input asp-for="Price" class="form-control" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
+    <div class="col-12 col-xl-9">
+        <div class="card card-soft shadow-sm border-0">
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
 
-            <div class="form-group mb-3">
-                <label asp-for="CategoryId" class="control-label">Danh mục</label>
-                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.Categories">
-                    <option value="">-- Select Category --</option>
-                </select>
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="PublisherId" class="control-label">Thương hiệu</label>
-                <select asp-for="PublisherId" class="form-control" asp-items="ViewBag.Publishers">
-                    <option value="">-- Select Brand --</option>
-                </select>
-                <span asp-validation-for="PublisherId" class="text-danger"></span>
-            </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-8">
+                            <label asp-for="Name" class="form-label">Tên sản phẩm</label>
+                            <input asp-for="Name" class="form-control bg-transparent" placeholder="Ví dụ: PC Gaming RTX 4060..." />
+                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
+                        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="IsPcBuild" class="control-label">Loại sản phẩm</label>
-                <div class="form-check">
-                    <input asp-for="IsPcBuild" class="form-check-input" />
-                    <label asp-for="IsPcBuild" class="form-check-label">Đây là PC có cấu hình nâng cấp</label>
-                </div>
-                <span asp-validation-for="IsPcBuild" class="text-danger"></span>
-            </div>
+                        <div class="col-12 col-md-4">
+                            <label asp-for="Price" class="form-label">Giá</label>
+                            <input asp-for="Price" class="form-control bg-transparent" placeholder="Nhập giá sản phẩm" />
+                            <span asp-validation-for="Price" class="text-danger small d-block mt-1"></span>
+                        </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ImageUpload" class="control-label">Ảnh sản phẩm</label>
-                <input asp-for="ImageUpload" type="file" class="form-control" accept="image/*" />
-                <span asp-validation-for="ImageUpload" class="text-danger"></span>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">Mô tả</label>
+                            <textarea asp-for="Description" class="form-control bg-transparent" rows="5" placeholder="Mô tả về sản phẩm..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small d-block mt-1"></span>
+                        </div>
 
-                <div class="mt-3">
-                    <img id="imgpreview" src="#" alt="Preview" style="display:none; max-width:300px; max-height:300px;" class="img-thumbnail" />
-                </div>
-            </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="CategoryId" class="form-label">Danh mục sản phẩm</label>
+                            <select asp-for="CategoryId" class="form-select bg-transparent" asp-items="ViewBag.Categories">
+                                <option value="">-- Chọn danh mục --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small d-block mt-1"></span>
+                        </div>
 
-            <div class="form-group mb-3">
-                <button type="submit" class="btn btn-primary">Create</button>
-                <a asp-action="Index" class="btn btn-secondary">Back to Index</a>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="PublisherId" class="form-label">Thương hiệu</label>
+                            <select asp-for="PublisherId" class="form-select bg-transparent" asp-items="ViewBag.Publishers">
+                                <option value="">-- Chọn thương hiệu --</option>
+                            </select>
+                            <span asp-validation-for="PublisherId" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="IsPcBuild" class="form-label">Loại sản phẩm</label>
+
+                            <div class="pc-build-box">
+                                <div class="form-check m-0">
+                                    <input asp-for="IsPcBuild" class="form-check-input" />
+                                    <label asp-for="IsPcBuild" class="form-check-label">
+                                        Đây là PC có cấu hình nâng cấp
+                                    </label>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    Bật tùy chọn này nếu sản phẩm là bộ PC build có thể nâng cấp linh kiện.
+                                </div>
+                            </div>
+
+                            <span asp-validation-for="IsPcBuild" class="text-danger small d-block mt-1"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="ImageUpload" class="form-label">Ảnh sản phẩm</label>
+                            <input asp-for="ImageUpload" type="file" class="form-control bg-transparent" accept="image/*" />
+                            <span asp-validation-for="ImageUpload" class="text-danger small d-block mt-1"></span>
+
+                            <div class="small text-muted mt-2">
+                                Chọn 1 ảnh đại diện cho sản phẩm.
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="image-preview-box">
+                                    <img id="imgpreview" src="#" alt="Preview" class="img-preview" style="display:none;" />
+                                    <div id="preview-placeholder" class="preview-placeholder">
+                                        Chưa chọn ảnh
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4 flex-wrap">
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fa-solid fa-circle-plus me-1"></i> Tạo sản phẩm
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<style>
+    .product-create-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: var(--main-extra-bg, #fff);
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 1rem;
+        color: var(--font-color, inherit);
+    }
+
+        .card-soft .form-control,
+        .card-soft .form-select {
+            border-radius: .75rem;
+            min-height: 46px;
+            border: 1px solid var(--border-color, #ced4da);
+        }
+
+        .card-soft textarea.form-control {
+            min-height: unset;
+        }
+
+        .card-soft .form-control:focus,
+        .card-soft .form-select:focus {
+            box-shadow: 0 0 0 .15rem rgba(13, 110, 253, .15);
+            border-color: #86b7fe;
+        }
+
+    .btn-accent {
+        background: var(--main-color, #0d6efd);
+        border: 1px solid var(--hover-border-color, #0d6efd);
+        color: var(--dark, #fff);
+        border-radius: .75rem;
+        padding: .625rem 1rem;
+    }
+
+        .btn-accent:hover {
+            filter: brightness(1.05);
+            color: var(--dark, #fff);
+        }
+
+    .btn-outline-secondary {
+        border-radius: .75rem;
+        padding: .625rem 1rem;
+    }
+
+    .pc-build-box {
+        border: 1px solid var(--border-color, #dee2e6);
+        background: rgba(255,255,255,.03);
+        border-radius: .75rem;
+        padding: 1rem;
+    }
+
+    .image-preview-box {
+        width: 100%;
+        max-width: 320px;
+        min-height: 220px;
+        border: 1px dashed var(--border-color, #ced4da);
+        border-radius: .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: rgba(255,255,255,.03);
+    }
+
+    .img-preview {
+        width: 100%;
+        max-height: 320px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .preview-placeholder {
+        color: #6c757d;
+        font-size: .95rem;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .text-danger.small {
+        font-size: .875rem;
+    }
+</style>
 
 @section Scripts {
     @{
@@ -81,16 +207,19 @@
 
     <script>
         function readURL(input) {
+            const preview = $("#imgpreview");
+            const placeholder = $("#preview-placeholder");
+
             if (input.files && input.files[0]) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $("#imgpreview")
-                        .attr("src", e.target.result)
-                        .show();
+                    preview.attr("src", e.target.result).show();
+                    placeholder.hide();
                 };
                 reader.readAsDataURL(input.files[0]);
             } else {
-                $("#imgpreview").attr("src", "#").hide();
+                preview.attr("src", "#").hide();
+                placeholder.show();
             }
         }
 
