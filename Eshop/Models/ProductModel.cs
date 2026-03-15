@@ -32,9 +32,10 @@ namespace Eshop.Models
         [ForeignKey("CategoryId")]
         [Required, Range(1, int.MaxValue, ErrorMessage = "Yêu cầu chọn danh mục!")]
         public int CategoryId { get; set; }
-
+        public bool IsPcBuild { get; set; } = false;
         public CategoryModel Category { get; set; }
         public PublisherModel Publisher { get; set; }
+        public string ProductType { get; set; } // Normal, PC, Laptop, Phone
 
         public ICollection<RatingModel> RatingModel { get; set; } = new List<RatingModel>();
 
@@ -44,6 +45,7 @@ namespace Eshop.Models
         [FileExtension]
         public IFormFile? ImageUpload { get; set; }
 
+        public ICollection<ProductComponentModel> Components { get; set; } = new List<ProductComponentModel>();
         public ICollection<ProductOptionGroupModel> OptionGroups { get; set; } = new List<ProductOptionGroupModel>();
         public ICollection<ProductQuantityModel> ProductQuantities { get; set; } = new List<ProductQuantityModel>();
     }

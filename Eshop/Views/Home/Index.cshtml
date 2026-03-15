@@ -1,142 +1,377 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
-@* <partial name="_SliderPartial" /> *@
-
-<div class="col-sm-3">
-    @Html.Partial("_SidebarPartial")
-</div>
-
-<style>
-    product-image-wrapper {
-        height: 450px;
-    }
-</style>
+﻿@using System.Linq
 @model IEnumerable<Eshop.Models.ProductModel>
 
-<div class="col-sm-9 padding-right">
-    <div class="features_items">
-        <!--features_items-->
-        <h2 class="title text-center">Features Items</h2>
-        @foreach (var item in Model)
+@{
+    ViewData["Title"] = "Home Page";
+
+    var productList = Model?.ToList() ?? new List<Eshop.Models.ProductModel>();
+
+    var hotSlides = productList
+        .Take(15)
+        .Select((item, index) => new { item, index })
+        .GroupBy(x => x.index / 5)
+        .Select(g => g.Select(x => x.item).ToList())
+        .ToList();
+
+    var categoryGroups = productList
+        .Where(x => x.Category != null)
+        .GroupBy(x => new
         {
-            <div class="col-sm-4">
-                <div class="product-image-wrapper">
+            CategoryId = x.Category.Id,
+            CategoryName = x.Category.Name
+        })
+        .Select(g => new
+        {
+            CategoryId = g.Key.CategoryId,
+            CategoryName = g.Key.CategoryName,
+            Products = g.ToList()
+        })
+        .ToList();
+}
 
-                    <div class="single-products">
+<link rel="stylesheet" href="~/css/home-index.css" />
 
-                        <div class="productinfo text-center">
-                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
-                                <img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
-                                <h2>@item.Price.ToString("#,##0 VND")</h2>
-                                <p>@item.Name</p>
-                                <p>Thể loại: @item.Category.Name</p>
-                                <p>Nhà xuất bản: @item.Publisher.Name</p>
-                            </a>
-                            @* <a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a> *@
-                            @if (item.Quantity > 0)
-                            {
-                                <button type="button" class="btn btn-default add-to-cart" data-product_id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</button>
-                            }else
-                            {
-                                <button type="button" class="btn btn-default"><i class="fa fa-shopping-cart"></i>Sold Out</button>
-                            }
-                        </div>
+<div class="col-sm-12 home-page-wrapper">
 
+    @if (hotSlides.Any())
+    {
+        <div class="section-block deal-hot-section">
+            <h2 class="deal-hot-title">Deal hot mỗi ngày - khuyến mãi liền tay</h2>
 
-                    </div>
-
-                    <div class="choose">
-                        @if (User.Identity?.IsAuthenticated ?? false)
+            <div class="deal-carousel-box">
+                <div id="hotDealCarousel" class="carousel slide" data-ride="carousel" data-interval="2600">
+                    <div class="carousel-inner carousel-inner-custom">
+                        @for (int i = 0; i < hotSlides.Count; i++)
                         {
-                            <ul class="nav nav-pills nav-justified">
-                                <li><button class="btn btn-default add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button></li>
-                                <li><button class="btn btn-default add-btn-compare" data-product_id="@item.Id">So sánh</button></li>
-                            </ul>
+                            var slide = hotSlides[i];
+
+                            <div class="item @(i == 0 ? "active" : "")">
+                                <div class="slide-row">
+                                    @foreach (var item in slide)
+                                    {
+                                        var oldPrice = item.Price * 1.08m;
+                                        var discountPercent = oldPrice > 0
+                                            ? Math.Round((oldPrice - item.Price) / oldPrice * 100)
+                                            : 0;
+
+                                        <div class="deal-col">
+                                            <div class="product-card">
+                                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="product-thumb-wrap">
+                                                    <img class="product-thumb" src="~/media/products/@item.Image" alt="@item.Name" />
+                                                </a>
+
+                                                <div class="product-body">
+                                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" style="text-decoration:none;">
+                                                        <div class="product-name">@item.Name</div>
+                                                    </a>
+
+                                                    <div class="price-current">@item.Price.ToString("#,##0")đ</div>
+
+                                                    <div class="price-old-row">
+                                                        <div class="price-old">@oldPrice.ToString("#,##0")đ</div>
+                                                        <div class="discount-badge">-@discountPercent%</div>
+                                                    </div>
+
+                                                    <div class="product-footer">
+                                                        <div class="product-action-row">
+                                                            @if (item.Quantity > 0)
+                                                            {
+                                                                <button type="button" class="btn-cart-main add-to-cart" data-product_id="@item.Id">
+                                                                    <span class="cart-icon-box">
+                                                                        <i class="fa fa-shopping-cart"></i>
+                                                                    </span>
+                                                                    <span class="cart-label">THÊM VÀO GIỎ</span>
+                                                                </button>
+                                                                <span class="stock-badge">Còn hàng</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button type="button" class="btn-cart-main" disabled>
+                                                                    <span class="cart-icon-box">
+                                                                        <i class="fa fa-shopping-cart"></i>
+                                                                    </span>
+                                                                    <span class="cart-label">HẾT HÀNG</span>
+                                                                </button>
+                                                                <span class="stock-badge out">Hết hàng</span>
+                                                            }
+                                                        </div>
+
+                                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                                        {
+                                                            <div class="mini-actions">
+                                                                <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
+                                                                <button class="btn add-btn-compare" data-product_id="@item.Id">So sánh</button>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
                         }
                     </div>
+
+                    @if (hotSlides.Count > 1)
+                    {
+                        <a class="left carousel-control" href="#hotDealCarousel" data-slide="prev">
+                            <span class="glyphicon glyphicon-chevron-left"></span>
+                        </a>
+                        <a class="right carousel-control" href="#hotDealCarousel" data-slide="next">
+                            <span class="glyphicon glyphicon-chevron-right"></span>
+                        </a>
+                    }
                 </div>
             </div>
-        }
-        <div>
         </div>
-    </div>
+    }
+
+    @for (int i = 0; i < categoryGroups.Count; i++)
+    {
+        var category = categoryGroups[i];
+        var scrollId = "categoryScroll_" + i;
+        var prevId = "categoryPrev_" + i;
+        var nextId = "categoryNext_" + i;
+
+        <div class="section-block">
+            <div class="section-header">
+                <div class="section-title-ribbon">@category.CategoryName</div>
+                <a href="#" class="section-link">Xem tất cả &raquo;</a>
+            </div>
+
+            <div class="products-scroll-wrap">
+                <button type="button" class="scroll-nav prev hidden" id="@prevId">
+                    <i class="fa fa-chevron-left"></i>
+                </button>
+
+                <div class="products-scroll" id="@scrollId">
+                    @foreach (var item in category.Products)
+                    {
+                        var oldPrice = item.Price * 1.08m;
+                        var discountPercent = oldPrice > 0
+                            ? Math.Round((oldPrice - item.Price) / oldPrice * 100)
+                            : 0;
+
+                        <div class="category-col">
+                            <div class="product-card">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="product-thumb-wrap">
+                                    <img class="product-thumb" src="~/media/products/@item.Image" alt="@item.Name" />
+                                </a>
+
+                                <div class="product-body">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" style="text-decoration:none;">
+                                        <div class="product-name">@item.Name</div>
+                                    </a>
+
+                                    <div class="price-current">@item.Price.ToString("#,##0")đ</div>
+
+                                    <div class="price-old-row">
+                                        <div class="price-old">@oldPrice.ToString("#,##0")đ</div>
+                                        <div class="discount-badge">-@discountPercent%</div>
+                                    </div>
+
+                                    <div class="product-footer">
+                                        <div class="product-action-row">
+                                            @if (item.Quantity > 0)
+                                            {
+                                                <button type="button" class="btn btn-cart-main add-to-cart" data-product_id="@item.Id">
+                                                    <span class="cart-icon-box">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                    </span>
+                                                    <span class="cart-label">THÊM VÀO GIỎ</span>
+                                                </button>
+                                                <span class="stock-badge">Còn hàng</span>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-cart-main" disabled>
+                                                    <span class="cart-icon-box">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                    </span>
+                                                    <span class="cart-label">HẾT HÀNG</span>
+                                                </button>
+                                                <span class="stock-badge out">Hết hàng</span>
+                                            }
+                                        </div>
+
+                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                        {
+                                            <div class="mini-actions">
+                                                <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
+                                                <button class="btn add-btn-compare" data-product_id="@item.Id">So sánh</button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <button type="button" class="scroll-nav next hidden" id="@nextId">
+                    <i class="fa fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    }
 </div>
+
 @Html.AntiForgeryToken()
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-          $('.add-to-cart').click(function () {
-            var productId = $(this).data('product_id');
-            var token = $('input[name="__RequestVerificationToken"]').val();
+            if ($('#hotDealCarousel').length) {
+                $('#hotDealCarousel').carousel({
+                    interval: 2600,
+                    pause: "hover"
+                });
+            }
 
-            $.ajax({
-              url: '@Url.Action("Add", "Cart")',
-              type: 'POST',
-              data: {
-                id: productId,
-                __RequestVerificationToken: token
-              },
-              success: function (response) {
-                Swal.fire({
-                  icon: "success",
-                  title: "Thành công",
-                  text: "Đã thêm vào yêu thích!"
+            function setupHorizontalScroll(scrollSelector, prevSelector, nextSelector) {
+                var $scroll = $(scrollSelector);
+                var $prev = $(prevSelector);
+                var $next = $(nextSelector);
+
+                if (!$scroll.length) return;
+
+                function getStep() {
+                    var firstCard = $scroll.find('.category-col').first();
+                    if (!firstCard.length) return 300;
+                    return firstCard.outerWidth(true) * 2;
+                }
+
+                function updateButtons() {
+                    var el = $scroll.get(0);
+                    if (!el) return;
+
+                    var maxScroll = el.scrollWidth - el.clientWidth;
+
+                    if (maxScroll <= 5) {
+                        $prev.addClass('hidden');
+                        $next.addClass('hidden');
+                        return;
+                    }
+
+                    $prev.removeClass('hidden');
+                    $next.removeClass('hidden');
+
+                    if (el.scrollLeft <= 5) {
+                        $prev.addClass('hidden');
+                    }
+
+                    if (el.scrollLeft >= maxScroll - 5) {
+                        $next.addClass('hidden');
+                    }
+                }
+
+                $prev.on('click', function () {
+                    $scroll.animate({
+                        scrollLeft: $scroll.scrollLeft() - getStep()
+                    }, 320);
                 });
-              },
-              error: function (xhr) {
-                Swal.fire({
-                  icon: "error",
-                  title: "Oops...",
-                  text: "Có lỗi xảy ra! (" + xhr.status + ")"
+
+                $next.on('click', function () {
+                    $scroll.animate({
+                        scrollLeft: $scroll.scrollLeft() + getStep()
+                    }, 320);
                 });
-              }
+
+                $scroll.on('scroll', updateButtons);
+                $(window).on('resize', updateButtons);
+
+                updateButtons();
+            }
+
+            $('[id^="categoryScroll_"]').each(function () {
+                var id = $(this).attr('id').replace('categoryScroll_', '');
+                setupHorizontalScroll('#categoryScroll_' + id, '#categoryPrev_' + id, '#categoryNext_' + id);
             });
-          });
-        });
-    </script>
-    <script>
-        $(document).ready(function () {
-                  $('.add-btn-wishlist').click(function () {
-          var productId = $(this).data('product_id');
-          var token = $('input[name="__RequestVerificationToken"]').val();
 
-          $.ajax({
-            url: '@Url.Action("AddWishlist", "Home")',
-            type: 'POST',
-            data: { productId: productId, __RequestVerificationToken: token },
-            success: function () {
-              Swal.fire({ icon: "success", title: "Thành công", text: "Đã thêm vào yêu thích!" });
-            },
-            error: function (xhr) {
-              console.log(xhr.responseText);
-              Swal.fire({ icon: "error", title: "Oops...", text: xhr.responseText || ("Lỗi (" + xhr.status + ")") });
-            }
-          });
-        });
-        });
-    </script>
-    <script>
-        $(document).ready(function () {
-                  $('.add-btn-compare').click(function () {
-          var productId = $(this).data('product_id');
-          var token = $('input[name="__RequestVerificationToken"]').val();
+            $('.add-to-cart').click(function () {
+                var productId = $(this).data('product_id');
+                var token = $('input[name="__RequestVerificationToken"]').val();
 
-          $.ajax({
-            url: '@Url.Action("AddCompare", "Home")',
-            type: 'POST',
-            data: { productId: productId, __RequestVerificationToken: token },
-            success: function () {
-              Swal.fire({ icon: "success", title: "Thành công", text: "Đã thêm vào so sánh!" });
-            },
-            error: function (xhr) {
-              console.log(xhr.responseText);
-              Swal.fire({ icon: "error", title: "Oops...", text: xhr.responseText || ("Lỗi (" + xhr.status + ")") });
-            }
-          });
-        });
+                $.ajax({
+                    url: '@Url.Action("Add", "Cart")',
+                    type: 'POST',
+                    data: {
+                        id: productId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function () {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Thành công",
+                            text: "Đã thêm vào giỏ hàng!"
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "Có lỗi xảy ra! (" + xhr.status + ")"
+                        });
+                    }
+                });
+            });
 
+            $('.add-btn-wishlist').click(function () {
+                var productId = $(this).data('product_id');
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("AddWishlist", "Home")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function () {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Thành công",
+                            text: "Đã thêm vào yêu thích!"
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: xhr.responseText || ("Lỗi (" + xhr.status + ")")
+                        });
+                    }
+                });
+            });
+
+            $('.add-btn-compare').click(function () {
+                var productId = $(this).data('product_id');
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("AddCompare", "Home")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function () {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Thành công",
+                            text: "Đã thêm vào so sánh!"
+                        });
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: xhr.responseText || ("Lỗi (" + xhr.status + ")")
+                        });
+                    }
+                });
+            });
         });
     </script>
 }

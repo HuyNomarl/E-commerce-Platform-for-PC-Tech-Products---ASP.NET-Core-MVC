@@ -25,6 +25,8 @@ namespace Eshop.Controllers
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.RatingModel)
+                .Include(p => p.OptionGroups)
+        .ThenInclude(g => g.OptionValues)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null) return RedirectToAction(nameof(Index));
@@ -38,7 +40,7 @@ namespace Eshop.Controllers
 
             ViewBag.RelatedProducts = relatedProducts;
 
-            var viewModel = new ProductDetailsViewModel
+            var viewModel = new ProductDetailViewModel
             {
                 ProductDetail = product,
                 //RatingDetail = product.RatingModel   

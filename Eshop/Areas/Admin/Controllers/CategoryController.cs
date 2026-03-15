@@ -1,30 +1,30 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Eshop.Areas.Admin.Controllers
 {
-
     [Area("Admin")]
     [Authorize]
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;
+
         public CategoryController(DataContext dataContext)
         {
             _dataContext = dataContext;
         }
+
         public async Task<IActionResult> Index(int pg = 1)
         {
-            List<CategoryModel> categories = _dataContext.Categories
+            List<CategoryModel> categories = await _dataContext.Categories
                 .Include(c => c.ParentCategory)
                 .OrderBy(c => c.ParentCategoryId)
                 .ThenBy(c => c.Id)
-                .ToList();
+                .ToListAsync();
 
             const int pageSize = 10;
 
@@ -42,8 +42,13 @@ namespace Eshop.Areas.Admin.Controllers
 
             return View(data);
         }
-        public IActionResult Create()
+
+        // =========================
+        // CREATE
+        // =========================
+        public async Task<IActionResult> Create()
         {
+            await LoadParentCategories();
             return View();
         }
 
@@ -51,52 +56,59 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryModel category)
         {
-            if (ModelState.IsValid)
+            await LoadParentCategories(category.ParentCategoryId);
+
+            if (!ModelState.IsValid)
             {
-                category.Slug = category.Name.ToLower().Replace(" ", "-");
-                var Slug = await _dataContext.Categories.FirstOrDefaultAsync(p => p.Slug == category.Slug);
-                if (Slug != null)
+                TempData["error"] = "Dữ liệu không hợp lệ, vui lòng kiểm tra lại.";
+                return View(category);
+            }
+
+            // Tạo slug
+            category.Slug = category.Name.ToLowerInvariant().Trim().Replace(" ", "-");
+
+            // Kiểm tra slug trùng
+            var slugExists = await _dataContext.Categories
+                .AnyAsync(c => c.Slug == category.Slug);
+
+            if (slugExists)
+            {
+                ModelState.AddModelError("Name", "Danh mục đã tồn tại.");
+                return View(category);
+            }
+
+            // Nếu có chọn danh mục cha thì kiểm tra có tồn tại không
+            if (category.ParentCategoryId.HasValue)
+            {
+                var parentExists = await _dataContext.Categories
+                    .AnyAsync(c => c.Id == category.ParentCategoryId.Value);
+
+                if (!parentExists)
                 {
-                    ModelState.AddModelError("", "Danh mục đã tồn tại!");
+                    ModelState.AddModelError("ParentCategoryId", "Danh mục cha không tồn tại.");
                     return View(category);
                 }
-
-                _dataContext.Add(category);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Thêm danh mục thành công!";
-                return RedirectToAction("Index");
-                //await _dataContext.SaveChangesAsync();
             }
-            else
-            {
-                TempData["error"] = "Model đang lỗi, xin thử lại sau!";
-                List<string> errors = new List<string>();
-                foreach (var modelState in ModelState.Values)
-                {
-                    foreach (var error in modelState.Errors)
-                    {
-                        errors.Add(error.ErrorMessage);
-                    }
-                }
-                string errorMessages = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return BadRequest(errorMessages);
-            }
-            return View(category);
-        }
-        public async Task<IActionResult> Delete(int Id)
-        {
-            CategoryModel category = await _dataContext.Categories.FindAsync(Id);
 
-            _dataContext.Categories.Remove(category);
+            _dataContext.Categories.Add(category);
             await _dataContext.SaveChangesAsync();
-            TempData["success"] = "Xóa danh mục thành công!";
-            return RedirectToAction("Index");
 
+            TempData["success"] = "Thêm danh mục thành công!";
+            return RedirectToAction(nameof(Index));
         }
-        public async Task<IActionResult> Edit(int Id)
-        {
-            CategoryModel category = await _dataContext.Categories.FindAsync(Id);
 
+        // =========================
+        // EDIT
+        // =========================
+        public async Task<IActionResult> Edit(int id)
+        {
+            var category = await _dataContext.Categories.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            await LoadParentCategories(category.ParentCategoryId, category.Id);
             return View(category);
         }
 
@@ -104,51 +116,74 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(CategoryModel category)
         {
-            // Kiểm tra xem category.Id có tồn tại không (phòng trường hợp edit mà không có Id)
             if (category.Id == 0)
             {
                 return NotFound();
             }
 
+            await LoadParentCategories(category.ParentCategoryId, category.Id);
+
             if (!ModelState.IsValid)
             {
-                // Thu thập lỗi validation để trả về view (giữ lại dữ liệu người dùng nhập)
                 TempData["error"] = "Dữ liệu không hợp lệ, vui lòng kiểm tra lại.";
                 return View(category);
             }
 
-            try
+            var existingCategory = await _dataContext.Categories
+                .FirstOrDefaultAsync(c => c.Id == category.Id);
+
+            if (existingCategory == null)
             {
-                // Tạo slug từ tên danh mục
-                var newSlug = category.Name.ToLowerInvariant().Replace(" ", "-").Trim('-');
+                return NotFound();
+            }
 
-                // Kiểm tra slug đã tồn tại chưa, nhưng loại trừ chính bản ghi đang edit
-                var existingCategoryWithSlug = await _dataContext.Categories
-                    .FirstOrDefaultAsync(c => c.Slug == newSlug && c.Id != category.Id);
+            // Không cho chính nó làm cha của chính nó
+            if (category.ParentCategoryId == category.Id)
+            {
+                ModelState.AddModelError("ParentCategoryId", "Không thể chọn chính danh mục này làm danh mục cha.");
+                return View(category);
+            }
 
-                if (existingCategoryWithSlug != null)
+            // Kiểm tra parent có tồn tại không
+            if (category.ParentCategoryId.HasValue)
+            {
+                var parentExists = await _dataContext.Categories
+                    .AnyAsync(c => c.Id == category.ParentCategoryId.Value && c.Id != category.Id);
+
+                if (!parentExists)
                 {
-                    ModelState.AddModelError("Name", "Danh mục với tên này đã tồn tại (slug trùng).");
+                    ModelState.AddModelError("ParentCategoryId", "Danh mục cha không tồn tại.");
                     return View(category);
                 }
+            }
 
-                // Gắn slug mới
-                category.Slug = newSlug;
+            // Tạo slug mới
+            var newSlug = category.Name.ToLowerInvariant().Trim().Replace(" ", "-");
 
-                // Cách tốt hơn: Attach entity và set trạng thái Modified
-                // Hoặc dùng Update nếu chắc chắn entity không bị track trước đó
-                _dataContext.Categories.Update(category);
-                // Hoặc nếu muốn an toàn hơn:
-                // _dataContext.Attach(category).State = EntityState.Modified;
+            var slugExists = await _dataContext.Categories
+                .AnyAsync(c => c.Slug == newSlug && c.Id != category.Id);
 
+            if (slugExists)
+            {
+                ModelState.AddModelError("Name", "Danh mục với tên này đã tồn tại.");
+                return View(category);
+            }
+
+            // Cập nhật dữ liệu
+            existingCategory.Name = category.Name;
+            existingCategory.Description = category.Description;
+            existingCategory.Status = category.Status;
+            existingCategory.ParentCategoryId = category.ParentCategoryId;
+            existingCategory.Slug = newSlug;
+
+            try
+            {
                 await _dataContext.SaveChangesAsync();
-
                 TempData["success"] = "Cập nhật danh mục thành công!";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
-                // Xử lý trường hợp có người khác sửa cùng lúc
                 if (!await CategoryExists(category.Id))
                 {
                     return NotFound();
@@ -157,16 +192,41 @@ namespace Eshop.Areas.Admin.Controllers
                 ModelState.AddModelError("", "Danh mục đã bị thay đổi bởi người dùng khác. Vui lòng tải lại trang và thử lại.");
                 return View(category);
             }
-            catch (Exception ex)
+            catch
             {
                 ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật danh mục. Vui lòng thử lại sau.");
                 return View(category);
             }
         }
 
+        public async Task<IActionResult> Delete(int id)
+        {
+            var category = await _dataContext.Categories.FindAsync(id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            _dataContext.Categories.Remove(category);
+            await _dataContext.SaveChangesAsync();
+
+            TempData["success"] = "Xóa danh mục thành công!";
+            return RedirectToAction(nameof(Index));
+        }
+
         private async Task<bool> CategoryExists(int id)
         {
             return await _dataContext.Categories.AnyAsync(e => e.Id == id);
+        }
+
+        private async Task LoadParentCategories(int? selectedId = null, int? currentCategoryId = null)
+        {
+            var categories = await _dataContext.Categories
+                .Where(c => !currentCategoryId.HasValue || c.Id != currentCategoryId.Value)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = new SelectList(categories, "Id", "Name", selectedId);
         }
     }
 }

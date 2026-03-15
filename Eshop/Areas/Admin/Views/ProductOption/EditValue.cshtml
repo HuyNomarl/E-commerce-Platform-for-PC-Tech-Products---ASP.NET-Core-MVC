@@ -1,0 +1,63 @@
+﻿@model Eshop.Models.ProductOptionValueModel
+
+@{
+    ViewData["Title"] = "Sửa giá trị tùy chọn";
+}
+
+<h3>Sửa giá trị tùy chọn</h3>
+
+<form asp-action="EditValue" asp-route-id="@Model.Id" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ProductOptionGroupId" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Value">Giá trị</label>
+        <input asp-for="Value" class="form-control" />
+        <span asp-validation-for="Value" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="AdditionalPrice">Giá cộng thêm</label>
+        <input asp-for="AdditionalPrice" class="form-control" />
+        <span asp-validation-for="AdditionalPrice" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Stock">Tồn kho</label>
+        <input asp-for="Stock" class="form-control" />
+        <span asp-validation-for="Stock" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="SortOrder">Thứ tự hiển thị</label>
+        <input asp-for="SortOrder" class="form-control" />
+        <span asp-validation-for="SortOrder" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-2">
+        <input asp-for="IsDefault" class="form-check-input" />
+        <label asp-for="IsDefault" class="form-check-label">Là giá trị mặc định</label>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Status">Trạng thái</label>
+        <select asp-for="Status" class="form-control">
+            <option value="1">Hiển thị</option>
+            <option value="0">Ẩn</option>
+        </select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+    <a asp-action="Index" asp-route-productId="0" class="btn btn-secondary" onclick="history.back(); return false;">Quay lại</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

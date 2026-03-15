@@ -412,3 +412,4 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.Goog
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\RestSharp.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\y3doyrfpw3-{0}-57p0rf07d4-57p0rf07d4.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\i56qza1pqi-{0}-ilw7kyy2dl-ilw7kyy2dl.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\6ntqqzfcmv-{0}-4q4zkp0h9j-4q4zkp0h9j.gz

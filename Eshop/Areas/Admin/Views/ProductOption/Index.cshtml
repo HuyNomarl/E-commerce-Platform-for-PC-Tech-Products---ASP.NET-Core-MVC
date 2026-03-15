@@ -1,0 +1,81 @@
+﻿@model Eshop.Models.ProductModel
+
+@{
+    ViewData["Title"] = "Quản lý tùy chọn sản phẩm";
+}
+
+<h3>Quản lý tùy chọn cho: @Model.Name</h3>
+
+<div class="mb-3">
+    <a asp-action="CreateGroup" asp-route-productId="@Model.Id" class="btn btn-primary">Thêm nhóm tùy chọn</a>
+    <a asp-controller="Product" asp-action="Index" class="btn btn-secondary">Quay lại danh sách sản phẩm</a>
+</div>
+
+@if (Model.OptionGroups != null && Model.OptionGroups.Any())
+{
+    @foreach (var group in Model.OptionGroups)
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@group.Name</strong>
+                    |
+                    Bắt buộc: @(group.IsRequired ? "Có" : "Không")
+                    |
+                    Chọn nhiều: @(group.AllowMultiple ? "Có" : "Không")
+                </div>
+                <div>
+                    <a asp-action="CreateValue" asp-route-groupId="@group.Id" class="btn btn-success btn-sm">Thêm giá trị</a>
+                    <a asp-action="EditGroup" asp-route-id="@group.Id" class="btn btn-warning btn-sm">Sửa nhóm</a>
+                    <a asp-action="DeleteGroup" asp-route-id="@group.Id" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Bạn có chắc muốn xóa nhóm này?');">Xóa nhóm</a>
+                </div>
+            </div>
+
+            <div class="card-body">
+                @if (group.OptionValues != null && group.OptionValues.Any())
+                {
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Giá trị</th>
+                                <th>Giá cộng thêm</th>
+                                <th>Tồn kho</th>
+                                <th>Mặc định</th>
+                                <th>Thứ tự</th>
+                                <th>Trạng thái</th>
+                                <th width="180">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in group.OptionValues.OrderBy(x => x.SortOrder))
+                            {
+                                <tr>
+                                    <td>@item.Value</td>
+                                    <td>@item.AdditionalPrice.ToString("#,##0 đ")</td>
+                                    <td>@item.Stock</td>
+                                    <td>@(item.IsDefault ? "Có" : "Không")</td>
+                                    <td>@item.SortOrder</td>
+                                    <td>@(item.Status == 1 ? "Hiển thị" : "Ẩn")</td>
+                                    <td>
+                                        <a asp-action="EditValue" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
+                                        <a asp-action="DeleteValue" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Bạn có chắc muốn xóa giá trị này?');">Xóa</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>Chưa có giá trị nào.</p>
+                }
+            </div>
+        </div>
+    }
+}
+else
+{
+    <p>Chưa có nhóm tùy chọn nào cho sản phẩm này.</p>
+}

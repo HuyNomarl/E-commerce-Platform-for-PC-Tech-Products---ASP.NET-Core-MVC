@@ -1,0 +1,59 @@
+﻿@model Eshop.Models.ProductOptionValueModel
+
+@{
+    ViewData["Title"] = "Thêm giá trị tùy chọn";
+    var group = ViewBag.Group as Eshop.Models.ProductOptionGroupModel;
+}
+
+<h3>Thêm giá trị cho nhóm: @group?.Name</h3>
+
+<form asp-action="CreateValue" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="ProductOptionGroupId" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Value">Giá trị</label>
+        <input asp-for="Value" class="form-control" placeholder="Ví dụ: 8GB, 16GB, 1TB" />
+        <span asp-validation-for="Value" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="AdditionalPrice">Giá cộng thêm</label>
+        <input asp-for="AdditionalPrice" class="form-control" />
+        <span asp-validation-for="AdditionalPrice" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Stock">Tồn kho</label>
+        <input asp-for="Stock" class="form-control" />
+        <span asp-validation-for="Stock" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="SortOrder">Thứ tự hiển thị</label>
+        <input asp-for="SortOrder" class="form-control" />
+        <span asp-validation-for="SortOrder" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-2">
+        <input asp-for="IsDefault" class="form-check-input" />
+        <label asp-for="IsDefault" class="form-check-label">Là giá trị mặc định</label>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="Status" class="form-check-input" value="1" checked />
+        <label class="form-check-label">Hiển thị</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" asp-route-productId="@group?.ProductId" class="btn btn-secondary">Quay lại</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

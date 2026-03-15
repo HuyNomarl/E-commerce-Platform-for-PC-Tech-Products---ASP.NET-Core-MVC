@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Models.ViewModel;
+using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace Eshop.Controllers
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
+
         public CartController(DataContext dataContext)
         {
             _dataContext = dataContext;
@@ -34,7 +36,7 @@ namespace Eshop.Controllers
                 }
             }
 
-            decimal subTotal = cartItems.Sum(x => x.Quantity * x.Price);
+            decimal subTotal = cartItems.Sum(x => x.Total);
             decimal discountAmount = 0;
             string? couponCode = null;
 
@@ -85,37 +87,100 @@ namespace Eshop.Controllers
 
             return View(cartItemViewModel);
         }
+
         public IActionResult Checkout()
         {
             return View("~/Views/Checkout/Index.cshtml");
         }
 
-
-        public async Task<IActionResult> Add(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Add(ProductDetailViewModel model)
         {
-            ProductModel product = await _dataContext.Products.FindAsync(id);
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-            CartItemModel cartItem = cart.Where(x => x.ProductId == id).FirstOrDefault();
-            if (cartItem == null)
+            if (model.SelectedOptions == null)
             {
-                cart.Add(new CartItemModel(product));
+                model.SelectedOptions = new List<SelectedOptionViewModel>();
+            }
+
+            var product = await _dataContext.Products
+                .Include(p => p.OptionGroups)
+                    .ThenInclude(g => g.OptionValues)
+                .FirstOrDefaultAsync(p => p.Id == model.ProductId);
+
+            if (product == null)
+            {
+                TempData["Error"] = "Sản phẩm không tồn tại.";
+                return RedirectToAction("Index");
+            }
+
+            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+
+            var newCartItem = new CartItemModel(product)
+            {
+                Quantity = model.Quantity > 0 ? model.Quantity : 1
+            };
+
+            foreach (var selected in model.SelectedOptions)
+            {
+                var group = product.OptionGroups.FirstOrDefault(g => g.Id == selected.GroupId);
+                if (group == null) continue;
+
+                var value = group.OptionValues.FirstOrDefault(v => v.Id == selected.ValueId);
+                if (value == null) continue;
+
+                newCartItem.SelectedOptions.Add(new CartItemOptionModel
+                {
+                    OptionGroupId = group.Id,
+                    OptionValueId = value.Id,
+                    GroupName = group.Name,
+                    ValueName = value.Value,
+                    AdditionalPrice = value.AdditionalPrice
+                });
+
+                newCartItem.OptionPrice += value.AdditionalPrice;
+            }
+
+            var existingItem = cart.FirstOrDefault(x =>
+                x.ProductId == newCartItem.ProductId &&
+                IsSameOptions(x.SelectedOptions, newCartItem.SelectedOptions));
+
+            if (existingItem == null)
+            {
+                cart.Add(newCartItem);
+                TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng.";
             }
             else
             {
-                cartItem.Quantity += 1;
+                int newQuantity = existingItem.Quantity + newCartItem.Quantity;
+
+                if (newQuantity > product.Quantity)
+                {
+                    existingItem.Quantity = product.Quantity;
+                    TempData["Error"] = "Không thể thêm quá số lượng tồn kho.";
+                }
+                else
+                {
+                    existingItem.Quantity = newQuantity;
+                    TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng.";
+                }
             }
+
             HttpContext.Session.SetJson("Cart", cart);
 
-            TempData["Success"] = "Product added to cart successfully!";
-
-            return Redirect(Request.Headers["Referer"].ToString());
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Decrease(int id)
         {
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            CartItemModel cartItem = cart.Where(x => x.ProductId == id).FirstOrDefault();
+            CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
+
+            if (cartItem == null)
+            {
+                TempData["Error"] = "Sản phẩm không tồn tại trong giỏ hàng.";
+                return RedirectToAction("Index");
+            }
 
             if (cartItem.Quantity > 1)
             {
@@ -123,7 +188,7 @@ namespace Eshop.Controllers
             }
             else
             {
-                cart.RemoveAll(x => x.ProductId == id);
+                cart.Remove(cartItem);
             }
 
             if (cart.Count == 0)
@@ -134,44 +199,50 @@ namespace Eshop.Controllers
             {
                 HttpContext.Session.SetJson("Cart", cart);
             }
-            TempData["Success"] = "Cart updated (-) successfully!";
+
+            TempData["Success"] = "Cập nhật giỏ hàng thành công.";
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Increase(int id)
         {
-            ProductModel product = await _dataContext.Products.Where(x => x.Id == id).FirstOrDefaultAsync();
+            ProductModel? product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (product == null)
+            {
+                TempData["Error"] = "Sản phẩm không tồn tại.";
+                return RedirectToAction("Index");
+            }
+
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            CartItemModel cartItem = cart.Where(x => x.ProductId == id).FirstOrDefault();
+            CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
 
-            if (cartItem.Quantity >= 1 && product.Quantity > cartItem.Quantity)
+            if (cartItem == null)
             {
-                ++cartItem.Quantity;
+                TempData["Error"] = "Sản phẩm không tồn tại trong giỏ hàng.";
+                return RedirectToAction("Index");
+            }
+
+            if (cartItem.Quantity < product.Quantity)
+            {
+                cartItem.Quantity += 1;
+                TempData["Success"] = "Cập nhật giỏ hàng thành công.";
             }
             else
             {
-                cartItem.Quantity = product.Quantity;
-                //cart.RemoveAll(x => x.ProductId == id);
-                TempData["Error"] = "Cannot increase quantity. Not enough stock available.";
+                TempData["Error"] = "Không đủ tồn kho để tăng thêm.";
             }
 
-            if (cart.Count == 0)
-            {
-                HttpContext.Session.Remove("Cart");
-            }
-            else
-            {
-                HttpContext.Session.SetJson("Cart", cart);
-            }
-            TempData["Success"] = "Cart updated (+) successfully!";
+            HttpContext.Session.SetJson("Cart", cart);
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Remove(int id)
         {
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+
             cart.RemoveAll(x => x.ProductId == id);
+
             if (cart.Count == 0)
             {
                 HttpContext.Session.Remove("Cart");
@@ -180,18 +251,23 @@ namespace Eshop.Controllers
             {
                 HttpContext.Session.SetJson("Cart", cart);
             }
+
+            TempData["Success"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Clear()
         {
             HttpContext.Session.Remove("Cart");
+            TempData["Success"] = "Đã xóa toàn bộ giỏ hàng.";
             return RedirectToAction("Index");
         }
+
         [HttpPost]
         public async Task<IActionResult> GetShipping(ShippingModel shippingModel, string phuong, string tinh)
         {
-            var exitstingShipping = await _dataContext.Shippings.FirstOrDefaultAsync(s => s.City == tinh && s.Ward == phuong);
+            var exitstingShipping = await _dataContext.Shippings
+                .FirstOrDefaultAsync(s => s.City == tinh && s.Ward == phuong);
 
             decimal shippingPrice = 0;
 
@@ -201,8 +277,9 @@ namespace Eshop.Controllers
             }
             else
             {
-                shippingPrice = 50000; // Default shipping cost if not found
+                shippingPrice = 50000;
             }
+
             var shippingPriceJson = JsonConvert.SerializeObject(shippingPrice);
 
             try
@@ -211,19 +288,19 @@ namespace Eshop.Controllers
                 {
                     HttpOnly = true,
                     Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-                    Secure = true // using HTTPS
+                    Secure = true
                 };
 
                 Response.Cookies.Append("ShippingPrice", shippingPriceJson, cookieOptions);
             }
             catch (Exception ex)
             {
-                // Log lỗi nếu thêm cookie thất bại
                 Console.WriteLine($"Error adding shipping price cookie: {ex.Message}");
             }
 
             return Json(new { shippingPrice });
         }
+
         [HttpGet]
         public IActionResult DeleteShippingCookie()
         {
@@ -233,11 +310,12 @@ namespace Eshop.Controllers
             }
             catch (Exception ex)
             {
-                // Log lỗi nếu xóa cookie thất bại
                 Console.WriteLine($"Error deleting shipping price cookie: {ex.Message}");
             }
+
             return RedirectToAction("Index");
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApplyCoupon(string couponCode)
@@ -256,7 +334,7 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
-            decimal subTotal = cartItems.Sum(x => x.Quantity * x.Price);
+            decimal subTotal = cartItems.Sum(x => x.Total);
 
             var coupon = await _dataContext.Coupons
                 .FirstOrDefaultAsync(x => x.NameCode == couponCode.Trim());
@@ -304,6 +382,7 @@ namespace Eshop.Controllers
             TempData["Success"] = $"Áp dụng mã {coupon.NameCode} thành công.";
             return RedirectToAction("Index");
         }
+
         [HttpGet]
         public IActionResult RemoveCoupon()
         {
@@ -311,6 +390,7 @@ namespace Eshop.Controllers
             TempData["Success"] = "Đã bỏ mã giảm giá.";
             return RedirectToAction("Index");
         }
+
         private decimal CalculateDiscount(CouponModel coupon, decimal subTotal)
         {
             decimal discountAmount = 0;
@@ -333,6 +413,23 @@ namespace Eshop.Controllers
             }
 
             return discountAmount;
+        }
+
+        private bool IsSameOptions(List<CartItemOptionModel> oldOptions, List<CartItemOptionModel> newOptions)
+        {
+            if (oldOptions.Count != newOptions.Count) return false;
+
+            var oldList = oldOptions
+                .OrderBy(x => x.OptionGroupId)
+                .ThenBy(x => x.OptionValueId)
+                .Select(x => $"{x.OptionGroupId}-{x.OptionValueId}");
+
+            var newList = newOptions
+                .OrderBy(x => x.OptionGroupId)
+                .ThenBy(x => x.OptionValueId)
+                .Select(x => $"{x.OptionGroupId}-{x.OptionValueId}");
+
+            return oldList.SequenceEqual(newList);
         }
     }
 }

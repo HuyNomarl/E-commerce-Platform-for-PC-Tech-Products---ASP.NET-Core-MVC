@@ -1,4 +1,300 @@
-﻿@model ProductDetailsViewModel
+﻿@model Eshop.Models.ViewModels.ProductDetailViewModel
+
+@{
+    var optionGroups = Model.ProductDetail.OptionGroups?
+        .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
+        .ToList()
+        ?? new List<Eshop.Models.ProductOptionGroupModel>();
+
+    var hasUpgradeOptions = optionGroups.Any();
+    var basePrice = Model.ProductDetail.Price;
+}
+
+<style>
+    .product-detail-wrap {
+        background: #fff;
+        padding: 15px;
+    }
+
+    .product-gallery-main {
+        border: 1px solid #eee;
+        padding: 10px;
+        margin-bottom: 12px;
+        background: #fff;
+    }
+
+        .product-gallery-main img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+    .thumb-list {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .thumb-item {
+        width: 92px;
+        height: 72px;
+        border: 1px solid #ddd;
+        padding: 4px;
+        cursor: pointer;
+        background: #fff;
+    }
+
+        .thumb-item.active,
+        .thumb-item:hover {
+            border-color: #fe980f;
+        }
+
+        .thumb-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .product-title-custom {
+        font-size: 30px;
+        font-weight: 700;
+        line-height: 1.3;
+        margin-bottom: 12px;
+        color: #222;
+    }
+
+    .price-box-custom {
+        background: #ff6a00;
+        color: #fff;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 15px;
+    }
+
+    .price-current {
+        font-size: 38px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+
+    .price-note {
+        font-size: 13px;
+        opacity: 0.95;
+    }
+
+    .product-meta-custom {
+        margin-bottom: 15px;
+        padding: 10px 0 5px 0;
+        border-bottom: 1px dashed #ddd;
+    }
+
+        .product-meta-custom p {
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+    .desc-box-custom,
+    .upgrade-box-custom {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 18px;
+        background: #fff;
+    }
+
+    .section-head-custom {
+        padding: 12px 16px;
+        border-bottom: 1px solid #e5e5e5;
+        font-size: 22px;
+        font-weight: 700;
+        color: #d91c24;
+        text-transform: uppercase;
+    }
+
+    .section-body-custom {
+        padding: 14px 16px;
+    }
+
+    .product-desc-html ul {
+        padding-left: 18px;
+        margin-bottom: 0;
+    }
+
+    .product-desc-html li {
+        margin-bottom: 6px;
+    }
+
+    .upgrade-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 10px 0;
+        border-bottom: 1px dashed #ececec;
+    }
+
+        .upgrade-row:last-child {
+            border-bottom: none;
+        }
+
+    .upgrade-label {
+        width: 120px;
+        min-width: 120px;
+        font-size: 21px;
+        font-weight: 700;
+        color: #222;
+        padding-top: 8px;
+    }
+
+    .upgrade-options {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .upgrade-option-input {
+        display: none;
+    }
+
+    .upgrade-option-label {
+        display: inline-block;
+        padding: 10px 16px;
+        border: 1px solid #cfcfcf;
+        border-radius: 7px;
+        background: #fff;
+        color: #444;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 15px;
+        font-weight: 500;
+        position: relative;
+        min-width: 135px;
+        text-align: center;
+    }
+
+        .upgrade-option-label small {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #888;
+        }
+
+    .upgrade-option-input:checked + .upgrade-option-label {
+        border-color: #ff5a36;
+        color: #ff5a36;
+        background: #fff7f4;
+        box-shadow: 0 0 0 1px #ff5a36 inset;
+    }
+
+        .upgrade-option-input:checked + .upgrade-option-label::after {
+            content: "✓";
+            position: absolute;
+            right: 6px;
+            bottom: 3px;
+            font-size: 12px;
+            color: #fff;
+            background: #ff5a36;
+            width: 18px;
+            height: 18px;
+            text-align: center;
+            line-height: 18px;
+            border-radius: 3px 0 6px 0;
+        }
+
+    .cart-box-custom {
+        border: 1px solid #e5e5e5;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .qty-wrap-custom {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+    }
+
+        .qty-wrap-custom label {
+            margin-bottom: 0;
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+    .qty-input-custom {
+        width: 110px;
+        height: 42px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 6px 10px;
+    }
+
+    .final-price-box {
+        margin-bottom: 15px;
+        padding: 12px 14px;
+        background: #fff7ed;
+        border: 1px dashed #fe980f;
+        border-radius: 6px;
+    }
+
+    .final-price-label {
+        font-size: 14px;
+        color: #666;
+        margin-bottom: 3px;
+    }
+
+    .final-price-value {
+        font-size: 30px;
+        font-weight: 700;
+        color: #fe980f;
+    }
+
+    .btn-add-cart-custom {
+        background: #fe980f;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 12px 22px;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+        .btn-add-cart-custom:hover {
+            background: #e68900;
+            color: #fff;
+        }
+
+    .stock-out-btn {
+        background: #888;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 12px 22px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: not-allowed;
+    }
+
+    @@media (max-width: 991px) {
+        .upgrade-row {
+            flex-direction: column;
+        }
+
+        .upgrade-label {
+            width: 100%;
+            min-width: unset;
+            padding-top: 0;
+        }
+
+        .product-title-custom {
+            font-size: 24px;
+        }
+
+        .price-current {
+            font-size: 30px;
+        }
+    }
+</style>
 
 <div class="row">
     <div class="col-sm-3">
@@ -6,82 +302,165 @@
     </div>
 
     <div class="col-sm-9 padding-right">
-        <div class="product-details">
-            <!--product-details-->
-            <div class="col-sm-5">
-                <div class="view-product">
-                    <img src="~/images/@Model.ProductDetail.Image" alt="" />
-                    <h3>ZOOM</h3>
-                </div>
-                <div id="similar-product" class="carousel slide" data-ride="carousel">
-
-                    <!-- Wrapper for slides -->
-                    <div class="carousel-inner">
-                        <div class="item active">
-                            <a href=""><img src="images/product-details/similar1.jpg" alt=""></a>
-                            <a href=""><img src="images/product-details/similar2.jpg" alt=""></a>
-                            <a href=""><img src="images/product-details/similar3.jpg" alt=""></a>
-                        </div>
-
-
+        <div class="product-detail-wrap">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="product-gallery-main">
+                        <img id="mainProductImage"
+                             src="~/media/products/@Model.ProductDetail.Image"
+                             alt="@Model.ProductDetail.Name"
+                             class="img-responsive" />
                     </div>
 
-                    <!-- Controls -->
-                    <a class="left item-control" href="#similar-product" data-slide="prev">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
-                    <a class="right item-control" href="#similar-product" data-slide="next">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
+                    <div class="thumb-list">
+                        <div class="thumb-item active" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
+                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
+                        </div>
+
+                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
+                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
+                        </div>
+
+                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
+                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
+                        </div>
+
+                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
+                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
+                        </div>
+                    </div>
                 </div>
 
+                <div class="col-sm-6">
+                    <div class="product-information" style="padding-top:0;">
+                        <h2 class="product-title-custom">@Model.ProductDetail.Name</h2>
+
+                        <div class="price-box-custom">
+                            <div class="price-current" id="displayFinalPrice">@basePrice.ToString("#,##0 đ")</div>
+                            <div class="price-note">
+                                Giá gốc:
+                                <strong id="displayBasePrice">@basePrice.ToString("#,##0 đ")</strong>
+                                <span id="displayUpgradePrice" style="margin-left:12px;">
+                                    Nâng cấp: +0 đ
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="product-meta-custom">
+                            <p><b>Tình trạng:</b> @(Model.ProductDetail.Quantity > 0 ? "Còn hàng" : "Hết hàng")</p>
+                            <p><b>Nhà xuất bản:</b> @Model.ProductDetail.Publisher?.Name</p>
+                            <p><b>Thể loại:</b> @Model.ProductDetail.Category?.Name</p>
+                        </div>
+
+                        <div class="desc-box-custom">
+                            <div class="section-head-custom">Mô tả sản phẩm</div>
+                            <div class="section-body-custom product-desc-html">
+                                @Html.Raw(Model.ProductDetail.Description)
+                            </div>
+                        </div>
+
+                        <form asp-action="Add" asp-controller="Cart" method="post" id="productAddToCartForm">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" asp-for="ProductId" value="@Model.ProductDetail.Id" />
+
+                            @if (hasUpgradeOptions)
+                            {
+                                <div class="upgrade-box-custom">
+                                    <div class="section-head-custom">Upgrade</div>
+                                    <div class="section-body-custom">
+                                        @for (int i = 0; i < optionGroups.Count; i++)
+                                        {
+                                            var group = optionGroups[i];
+                                            var activeOptions = group.OptionValues
+                                                .Where(x => x.Status == 1)
+                                                .OrderBy(x => x.SortOrder)
+                                                .ToList();
+
+                                            var defaultOption = activeOptions.FirstOrDefault(x => x.IsDefault) ?? activeOptions.FirstOrDefault();
+
+                                            <div class="upgrade-row">
+                                                <div class="upgrade-label">@group.Name</div>
+                                                <div class="upgrade-options">
+                                                    <input type="hidden" name="SelectedOptions[@i].GroupId" value="@group.Id" />
+
+                                                    @for (int j = 0; j < activeOptions.Count; j++)
+                                                    {
+                                                        var option = activeOptions[j];
+                                                        var optionId = $"group_{group.Id}_option_{option.Id}";
+                                                        var isChecked = defaultOption != null && defaultOption.Id == option.Id;
+
+                                                        <input type="radio"
+                                                               id="@optionId"
+                                                               class="upgrade-option-input option-price-input"
+                                                               name="SelectedOptions[@i].ValueId"
+                                                               value="@option.Id"
+                                                               data-price="@option.AdditionalPrice"
+                                                        @(isChecked ? "checked" : "") />
+
+                                                        <label for="@optionId" class="upgrade-option-label">
+                                                            @option.Value
+                                                            <small>
+                                                                @(option.AdditionalPrice > 0
+                                                                    ? "+" + option.AdditionalPrice.ToString("#,##0 đ")
+                                                                    : "+0 đ")
+                                                            </small>
+                                                        </label>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="cart-box-custom">
+                                <div class="final-price-box">
+                                    <div class="final-price-label">Giá tạm tính</div>
+                                    <div class="final-price-value" id="displayFinalPriceBottom">@basePrice.ToString("#,##0 đ")</div>
+                                </div>
+
+                                <div class="qty-wrap-custom">
+                                    <label for="Quantity">Số lượng:</label>
+                                    <input asp-for="Quantity" type="number" min="1" class="qty-input-custom" />
+                                </div>
+
+                                @if (Model.ProductDetail.Quantity > 0)
+                                {
+                                    <button type="submit" class="btn-add-cart-custom">
+                                        <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="stock-out-btn" disabled>
+                                        <i class="fa fa-shopping-cart"></i> Hết hàng
+                                    </button>
+                                }
+                            </div>
+                        </form>
+
+                        <a href="#">
+                            <img src="~/images/product-details/share.png" class="share img-responsive" alt="" />
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="col-sm-7">
-                <div class="product-information">
-                    <!--/product-information-->
-                    <h2>@Model.ProductDetail.Name</h2>
-                    <span>
-                        <span>US @Model.ProductDetail.Price.ToString("#, ##0 VND")</span>
-                        <label>Quantity: 1</label>
-                        <input type="text" value="3" />
-                        @if (Model.ProductDetail.Quantity > 0)
-                        {
-                        <button type="button" class="btn btn-fefault cart">
-                            <i class="fa fa-shopping-cart"></i>
-                            Add to cart
-                        </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-fefault cart">
-                                <i class="fa fa-shopping-cart"></i>
-                                Sold Out
-                            </button>
-                        }
-                    </span>
-                    <p><b>Availability:</b> In Stock</p>
-                    <p><b>Condition:</b> New</p>
-                    <p><b>Nhà xuất bản:</b> @Model.ProductDetail.Publisher.Name</p>
-                    <p><b>Thể loại:</b> @Model.ProductDetail.Category.Name</p>
-                    <a href=""><img src="images/product-details/share.png" class="share img-responsive" alt="" /></a>
-                </div><!--/product-information-->
-            </div>
-        </div><!--/product-details-->
+        </div>
 
         <div class="category-tab shop-details-tab">
-            <!--category-tab-->
             <div class="col-sm-12">
                 <ul class="nav nav-tabs">
-                    <li><a href="#details" data-toggle="tab">Details</a></li>
+                    <li class="active"><a href="#details" data-toggle="tab">Details</a></li>
                     <li><a href="#companyprofile" data-toggle="tab">Company Profile</a></li>
                     <li><a href="#tag" data-toggle="tab">Tag</a></li>
-                    <li class="active"><a href="#reviews" data-toggle="tab">Reviews</a></li>
+                    <li><a href="#reviews" data-toggle="tab">Reviews</a></li>
                 </ul>
             </div>
+
             <div class="tab-content">
                 <div class="tab-pane fade active in" id="details">
-                    @Model.ProductDetail.Description
-
+                    @Html.Raw(Model.ProductDetail.Description)
                 </div>
 
                 <div class="tab-pane fade" id="companyprofile">
@@ -89,46 +468,57 @@
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery1.jpg" alt="" />
+                                    <img src="~/images/home/gallery1.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery3.jpg" alt="" />
+                                    <img src="~/images/home/gallery3.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery2.jpg" alt="" />
+                                    <img src="~/images/home/gallery2.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery4.jpg" alt="" />
+                                    <img src="~/images/home/gallery4.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -140,129 +530,135 @@
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery1.jpg" alt="" />
+                                    <img src="~/images/home/gallery1.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery2.jpg" alt="" />
+                                    <img src="~/images/home/gallery2.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery3.jpg" alt="" />
+                                    <img src="~/images/home/gallery3.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-sm-3">
                         <div class="product-image-wrapper">
                             <div class="single-products">
                                 <div class="productinfo text-center">
-                                    <img src="images/home/gallery4.jpg" alt="" />
+                                    <img src="~/images/home/gallery4.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart"><i class="fa fa-shopping-cart"></i>Add to cart</button>
+                                    <button type="button" class="btn btn-default add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i>Add to cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tab-pane fade " id="reviews">
+                <div class="tab-pane fade" id="reviews">
                     <div class="col-sm-12">
                         <ul>
-                            <li><a href=""><i class="fa fa-user"></i>EUGEN</a></li>
-                            <li><a href=""><i class="fa fa-clock-o"></i>12:41 PM</a></li>
-                            <li><a href=""><i class="fa fa-calendar-o"></i>31 DEC 2014</a></li>
+                            <li><a href="#"><i class="fa fa-user"></i>EUGEN</a></li>
+                            <li><a href="#"><i class="fa fa-clock-o"></i>12:41 PM</a></li>
+                            <li><a href="#"><i class="fa fa-calendar-o"></i>31 DEC 2014</a></li>
                         </ul>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+
+                        <p>
+                            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                        </p>
+
                         <p><b>Write Your Review</b></p>
 
                         <form autocomplete="off" asp-action="CommentProduct" asp-controller="Product" method="post">
                             @Html.AntiForgeryToken()
 
-                            @* <input type="hidden" asp-for="NewRating.ProductId" value="@Model.ProductDetail.Id" /> *@
-
                             <span>
-                                <input type="hidden" asp-for="@Model.ProductDetail.Id" name="ProductId" asp-for="ProductId" />
-                                <input type="hidden" name="Star" value="4"/>
-                                <input asp-for="@Model.Name" type="text" placeholder="Your Name" />
-                                <span asp-validation-for="@Model.Name" class="text-danger"></span>
-                                <input asp-for="@Model.Email" type="email" placeholder="Email Address" />
-                                <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                                <input type="hidden" name="ProductId" value="@Model.ProductDetail.Id" />
+                                <input type="hidden" name="Star" value="4" />
+
+                                <input asp-for="Name" type="text" placeholder="Your Name" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+
+                                <input asp-for="Email" type="email" placeholder="Email Address" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
                             </span>
 
-                            <textarea asp-for="@Model.Comment" placeholder="Your comment"></textarea>
+                            <textarea asp-for="Comment" placeholder="Your comment"></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
 
                             <button type="submit" class="btn btn-default pull-right">
                                 Submit
                             </button>
                         </form>
-
                     </div>
                 </div>
-
             </div>
-        </div><!--/category-tab-->
+        </div>
 
         <div class="recommended_items">
-            <!--recommended_items-->
             <h2 class="title text-center">recommended items</h2>
 
             <div id="recommended-item-carousel" class="carousel slide" data-ride="carousel">
                 <div class="carousel-inner">
                     <div class="item active">
-                        @foreach (var relatedProduct in @ViewBag.RelatedProducts as IEnumerable<ProductModel>)
+                        @if (ViewBag.RelatedProducts != null)
                         {
-
-                            <div class="col-sm-4">
-                                <div class="product-image-wrapper">
-
-                                    <div class="single-products">
-
-                                        <div class="productinfo text-center">
-                                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@relatedProduct.Id">
-                                                <img src="~/media/products/@relatedProduct.Image" alt="@relatedProduct.Name" width="100%" />
-                                                <h2>@relatedProduct.Price.ToString("#,##0 VND")</h2>
-                                                <p>@relatedProduct.Name</p>
-                                                <p>Thể loại: @relatedProduct.Category.Name</p>
-                                                <p>Nhà xuất bản: @relatedProduct.Publisher.Name</p>
-                                            </a>
+                            @foreach (var relatedProduct in ViewBag.RelatedProducts as IEnumerable<Eshop.Models.ProductModel>)
+                            {
+                                <div class="col-sm-4">
+                                    <div class="product-image-wrapper">
+                                        <div class="single-products">
+                                            <div class="productinfo text-center">
+                                                <a asp-action="Details" asp-controller="Product" asp-route-id="@relatedProduct.Id">
+                                                    <img src="~/media/products/@relatedProduct.Image" alt="@relatedProduct.Name" width="100%" />
+                                                    <h2>@relatedProduct.Price.ToString("#,##0 VND")</h2>
+                                                    <p>@relatedProduct.Name</p>
+                                                    <p>Thể loại: @relatedProduct.Category?.Name</p>
+                                                    <p>Nhà xuất bản: @relatedProduct.Publisher?.Name</p>
+                                                </a>
+                                            </div>
                                         </div>
-
-
                                     </div>
-
-                                    @* <div class="choose">
-										<ul class="nav nav-pills nav-justified">
-											<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-											<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-										</ul>
-									</div> *@
                                 </div>
-                            </div>
+                            }
                         }
-
                     </div>
                 </div>
+
                 <a class="left recommended-item-control" href="#recommended-item-carousel" data-slide="prev">
                     <i class="fa fa-angle-left"></i>
                 </a>
@@ -270,7 +666,62 @@
                     <i class="fa fa-angle-right"></i>
                 </a>
             </div>
-        </div><!--/recommended_items-->
-
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const basePrice = @basePrice;
+            const optionInputs = document.querySelectorAll('.option-price-input');
+            const finalPriceTop = document.getElementById('displayFinalPrice');
+            const finalPriceBottom = document.getElementById('displayFinalPriceBottom');
+            const upgradePriceText = document.getElementById('displayUpgradePrice');
+
+            function formatVnd(value) {
+                return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+            }
+
+            function calculateSelectedUpgradePrice() {
+                let totalUpgrade = 0;
+
+                optionInputs.forEach(function (input) {
+                    if (input.checked) {
+                        totalUpgrade += parseFloat(input.dataset.price || '0');
+                    }
+                });
+
+                const finalPrice = basePrice + totalUpgrade;
+
+                if (finalPriceTop) finalPriceTop.textContent = formatVnd(finalPrice);
+                if (finalPriceBottom) finalPriceBottom.textContent = formatVnd(finalPrice);
+                if (upgradePriceText) upgradePriceText.textContent = 'Nâng cấp: +' + formatVnd(totalUpgrade).replace(' đ', ' đ');
+            }
+
+            optionInputs.forEach(function (input) {
+                input.addEventListener('change', calculateSelectedUpgradePrice);
+            });
+
+            calculateSelectedUpgradePrice();
+
+            const thumbItems = document.querySelectorAll('.thumb-item');
+            const mainImage = document.getElementById('mainProductImage');
+
+            thumbItems.forEach(function (item) {
+                item.addEventListener('click', function () {
+                    const image = this.getAttribute('data-image');
+                    if (mainImage && image) {
+                        mainImage.src = image;
+                    }
+
+                    thumbItems.forEach(function (x) {
+                        x.classList.remove('active');
+                    });
+
+                    this.classList.add('active');
+                });
+            });
+        })();
+    </script>
+}
