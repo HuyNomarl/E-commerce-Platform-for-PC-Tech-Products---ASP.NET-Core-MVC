@@ -1,4 +1,5 @@
-﻿using Eshop.Repository.Validation;
+﻿using Eshop.Models.Enums;
+using Eshop.Repository.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -32,10 +33,16 @@ namespace Eshop.Models
         [ForeignKey("CategoryId")]
         [Required, Range(1, int.MaxValue, ErrorMessage = "Yêu cầu chọn danh mục!")]
         public int CategoryId { get; set; }
+
+        // Giữ lại để không phá code cũ
         public bool IsPcBuild { get; set; } = false;
+
+        // Mới
+        public ProductType ProductType { get; set; } = ProductType.Normal;
+        public PcComponentType? ComponentType { get; set; }
+
         public CategoryModel Category { get; set; }
         public PublisherModel Publisher { get; set; }
-        public string ProductType { get; set; } // Normal, PC, Laptop, Phone
 
         public ICollection<RatingModel> RatingModel { get; set; } = new List<RatingModel>();
 
@@ -45,8 +52,15 @@ namespace Eshop.Models
         [FileExtension]
         public IFormFile? ImageUpload { get; set; }
 
-        public ICollection<ProductComponentModel> Components { get; set; } = new List<ProductComponentModel>();
+        // PC dựng sẵn
+        public ICollection<PrebuiltPcComponentModel> PrebuiltComponents { get; set; } = new List<PrebuiltPcComponentModel>();
+
+        // Option nâng cấp cho PC dựng sẵn / sản phẩm cố định
         public ICollection<ProductOptionGroupModel> OptionGroups { get; set; } = new List<ProductOptionGroupModel>();
+
         public ICollection<ProductQuantityModel> ProductQuantities { get; set; } = new List<ProductQuantityModel>();
+
+        // Spec kỹ thuật cho builder
+        public ICollection<ProductSpecificationModel> Specifications { get; set; } = new List<ProductSpecificationModel>();
     }
 }

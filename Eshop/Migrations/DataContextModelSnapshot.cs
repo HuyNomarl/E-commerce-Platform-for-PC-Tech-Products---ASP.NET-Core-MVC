@@ -376,7 +376,7 @@ namespace Eshop.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Eshop.Models.ProductComponentModel", b =>
+            modelBuilder.Entity("Eshop.Models.PcBuildItemModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -384,28 +384,87 @@ namespace Eshop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ComponentName")
-                        .IsRequired()
+                    b.Property<int>("ComponentType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PcBuildId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PcBuildId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("PcBuildItems");
+                });
+
+            modelBuilder.Entity("Eshop.Models.PcBuildModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BuildCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("BuildName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ComponentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.HasKey("Id");
+
+                    b.ToTable("PcBuilds");
+                });
+
+            modelBuilder.Entity("Eshop.Models.PrebuiltPcComponentModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AdditionalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ComponentProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ComponentType")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ComponentProductId");
+
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductComponentModel");
+                    b.ToTable("PrebuiltPcComponents");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductModel", b =>
@@ -417,6 +476,9 @@ namespace Eshop.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ComponentType")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
@@ -436,8 +498,8 @@ namespace Eshop.Migrations
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("ProductType")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("ProductType")
+                        .HasColumnType("int");
 
                     b.Property<int>("PublisherId")
                         .HasColumnType("int");
@@ -550,6 +612,41 @@ namespace Eshop.Migrations
                     b.HasIndex("ProductModelId");
 
                     b.ToTable("productQuantityModels");
+                });
+
+            modelBuilder.Entity("Eshop.Models.ProductSpecificationModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SpecificationDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("ValueBool")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ValueJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ValueNumber")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ValueText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SpecificationDefinitionId");
+
+                    b.ToTable("ProductSpecifications");
                 });
 
             modelBuilder.Entity("Eshop.Models.PublisherModel", b =>
@@ -668,6 +765,451 @@ namespace Eshop.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Sliders");
+                });
+
+            modelBuilder.Entity("Eshop.Models.SpecificationDefinitionModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ComponentType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DataType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsFilterable")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("SpecificationDefinitions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "cpu_socket",
+                            ComponentType = 1,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Socket CPU",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "cpu_cores",
+                            ComponentType = 1,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Số nhân",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "cpu_threads",
+                            ComponentType = 1,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Số luồng",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "cpu_tdp_w",
+                            ComponentType = 1,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "TDP",
+                            SortOrder = 4,
+                            Unit = "W"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "mb_socket",
+                            ComponentType = 2,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Socket Mainboard",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "mb_chipset",
+                            ComponentType = 2,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chipset",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "mb_form_factor",
+                            ComponentType = 2,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Kích thước Mainboard",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Code = "mb_ram_type",
+                            ComponentType = 2,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Loại RAM hỗ trợ",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Code = "mb_ram_slots",
+                            ComponentType = 2,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Số khe RAM",
+                            SortOrder = 5
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Code = "mb_max_ram_gb",
+                            ComponentType = 2,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "RAM tối đa",
+                            SortOrder = 6,
+                            Unit = "GB"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Code = "ram_type",
+                            ComponentType = 3,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Loại RAM",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Code = "ram_capacity_gb",
+                            ComponentType = 3,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Dung lượng RAM",
+                            SortOrder = 2,
+                            Unit = "GB"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Code = "ram_bus_mhz",
+                            ComponentType = 3,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Bus RAM",
+                            SortOrder = 3,
+                            Unit = "MHz"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Code = "ram_kit_modules",
+                            ComponentType = 3,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Số thanh / kit",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Code = "ssd_storage_type",
+                            ComponentType = 4,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Loại ổ",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Code = "ssd_capacity_gb",
+                            ComponentType = 4,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Dung lượng SSD",
+                            SortOrder = 2,
+                            Unit = "GB"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Code = "ssd_interface",
+                            ComponentType = 4,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chuẩn giao tiếp",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Code = "gpu_chip",
+                            ComponentType = 6,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "GPU",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Code = "gpu_vram_gb",
+                            ComponentType = 6,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "VRAM",
+                            SortOrder = 2,
+                            Unit = "GB"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Code = "gpu_length_mm",
+                            ComponentType = 6,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chiều dài VGA",
+                            SortOrder = 3,
+                            Unit = "mm"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            Code = "gpu_tdp_w",
+                            ComponentType = 6,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Công suất VGA",
+                            SortOrder = 4,
+                            Unit = "W"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            Code = "gpu_recommended_psu_w",
+                            ComponentType = 6,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "PSU đề nghị",
+                            SortOrder = 5,
+                            Unit = "W"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            Code = "psu_watt",
+                            ComponentType = 7,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = true,
+                            Name = "Công suất PSU",
+                            SortOrder = 1,
+                            Unit = "W"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            Code = "psu_efficiency",
+                            ComponentType = 7,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chứng nhận",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 25,
+                            Code = "psu_standard",
+                            ComponentType = 7,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chuẩn nguồn",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 26,
+                            Code = "case_supported_mb_sizes",
+                            ComponentType = 8,
+                            DataType = 4,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Mainboard hỗ trợ",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 27,
+                            Code = "case_max_gpu_length_mm",
+                            ComponentType = 8,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "GPU dài tối đa",
+                            SortOrder = 2,
+                            Unit = "mm"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            Code = "case_max_cooler_height_mm",
+                            ComponentType = 8,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Tản nhiệt cao tối đa",
+                            SortOrder = 3,
+                            Unit = "mm"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            Code = "case_psu_standard",
+                            ComponentType = 8,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chuẩn PSU hỗ trợ",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 30,
+                            Code = "cooler_height_mm",
+                            ComponentType = 9,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Chiều cao tản nhiệt",
+                            SortOrder = 1,
+                            Unit = "mm"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            Code = "monitor_size_inch",
+                            ComponentType = 10,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Kích thước màn hình",
+                            SortOrder = 1,
+                            Unit = "inch"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            Code = "monitor_resolution",
+                            ComponentType = 10,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Độ phân giải",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 33,
+                            Code = "monitor_refresh_rate_hz",
+                            ComponentType = 10,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Tần số quét",
+                            SortOrder = 3,
+                            Unit = "Hz"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            Code = "monitor_brightness_nits",
+                            ComponentType = 10,
+                            DataType = 2,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Độ sáng",
+                            SortOrder = 4,
+                            Unit = "nits"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            Code = "monitor_panel_type",
+                            ComponentType = 10,
+                            DataType = 1,
+                            IsFilterable = true,
+                            IsRequired = false,
+                            Name = "Tấm nền",
+                            SortOrder = 5
+                        });
                 });
 
             modelBuilder.Entity("Eshop.Models.WishlistModel", b =>
@@ -883,13 +1425,40 @@ namespace Eshop.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Eshop.Models.ProductComponentModel", b =>
+            modelBuilder.Entity("Eshop.Models.PcBuildItemModel", b =>
                 {
-                    b.HasOne("Eshop.Models.ProductModel", "Product")
-                        .WithMany("Components")
-                        .HasForeignKey("ProductId")
+                    b.HasOne("Eshop.Models.PcBuildModel", "PcBuild")
+                        .WithMany("Items")
+                        .HasForeignKey("PcBuildId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Eshop.Models.ProductModel", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PcBuild");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Eshop.Models.PrebuiltPcComponentModel", b =>
+                {
+                    b.HasOne("Eshop.Models.ProductModel", "ComponentProduct")
+                        .WithMany()
+                        .HasForeignKey("ComponentProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.ProductModel", "Product")
+                        .WithMany("PrebuiltComponents")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ComponentProduct");
 
                     b.Navigation("Product");
                 });
@@ -940,6 +1509,25 @@ namespace Eshop.Migrations
                     b.HasOne("Eshop.Models.ProductModel", null)
                         .WithMany("ProductQuantities")
                         .HasForeignKey("ProductModelId");
+                });
+
+            modelBuilder.Entity("Eshop.Models.ProductSpecificationModel", b =>
+                {
+                    b.HasOne("Eshop.Models.ProductModel", "Product")
+                        .WithMany("Specifications")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.SpecificationDefinitionModel", "SpecificationDefinition")
+                        .WithMany("ProductSpecifications")
+                        .HasForeignKey("SpecificationDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("SpecificationDefinition");
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingModel", b =>
@@ -1022,20 +1610,32 @@ namespace Eshop.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("Eshop.Models.PcBuildModel", b =>
+                {
+                    b.Navigation("Items");
+                });
+
             modelBuilder.Entity("Eshop.Models.ProductModel", b =>
                 {
-                    b.Navigation("Components");
-
                     b.Navigation("OptionGroups");
+
+                    b.Navigation("PrebuiltComponents");
 
                     b.Navigation("ProductQuantities");
 
                     b.Navigation("RatingModel");
+
+                    b.Navigation("Specifications");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionGroupModel", b =>
                 {
                     b.Navigation("OptionValues");
+                });
+
+            modelBuilder.Entity("Eshop.Models.SpecificationDefinitionModel", b =>
+                {
+                    b.Navigation("ProductSpecifications");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,85 @@
+﻿@model IEnumerable<Eshop.Models.ProductModel>
+
+@{
+    ViewData["Title"] = "Quản lý linh kiện PC";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Quản lý linh kiện PC</h2>
+        <a asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Create" class="btn btn-primary">
+            Thêm linh kiện
+        </a>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success">@TempData["success"]</div>
+    }
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["error"]</div>
+    }
+
+    <div class="card">
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tên</th>
+                        <th>Loại</th>
+                        <th>Hãng</th>
+                        <th>Danh mục</th>
+                        <th>Giá</th>
+                        <th>Tồn</th>
+                        <th style="width:180px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td style="width:80px">
+                                @if (!string.IsNullOrWhiteSpace(item.Image))
+                                {
+                                    <img src="~/media/products/@item.Image" style="width:60px;height:60px;object-fit:cover" />
+                                }
+                            </td>
+                            <td>@item.Name</td>
+                            <td>@item.ComponentType</td>
+                            <td>@item.Publisher?.Name</td>
+                            <td>@item.Category?.Name</td>
+                            <td>@item.Price.ToString("#,##0") đ</td>
+                            <td>@item.Quantity</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-area="Admin"
+                                           asp-controller="PcComponentAdmin"
+                                           asp-action="Edit"
+                                           asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-warning">
+                                        Sửa
+                                    </a>
+
+                                    <form asp-area="Admin"
+                                          asp-controller="PcComponentAdmin"
+                                          asp-action="Delete"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa linh kiện này không?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

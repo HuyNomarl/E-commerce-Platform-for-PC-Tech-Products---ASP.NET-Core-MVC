@@ -74,6 +74,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcT3JkZXJcVmlld09yZGVyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[E:/Web C\#/Eshop/Eshop/Areas/Admin/Views/PcComponentAdmin/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcUGNDb21wb25lbnRBZG1pblxDcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/Web C\#/Eshop/Eshop/Areas/Admin/Views/PcComponentAdmin/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcUGNDb21wb25lbnRBZG1pblxFZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/Web C\#/Eshop/Eshop/Areas/Admin/Views/PcComponentAdmin/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcUGNDb21wb25lbnRBZG1pblxJbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [E:/Web C\#/Eshop/Eshop/Areas/Admin/Views/ProductOption/CreateGroup.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXNcQWRtaW5cVmlld3NcUHJvZHVjdE9wdGlvblxDcmVhdGVHcm91cC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -268,6 +280,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [E:/Web C\#/Eshop/Eshop/Views/Payment/PaymentCallbackVnpay.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGF5bWVudFxQYXltZW50Q2FsbGJhY2tWbnBheS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[E:/Web C\#/Eshop/Eshop/Views/PcBuilder/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGNCdWlsZGVyXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [E:/Web C\#/Eshop/Eshop/Views/Product/Details.cshtml]

@@ -1,4 +1,5 @@
 ﻿using Eshop.Models;
+using Eshop.Repository.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,12 @@ namespace Eshop.Repository
         public DbSet<MessageModel> Messages { get; set; }
         public DbSet<ProductOptionGroupModel> ProductOptionGroups { get; set; }
         public DbSet<ProductOptionValueModel> ProductOptionValues { get; set; }
+        public DbSet<SpecificationDefinitionModel> SpecificationDefinitions { get; set; }
+        public DbSet<ProductSpecificationModel> ProductSpecifications { get; set; }
+        public DbSet<PrebuiltPcComponentModel> PrebuiltPcComponents { get; set; }
+        public DbSet<PcBuildModel> PcBuilds { get; set; }
+        public DbSet<PcBuildItemModel> PcBuildItems { get; set; }
+
 
 
 
@@ -93,6 +100,48 @@ namespace Eshop.Repository
                 .WithMany(g => g.OptionValues)
                 .HasForeignKey(v => v.ProductOptionGroupId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PrebuiltPcComponentModel>()
+                .HasOne(x => x.Product)
+                .WithMany(x => x.PrebuiltComponents)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PrebuiltPcComponentModel>()
+                .HasOne(x => x.ComponentProduct)
+                .WithMany()
+                .HasForeignKey(x => x.ComponentProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SpecificationDefinitionModel>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            builder.Entity<ProductSpecificationModel>()
+                .HasOne(x => x.Product)
+                .WithMany(x => x.Specifications)
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductSpecificationModel>()
+                .HasOne(x => x.SpecificationDefinition)
+                .WithMany(x => x.ProductSpecifications)
+                .HasForeignKey(x => x.SpecificationDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PcBuildItemModel>()
+                .HasOne(x => x.PcBuild)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.PcBuildId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PcBuildItemModel>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            PcSpecificationSeed.Seed(builder);
 
         }
 

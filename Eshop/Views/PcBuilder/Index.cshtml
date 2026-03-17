@@ -1,0 +1,1533 @@
+﻿@{
+    ViewData["Title"] = "Build PC";
+}
+
+<style>
+    .picker-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 14px;
+    min-height: 500px;
+}
+
+.picker-sidebar {
+    background: #f3f3f3;
+    border-right: 1px solid #ddd;
+    padding-right: 8px;
+}
+
+.picker-filter-box {
+    background: #f3f3f3;
+}
+
+.picker-filter-title {
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    border: 1px solid #d8d8d8;
+    background: #efefef;
+    text-align: center;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+}
+
+.picker-filter-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.picker-sort-select {
+    height: 38px;
+    border: 1px solid #ccc;
+    background: #fff;
+    padding: 0 10px;
+    border-radius: 4px;
+}
+
+.picker-inline-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.picker-clear-filter-btn {
+    border: none;
+    background: #ef1b12;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+.filter-group {
+    margin-bottom: 18px;
+}
+
+.filter-group-title {
+    font-size: 15px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.filter-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 18px;
+}
+
+.filter-option-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.filter-option-label input {
+    margin-top: 2px;
+}
+
+.filter-option-count {
+    color: #555;
+}
+
+.picker-content {
+    min-width: 0;
+}
+
+@@media (max-width: 992px) {
+    .picker-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-options-grid {
+        grid-template-columns: 1fr;
+    }
+}
+    .pc-builder-page {
+        background: #efefef;
+        padding: 20px 0 28px;
+        min-height: 100vh;
+    }
+
+    .pc-builder-wrap {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 0 14px;
+    }
+
+    .pc-builder-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 18px;
+    }
+
+    .pc-builder-topbar,
+    .pc-builder-bottombar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .btn-refresh-custom {
+        background: #ff2a2a;
+        color: #fff;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+
+    .estimate-box {
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+        .estimate-box .price {
+            color: #ff1d1d;
+        }
+
+    .builder-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #f4f4f4;
+        border: 1px solid #d5d5d5;
+    }
+
+        .builder-table tr {
+            border-bottom: 1px solid #d5d5d5;
+        }
+
+        .builder-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+
+    .slot-col {
+        width: 210px;
+        background: #efefef;
+        border-right: 1px solid #d5d5d5;
+        padding: 14px 12px !important;
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .content-col {
+        background: #f7f7f7;
+        padding: 12px 14px !important;
+    }
+
+    .empty-slot-wrap {
+        min-height: 58px;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-choose-component {
+        background: linear-gradient(180deg, #ff7a42, #ff572f);
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 14px;
+        font-size: 15px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .selected-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .selected-item {
+        display: grid;
+        grid-template-columns: 66px 1fr auto;
+        gap: 16px;
+        align-items: start;
+        padding: 6px 0;
+    }
+
+    .selected-thumb {
+        width: 66px;
+        height: 66px;
+        object-fit: contain;
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 4px;
+    }
+
+    .selected-info {
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .selected-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111;
+        margin-bottom: 2px;
+    }
+
+    .selected-sub {
+        color: #222;
+    }
+
+    .selected-stock {
+        color: #16a34a;
+        font-weight: 700;
+    }
+
+    .selected-out {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .selected-price-side {
+        text-align: right;
+        min-width: 280px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .unit-price,
+    .line-total {
+        color: #e60000;
+        font-size: 16px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .qty-box {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d7d7d7;
+        overflow: hidden;
+        background: #fff;
+        height: 34px;
+    }
+
+    .qty-btn {
+        width: 32px;
+        height: 34px;
+        border: none;
+        background: #e8e8e8;
+        font-size: 20px;
+        line-height: 1;
+        font-weight: 700;
+    }
+
+    .qty-input {
+        width: 40px;
+        height: 34px;
+        border: none;
+        text-align: center;
+        font-weight: 700;
+        background: #fff;
+    }
+
+    .item-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .mini-action-btn {
+        border: none;
+        background: transparent;
+        color: #2563eb;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 0 4px;
+    }
+
+    .mini-remove-btn {
+        color: #dc2626;
+    }
+
+    .builder-messages {
+        margin-top: 14px;
+        padding: 14px;
+        background: #fff;
+        border: 1px solid #ddd;
+    }
+
+    .builder-message {
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+        .builder-message.error {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
+        .builder-message.warning {
+            color: #b45309;
+            font-weight: 700;
+        }
+
+        .builder-message.info {
+            color: #1d4ed8;
+        }
+
+    .builder-actions {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .builder-bottom-btn {
+        border: none;
+        border-radius: 5px;
+        padding: 12px 14px;
+        font-weight: 800;
+        font-size: 16px;
+        color: #fff;
+        text-transform: uppercase;
+    }
+
+    .btn-darkgreen {
+        background: #003a3f;
+    }
+
+    .btn-cart-red {
+        background: #ef1b12;
+    }
+
+    .picker-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1200;
+        padding: 18px;
+    }
+
+        .picker-overlay.show {
+            display: flex;
+        }
+
+    .picker-modal {
+        width: min(1220px, 100%);
+        max-height: 88vh;
+        background: #f0f0f0;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 40px rgba(0,0,0,.25);
+    }
+
+    .picker-header {
+        background: #ff5a36;
+        color: #fff;
+        padding: 12px 16px;
+        font-size: 18px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .picker-search {
+        flex: 1;
+        max-width: 740px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+        .picker-search input {
+            flex: 1;
+            height: 40px;
+            border: none;
+            border-radius: 3px;
+            padding: 0 12px;
+            outline: none;
+        }
+
+        .picker-search button,
+        .picker-close-btn,
+        .picker-confirm-btn {
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .picker-search button {
+            height: 40px;
+            padding: 0 14px;
+            background: #fff;
+            color: #111;
+        }
+
+    .picker-close-btn {
+        background: #fff;
+        color: #111;
+        padding: 8px 12px;
+    }
+
+    .picker-body {
+        overflow: auto;
+        padding: 14px;
+    }
+
+    .picker-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .picker-item {
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 36px 84px 1fr auto;
+        gap: 14px;
+        align-items: start;
+    }
+
+    .picker-check-wrap {
+        display: flex;
+        align-items: start;
+        justify-content: center;
+        padding-top: 24px;
+    }
+
+    .picker-check {
+        width: 18px;
+        height: 18px;
+        accent-color: #ff5a36;
+    }
+
+    .picker-img {
+        width: 84px;
+        height: 84px;
+        object-fit: contain;
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 4px;
+    }
+
+    .picker-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #111;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+
+    .picker-meta {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .picker-price {
+        min-width: 160px;
+        text-align: right;
+        color: #e60000;
+        font-weight: 800;
+        font-size: 20px;
+        white-space: nowrap;
+    }
+
+    .picker-footer {
+        padding: 12px 16px;
+        background: #fff;
+        border-top: 1px solid #ddd;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .picker-confirm-btn {
+        background: #ff5a36;
+        color: #fff;
+        padding: 10px 18px;
+    }
+
+    .empty-picker {
+        background: #fff;
+        border: 1px dashed #ccc;
+        padding: 30px;
+        text-align: center;
+        color: #666;
+    }
+
+    @@media (max-width: 1200px) {
+        .selected-item {
+            grid-template-columns: 66px 1fr;
+        }
+
+        .selected-price-side {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+            min-width: auto;
+            padding-left: 82px;
+        }
+
+        .builder-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .pc-builder-topbar,
+        .pc-builder-bottombar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .slot-col {
+            width: 150px;
+            font-size: 14px;
+        }
+
+        .picker-item {
+            grid-template-columns: 36px 64px 1fr;
+        }
+
+        .picker-price {
+            grid-column: 1 / -1;
+            text-align: left;
+            padding-left: 50px;
+        }
+
+        .builder-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="pc-builder-page">
+    <div class="pc-builder-wrap">
+        <div class="pc-builder-title">CHỌN LINH KIỆN XÂY DỰNG CẤU HÌNH</div>
+
+        <div class="pc-builder-topbar">
+            <button type="button" class="btn-refresh-custom" id="btnResetBuild">LÀM MỚI ↻</button>
+            <div class="estimate-box">Chi phí dự tính: <span class="price" id="topTotalPrice">0 đ</span></div>
+        </div>
+
+        <table class="builder-table">
+            <tbody id="builderTableBody"></tbody>
+        </table>
+
+        <div class="builder-messages" id="builderMessages">
+            <div class="builder-message info">Chưa có cảnh báo tương thích.</div>
+        </div>
+
+        <div class="pc-builder-bottombar" style="margin-top:16px;">
+            <div></div>
+            <div class="estimate-box">Chi phí dự tính: <span class="price" id="bottomTotalPrice">0 đ</span></div>
+        </div>
+
+        <div class="builder-actions">
+            <button type="button" class="builder-bottom-btn btn-darkgreen">TẢI ẢNH CẤU HÌNH</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen">TẢI FILE EXCEL CẤU HÌNH</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen">XEM &amp; IN</button>
+            <button type="button" class="builder-bottom-btn btn-cart-red" id="saveBuildBtn">THÊM VÀO GIỎ HÀNG</button>
+        </div>
+    </div>
+</div>
+
+<div class="picker-overlay" id="pickerOverlay">
+    <div class="picker-modal">
+        <div class="picker-header">
+            <div id="pickerTitle">CHỌN LINH KIỆN</div>
+
+            <div class="picker-search">
+                <input type="text" id="pickerKeyword" placeholder="Bạn cần tìm linh kiện gì?" />
+                <button type="button" id="btnSearchPicker">Tìm</button>
+            </div>
+
+            <button type="button" class="picker-close-btn" id="btnClosePicker">Đóng</button>
+        </div>
+
+        <div class="picker-body">
+            <div class="picker-layout">
+                <aside class="picker-sidebar">
+                    <div class="picker-filter-box">
+                        <div class="picker-filter-title">LỌC SẢN PHẨM THEO</div>
+
+                       <div class="picker-filter-tools">
+    <select id="pickerSort" class="picker-sort-select">
+        <option value="default">Sắp xếp: Tùy chọn</option>
+        <option value="price_asc">Giá tăng dần</option>
+        <option value="price_desc">Giá giảm dần</option>
+        <option value="name_asc">Tên A-Z</option>
+    </select>
+
+    <label class="picker-inline-check">
+        <input type="checkbox" id="pickerInStockOnly" />
+        <span>Chỉ hiện linh kiện còn hàng</span>
+    </label>
+
+    <label class="picker-inline-check">
+        <input type="checkbox" id="pickerCompatibleOnly" checked />
+        <span>Chỉ hiện linh kiện tương thích</span>
+    </label>
+
+    <button type="button" id="btnClearPickerFilters" class="picker-clear-filter-btn">Xóa bộ lọc</button>
+</div>
+
+                        <div id="pickerFilters"></div>
+                    </div>
+                </aside>
+
+                <section class="picker-content">
+                    <div class="picker-list" id="pickerList"></div>
+                </section>
+            </div>
+        </div>
+
+        <div class="picker-footer">
+            <button type="button" class="picker-close-btn" id="btnCancelPicker">Hủy</button>
+            <button type="button" class="picker-confirm-btn" id="btnConfirmPicker">Thêm vào cấu hình</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+    const SLOT_CONFIGS = [
+        { type: "CPU",       label: "1. CPU",          buttonText: "Chọn CPU",             multi: false },
+        { type: "Mainboard", label: "2. MAINBOARD",    buttonText: "Chọn Mainboard",       multi: false },
+        { type: "RAM",       label: "3. RAM",          buttonText: "Chọn RAM",             multi: true  },
+        { type: "GPU",       label: "4. CARD ĐỒ HỌA",  buttonText: "Chọn Card Đồ Họa",     multi: false },
+        { type: "SSD",       label: "5. Ổ CỨNG",       buttonText: "Chọn Ổ Cứng",          multi: true  },
+        { type: "PSU",       label: "6. NGUỒN (PSU)",  buttonText: "Chọn Nguồn (PSU)",     multi: false },
+        { type: "Cooler",    label: "7. TẢN NHIỆT",    buttonText: "Chọn Tản Nhiệt",       multi: false },
+        { type: "Case",      label: "8. VỎ CASE",      buttonText: "Chọn Vỏ Case",         multi: false },
+        { type: "Monitor",   label: "9. MÀN HÌNH",     buttonText: "Chọn Màn Hình",        multi: true  }
+    ];
+
+    const buildState = {
+        CPU: null,
+        Mainboard: null,
+        RAM: [],
+        GPU: null,
+        SSD: [],
+        PSU: null,
+        Cooler: null,
+        Case: null,
+        Monitor: []
+    };
+
+    let pickerType = null;
+    let pickerAllItems = [];
+    let pickerFilteredItems = [];
+    let compatibilityState = { totalPrice: 0, estimatedPower: 0, messages: [] };
+
+   const pickerFilterState = {
+    keyword: "",
+    sort: "default",
+    inStockOnly: false,
+    compatibleOnly: true,
+    publisherIds: [],
+    specs: {}
+};
+
+    const builderTableBody = document.getElementById("builderTableBody");
+    const pickerOverlay = document.getElementById("pickerOverlay");
+    const pickerTitle = document.getElementById("pickerTitle");
+    const pickerList = document.getElementById("pickerList");
+    const pickerKeyword = document.getElementById("pickerKeyword");
+    const topTotalPrice = document.getElementById("topTotalPrice");
+    const bottomTotalPrice = document.getElementById("bottomTotalPrice");
+    const builderMessages = document.getElementById("builderMessages");
+    const pickerFilters = document.getElementById("pickerFilters");
+const pickerSort = document.getElementById("pickerSort");
+const pickerInStockOnly = document.getElementById("pickerInStockOnly");
+const pickerCompatibleOnly = document.getElementById("pickerCompatibleOnly");
+
+   function initPcBuilderPage() {
+    document.getElementById("btnClosePicker")?.addEventListener("click", closePicker);
+    document.getElementById("btnCancelPicker")?.addEventListener("click", closePicker);
+    document.getElementById("btnSearchPicker")?.addEventListener("click", applyPickerFilters);
+    document.getElementById("btnConfirmPicker")?.addEventListener("click", confirmPickerSelection);
+    document.getElementById("btnResetBuild")?.addEventListener("click", resetBuild);
+    document.getElementById("saveBuildBtn")?.addEventListener("click", saveBuild);
+    document.getElementById("btnClearPickerFilters")?.addEventListener("click", clearPickerFilters);
+
+    pickerSort?.addEventListener("change", () => {
+        pickerFilterState.sort = pickerSort.value;
+        applyPickerFilters();
+    });
+
+    pickerInStockOnly?.addEventListener("change", () => {
+        pickerFilterState.inStockOnly = pickerInStockOnly.checked;
+        applyPickerFilters();
+    });
+
+    pickerCompatibleOnly?.addEventListener("change", () => {
+        pickerFilterState.compatibleOnly = pickerCompatibleOnly.checked;
+        applyPickerFilters();
+    });
+
+    pickerOverlay?.addEventListener("click", (e) => {
+        if (e.target === pickerOverlay) closePicker();
+    });
+
+    renderBuildTable();
+    renderMessages();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initPcBuilderPage);
+} else {
+    initPcBuilderPage();
+}
+
+    function getFilterConfig(type) {
+        switch (type) {
+            case "CPU":
+                return [{ code: "cpu_socket", title: "Socket CPU" }];
+
+            case "Mainboard":
+                return [
+                    { code: "mb_socket", title: "Socket Mainboard" },
+                    { code: "mb_chipset", title: "Chipset" },
+                    { code: "mb_form_factor", title: "Kích thước Mainboard" },
+                    { code: "mb_ram_type", title: "Loại RAM hỗ trợ" }
+                ];
+
+            case "RAM":
+                return [
+                    { code: "ram_capacity_gb", title: "Dung lượng RAM" },
+                    { code: "ram_type", title: "Loại RAM" },
+                    { code: "ram_bus_mhz", title: "Bus RAM" }
+                ];
+
+            case "SSD":
+                return [
+                    { code: "ssd_storage_type", title: "Loại ổ" },
+                    { code: "ssd_capacity_gb", title: "Dung lượng SSD" },
+                    { code: "ssd_interface", title: "Chuẩn giao tiếp" }
+                ];
+
+            case "GPU":
+                return [
+                    { code: "gpu_chip", title: "GPU" },
+                    { code: "gpu_vram_gb", title: "VRAM" }
+                ];
+
+            case "PSU":
+                return [
+                    { code: "psu_watt", title: "Công suất PSU" },
+                    { code: "psu_efficiency", title: "Chứng nhận" },
+                    { code: "psu_standard", title: "Chuẩn nguồn" }
+                ];
+
+            case "Case":
+                return [
+                    { code: "case_psu_standard", title: "Chuẩn PSU hỗ trợ" }
+                ];
+
+            case "Cooler":
+                return [
+                    { code: "cooler_height_mm", title: "Chiều cao tản nhiệt" }
+                ];
+
+            case "Monitor":
+                return [
+                    { code: "monitor_size_inch", title: "Kích thước màn hình" },
+                    { code: "monitor_resolution", title: "Độ phân giải" },
+                    { code: "monitor_refresh_rate_hz", title: "Tần số quét" },
+                    { code: "monitor_panel_type", title: "Tấm nền" }
+                ];
+
+            default:
+                return [];
+        }
+    }
+
+    function renderBuildTable() {
+        builderTableBody.innerHTML = SLOT_CONFIGS.map(slot => {
+            const selected = buildState[slot.type];
+            const isMulti = slot.multi;
+            const hasItems = isMulti ? selected.length > 0 : !!selected;
+
+            return `
+                <tr>
+                    <td class="slot-col">${slot.label}</td>
+                    <td class="content-col">
+                        ${hasItems
+                            ? renderSelectedContent(slot.type, slot.multi)
+                            : `
+                                <div class="empty-slot-wrap">
+                                    <button type="button" class="btn-choose-component" onclick="openPicker('${slot.type}')">
+                                        ＋ ${slot.buttonText}
+                                    </button>
+                                </div>
+                              `
+                        }
+                    </td>
+                </tr>
+            `;
+        }).join("");
+
+        renderTotals();
+    }
+
+    function renderSelectedContent(type, multi) {
+        const items = multi ? buildState[type] : [buildState[type]];
+
+        return `
+            <div class="selected-group">
+                ${items.map(item => renderSelectedItem(type, multi, item)).join("")}
+                <div>
+                    <button type="button" class="btn-choose-component" onclick="openPicker('${type}')">
+                        ＋ ${getButtonText(type)}
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderSelectedItem(type, multi, item) {
+        const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+        const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
+        const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
+
+        return `
+            <div class="selected-item">
+                <img class="selected-thumb" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
+                <div class="selected-info">
+                    <div class="selected-name">${escapeHtml(item.name)}</div>
+                    <div class="selected-sub">
+                        ${renderSummaryLine(item.summarySpecs)}
+                    </div>
+                    <div>- Kho hàng: <span class="${stockClass}">${stockText}</span></div>
+                </div>
+
+                <div class="selected-price-side">
+                    <div class="unit-price">${formatPrice(item.price)}</div>
+
+                    ${multi ? `
+                        <div class="qty-box">
+                            <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, -1)">-</button>
+                            <input class="qty-input" value="${item.quantity || 1}" readonly />
+                            <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, 1)">+</button>
+                        </div>
+                    ` : `
+                        <div class="qty-box">
+                            <input class="qty-input" value="1" readonly />
+                        </div>
+                    `}
+
+                    <div class="line-total">${formatPrice((item.price || 0) * (item.quantity || 1))}</div>
+
+                    <div class="item-actions">
+                        <button type="button" class="mini-action-btn" onclick="openPicker('${type}')">Đổi</button>
+                        <button type="button" class="mini-action-btn mini-remove-btn" onclick="removeSelectedItem('${type}', ${item.id})">Xóa</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderSummaryLine(summarySpecs) {
+        if (!summarySpecs || summarySpecs.length === 0) return "";
+        return summarySpecs.map(x => `- ${escapeHtml(x)}`).join("<br />");
+    }
+
+    function getButtonText(type) {
+        const slot = SLOT_CONFIGS.find(x => x.type === type);
+        return slot ? slot.buttonText : "Chọn linh kiện";
+    }
+
+    async function openPicker(type) {
+        pickerType = type;
+        pickerTitle.textContent = `CHỌN LINH KIỆN - ${type.toUpperCase()}`;
+        resetPickerFilterState();
+        pickerOverlay.classList.add("show");
+        await loadPickerItems();
+    }
+
+    function closePicker() {
+        pickerOverlay.classList.remove("show");
+        pickerType = null;
+        pickerAllItems = [];
+        pickerFilteredItems = [];
+        pickerList.innerHTML = "";
+        pickerFilters.innerHTML = "";
+    }
+
+function resetPickerFilterState() {
+    pickerFilterState.keyword = "";
+    pickerFilterState.sort = "default";
+    pickerFilterState.inStockOnly = false;
+    pickerFilterState.compatibleOnly = true;
+    pickerFilterState.publisherIds = [];
+    pickerFilterState.specs = {};
+
+    if (pickerKeyword) pickerKeyword.value = "";
+    if (pickerSort) pickerSort.value = "default";
+    if (pickerInStockOnly) pickerInStockOnly.checked = false;
+    if (pickerCompatibleOnly) pickerCompatibleOnly.checked = true;
+}
+
+  async function loadPickerItems() {
+    if (!pickerType) return;
+
+    pickerList.innerHTML = `<div class="empty-picker">Đang tải dữ liệu...</div>`;
+
+    try {
+        const url = `/api/pc-builder/products?componentType=${encodeURIComponent(pickerType)}&page=1&pageSize=1000`;
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error("Không tải được danh sách linh kiện.");
+        }
+
+        const data = await res.json();
+
+        pickerAllItems = data.items || [];
+        renderPickerFilters();
+        applyPickerFilters();
+    } catch (error) {
+        pickerAllItems = [];
+        pickerFilteredItems = [];
+        pickerFilters.innerHTML = "";
+        pickerList.innerHTML = `<div class="empty-picker">Có lỗi khi tải linh kiện.</div>`;
+        console.error(error);
+    }
+}
+
+    function renderPickerFilters() {
+        if (!pickerType) {
+            pickerFilters.innerHTML = "";
+            return;
+        }
+
+        const filterConfig = getFilterConfig(pickerType);
+
+        const publisherMap = new Map();
+        pickerAllItems.forEach(item => {
+            const key = item.publisherId;
+            if (!key) return;
+
+            if (!publisherMap.has(key)) {
+                publisherMap.set(key, {
+                    id: item.publisherId,
+                    name: item.publisherName || "Khác",
+                    count: 0
+                });
+            }
+
+            publisherMap.get(key).count++;
+        });
+
+        const publishers = [...publisherMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+
+        const specGroups = filterConfig.map(group => {
+            const valueMap = new Map();
+
+            pickerAllItems.forEach(item => {
+                const specs = item.filterSpecs || [];
+                specs
+                    .filter(s => s.code === group.code)
+                    .forEach(spec => {
+                        if (!valueMap.has(spec.value)) {
+                            valueMap.set(spec.value, { value: spec.value, count: 0 });
+                        }
+                        valueMap.get(spec.value).count++;
+                    });
+            });
+
+            return {
+                code: group.code,
+                title: group.title,
+                options: [...valueMap.values()].sort((a, b) => naturalCompare(a.value, b.value))
+            };
+        }).filter(x => x.options.length > 0);
+
+        let html = "";
+
+        if (publishers.length > 0) {
+            html += `
+                <div class="filter-group">
+                    <div class="filter-group-title">Hãng sản xuất</div>
+                    <div class="filter-options-grid">
+                        ${publishers.map(p => `
+                            <label class="filter-option-label">
+                                <input
+                                    type="checkbox"
+                                    class="publisher-filter-check"
+                                    value="${p.id}"
+                                    ${pickerFilterState.publisherIds.includes(String(p.id)) ? "checked" : ""}
+                                />
+                                <span>${escapeHtml(p.name)} <span class="filter-option-count">(${p.count})</span></span>
+                            </label>
+                        `).join("")}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += specGroups.map(group => `
+            <div class="filter-group">
+                <div class="filter-group-title">${escapeHtml(group.title)}</div>
+                <div class="filter-options-grid">
+                    ${group.options.map(opt => `
+                        <label class="filter-option-label">
+                            <input
+                                type="checkbox"
+                                class="spec-filter-check"
+                                data-code="${group.code}"
+                                value="${escapeHtml(opt.value)}"
+                                ${((pickerFilterState.specs[group.code] || []).includes(opt.value)) ? "checked" : ""}
+                            />
+                            <span>${escapeHtml(opt.value)} <span class="filter-option-count">(${opt.count})</span></span>
+                        </label>
+                    `).join("")}
+                </div>
+            </div>
+        `).join("");
+
+        pickerFilters.innerHTML = html;
+
+        document.querySelectorAll(".publisher-filter-check").forEach(input => {
+            input.addEventListener("change", () => {
+                pickerFilterState.publisherIds = [...document.querySelectorAll(".publisher-filter-check:checked")]
+                    .map(x => x.value);
+                applyPickerFilters();
+            });
+        });
+
+        document.querySelectorAll(".spec-filter-check").forEach(input => {
+            input.addEventListener("change", () => {
+                const all = [...document.querySelectorAll(".spec-filter-check")];
+                const next = {};
+
+                all.forEach(x => {
+                    if (!x.checked) return;
+                    const code = x.dataset.code;
+                    if (!next[code]) next[code] = [];
+                    next[code].push(x.value);
+                });
+
+                pickerFilterState.specs = next;
+                applyPickerFilters();
+            });
+        });
+    }
+
+    function applyPickerFilters() {
+        pickerFilterState.keyword = pickerKeyword.value.trim().toLowerCase();
+
+        let items = [...pickerAllItems];
+
+        if (pickerFilterState.keyword) {
+            items = items.filter(item => {
+                const name = (item.name || "").toLowerCase();
+                const publisher = (item.publisherName || "").toLowerCase();
+                const specs = (item.filterSpecs || []).map(x => (x.value || "").toLowerCase()).join(" ");
+                return name.includes(pickerFilterState.keyword)
+                    || publisher.includes(pickerFilterState.keyword)
+                    || specs.includes(pickerFilterState.keyword);
+            });
+        }
+
+        if (pickerFilterState.inStockOnly) {
+            items = items.filter(item => Number(item.stock || 0) > 0);
+        }
+
+        if (pickerFilterState.compatibleOnly) {
+        items = items.filter(item => isCompatibleWithCurrentBuild(item, pickerType));
+    }
+
+        if (pickerFilterState.publisherIds.length > 0) {
+            items = items.filter(item => pickerFilterState.publisherIds.includes(String(item.publisherId)));
+        }
+
+        Object.keys(pickerFilterState.specs).forEach(code => {
+            const selectedValues = pickerFilterState.specs[code] || [];
+            if (selectedValues.length === 0) return;
+
+            items = items.filter(item => {
+                const specs = item.filterSpecs || [];
+                return specs.some(s => s.code === code && selectedValues.includes(s.value));
+            });
+        });
+
+        if (pickerFilterState.sort === "price_asc") {
+            items.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+        } else if (pickerFilterState.sort === "price_desc") {
+            items.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+        } else if (pickerFilterState.sort === "name_asc") {
+            items.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        }
+
+        pickerFilteredItems = items;
+        renderPickerList();
+    }
+
+    function renderPickerList() {
+        if (pickerFilteredItems.length === 0) {
+            pickerList.innerHTML = `<div class="empty-picker">Không có linh kiện phù hợp với bộ lọc hiện tại.</div>`;
+            return;
+        }
+
+        const multi = isMultiSlot(pickerType);
+
+        pickerList.innerHTML = pickerFilteredItems.map(item => {
+            const checked = isCheckedInPicker(item.id, multi, pickerType) ? "checked" : "";
+            const inputType = multi ? "checkbox" : "radio";
+            const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+            const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
+            const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
+
+            return `
+                <label class="picker-item">
+                    <div class="picker-check-wrap">
+                        <input
+                            class="picker-check"
+                            type="${inputType}"
+                            name="pickerSelection"
+                            value="${item.id}"
+                            ${checked}
+                        />
+                    </div>
+
+                    <img class="picker-img" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
+
+                    <div>
+                        <div class="picker-name">${escapeHtml(item.name)}</div>
+                        <div class="picker-meta">
+                            ${item.publisherName ? `Hãng: ${escapeHtml(item.publisherName)}<br />` : ""}
+                            Kho hàng: <span class="${stockClass}">${stockText}</span><br />
+                            ${renderSummaryLine(item.summarySpecs)}
+                        </div>
+                    </div>
+
+                    <div class="picker-price">${formatPrice(item.price)}</div>
+                </label>
+            `;
+        }).join("");
+    }
+
+    function clearPickerFilters() {
+        resetPickerFilterState();
+        renderPickerFilters();
+        applyPickerFilters();
+    }
+
+    function isCheckedInPicker(itemId, multi, type) {
+        if (multi) {
+            return buildState[type].some(x => x.id === itemId);
+        }
+        return buildState[type] && buildState[type].id === itemId;
+    }
+
+    function isMultiSlot(type) {
+        const slot = SLOT_CONFIGS.find(x => x.type === type);
+        return slot ? slot.multi : false;
+    }
+    function getSpecValues(item, code) {
+    return (item.filterSpecs || [])
+        .filter(x => x.code === code)
+        .map(x => String(x.value || "").trim())
+        .filter(Boolean);
+}
+
+function getFirstSpecValue(item, code) {
+    const values = getSpecValues(item, code);
+    return values.length > 0 ? values[0] : null;
+}
+
+function getFirstSpecNumber(item, code) {
+    const raw = getFirstSpecValue(item, code);
+    if (!raw) return null;
+
+    const match = String(raw).replace(",", ".").match(/-?\d+(\.\d+)?/);
+    return match ? Number(match[0]) : null;
+}
+
+function equalText(a, b) {
+    return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+}
+
+function includesText(list, value) {
+    return list.some(x => equalText(x, value));
+}
+
+function isCompatibleWithCurrentBuild(item, targetType) {
+    const cpu = buildState.CPU;
+    const mainboard = buildState.Mainboard;
+    const gpu = buildState.GPU;
+    const psu = buildState.PSU;
+    const pcCase = buildState.Case;
+    const cooler = buildState.Cooler;
+
+    if (targetType === "CPU" && mainboard) {
+        const cpuSocket = getFirstSpecValue(item, "cpu_socket");
+        const mbSocket = getFirstSpecValue(mainboard, "mb_socket");
+        if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
+    }
+
+    if (targetType === "Mainboard") {
+        if (cpu) {
+            const cpuSocket = getFirstSpecValue(cpu, "cpu_socket");
+            const mbSocket = getFirstSpecValue(item, "mb_socket");
+            if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
+        }
+
+        if (pcCase) {
+            const mbSize = getFirstSpecValue(item, "mb_form_factor");
+            const supportedSizes = getSpecValues(pcCase, "case_supported_mb_sizes");
+            if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
+        }
+    }
+
+    if (targetType === "RAM" && mainboard) {
+        const ramType = getFirstSpecValue(item, "ram_type");
+        const mbRamType = getFirstSpecValue(mainboard, "mb_ram_type");
+        if (ramType && mbRamType && !equalText(ramType, mbRamType)) return false;
+    }
+
+    if (targetType === "GPU" && pcCase) {
+        const gpuLength = getFirstSpecNumber(item, "gpu_length_mm");
+        const caseMaxGpu = getFirstSpecNumber(pcCase, "case_max_gpu_length_mm");
+        if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
+    }
+
+    if (targetType === "PSU") {
+        if (gpu) {
+            const recommendPsu = getFirstSpecNumber(gpu, "gpu_recommended_psu_w");
+            const psuWatt = getFirstSpecNumber(item, "psu_watt");
+            if (recommendPsu != null && psuWatt != null && psuWatt < recommendPsu) return false;
+        }
+
+        if (pcCase) {
+            const psuStandard = getFirstSpecValue(item, "psu_standard");
+            const casePsuStandard = getFirstSpecValue(pcCase, "case_psu_standard");
+            if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
+        }
+    }
+
+    if (targetType === "Case") {
+        if (mainboard) {
+            const mbSize = getFirstSpecValue(mainboard, "mb_form_factor");
+            const supportedSizes = getSpecValues(item, "case_supported_mb_sizes");
+            if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
+        }
+
+        if (gpu) {
+            const gpuLength = getFirstSpecNumber(gpu, "gpu_length_mm");
+            const caseMaxGpu = getFirstSpecNumber(item, "case_max_gpu_length_mm");
+            if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
+        }
+
+        if (cooler) {
+            const coolerHeight = getFirstSpecNumber(cooler, "cooler_height_mm");
+            const caseMaxCooler = getFirstSpecNumber(item, "case_max_cooler_height_mm");
+            if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
+        }
+
+        if (psu) {
+            const psuStandard = getFirstSpecValue(psu, "psu_standard");
+            const casePsuStandard = getFirstSpecValue(item, "case_psu_standard");
+            if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
+        }
+    }
+
+    if (targetType === "Cooler" && pcCase) {
+        const coolerHeight = getFirstSpecNumber(item, "cooler_height_mm");
+        const caseMaxCooler = getFirstSpecNumber(pcCase, "case_max_cooler_height_mm");
+        if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
+    }
+
+    return true;
+}
+
+    async function confirmPickerSelection() {
+        if (!pickerType) return;
+
+        const multi = isMultiSlot(pickerType);
+        const checkedInputs = [...document.querySelectorAll('input[name="pickerSelection"]:checked')];
+        const checkedIds = checkedInputs.map(x => Number(x.value));
+        const selectedProducts = pickerAllItems.filter(x => checkedIds.includes(x.id));
+
+        if (multi) {
+            buildState[pickerType] = selectedProducts.map(item => {
+                const old = buildState[pickerType].find(x => x.id === item.id);
+                return {
+                    ...item,
+                    quantity: old ? old.quantity : 1
+                };
+            });
+        } else {
+            buildState[pickerType] = selectedProducts.length > 0
+                ? { ...selectedProducts[0], quantity: 1 }
+                : null;
+        }
+
+        closePicker();
+        renderBuildTable();
+        await checkCompatibility();
+    }
+
+    function changeQty(type, productId, delta) {
+        if (!isMultiSlot(type)) return;
+
+        const target = buildState[type].find(x => x.id === productId);
+        if (!target) return;
+
+        target.quantity = (target.quantity || 1) + delta;
+
+        if (target.quantity <= 0) {
+            buildState[type] = buildState[type].filter(x => x.id !== productId);
+        }
+
+        renderBuildTable();
+        checkCompatibility();
+    }
+
+    function removeSelectedItem(type, productId) {
+        if (isMultiSlot(type)) {
+            buildState[type] = buildState[type].filter(x => x.id !== productId);
+        } else {
+            buildState[type] = null;
+        }
+
+        renderBuildTable();
+        checkCompatibility();
+    }
+
+    function collectPayloadItems() {
+        const items = [];
+
+        SLOT_CONFIGS.forEach(slot => {
+            if (slot.multi) {
+                buildState[slot.type].forEach(item => {
+                    items.push({
+                        componentType: slot.type,
+                        productId: item.id,
+                        quantity: item.quantity || 1
+                    });
+                });
+            } else if (buildState[slot.type]) {
+                items.push({
+                    componentType: slot.type,
+                    productId: buildState[slot.type].id,
+                    quantity: 1
+                });
+            }
+        });
+
+        return items;
+    }
+
+    async function checkCompatibility() {
+    const items = collectPayloadItems();
+
+    if (items.length === 0) {
+        compatibilityState = {
+            totalPrice: 0,
+            estimatedPower: 0,
+            messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
+        };
+        renderTotals();
+        renderMessages();
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/pc-builder/check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items })
+        });
+
+        if (!res.ok) {
+            throw new Error("Không kiểm tra được tương thích.");
+        }
+
+        const data = await res.json();
+
+        compatibilityState = {
+            totalPrice: data.totalPrice || 0,
+            estimatedPower: data.estimatedPower || 0,
+            messages: (data.messages && data.messages.length > 0)
+                ? data.messages
+                : [{ level: "info", message: "Cấu hình hiện chưa có cảnh báo tương thích." }]
+        };
+    } catch (error) {
+        compatibilityState = {
+            totalPrice: 0,
+            estimatedPower: 0,
+            messages: [{ level: "warning", message: "Không kiểm tra được tương thích lúc này." }]
+        };
+        console.error(error);
+    }
+
+    renderTotals();
+    renderMessages();
+}
+
+    function renderTotals() {
+        const priceText = formatPrice(compatibilityState.totalPrice || 0);
+        topTotalPrice.textContent = priceText;
+        bottomTotalPrice.textContent = priceText;
+    }
+
+    function renderMessages() {
+        builderMessages.innerHTML = compatibilityState.messages.map(m => `
+            <div class="builder-message ${m.level || 'info'}">• ${escapeHtml(m.message || "")}</div>
+        `).join("");
+    }
+
+    function resetBuild() {
+        SLOT_CONFIGS.forEach(slot => {
+            buildState[slot.type] = slot.multi ? [] : null;
+        });
+
+        compatibilityState = {
+            totalPrice: 0,
+            estimatedPower: 0,
+            messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
+        };
+
+        renderBuildTable();
+        renderMessages();
+    }
+
+    async function saveBuild() {
+        const items = collectPayloadItems();
+
+        if (items.length === 0) {
+            alert("Bạn chưa chọn linh kiện nào.");
+            return;
+        }
+
+        const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
+        if (buildName === null) return;
+
+        const res = await fetch("/api/pc-builder/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                buildName: buildName,
+                items: items
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Lưu cấu hình thất bại.");
+            return;
+        }
+
+        alert(`Lưu thành công. Mã build: ${data.buildCode}`);
+    }
+
+    function formatPrice(value) {
+        return Number(value || 0).toLocaleString("vi-VN") + " đ";
+    }
+
+    function naturalCompare(a, b) {
+        return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return "";
+        return String(str)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    window.openPicker = openPicker;
+    window.changeQty = changeQty;
+    window.removeSelectedItem = removeSelectedItem;
+
+    renderBuildTable();
+    renderMessages();
+</script>
+}
