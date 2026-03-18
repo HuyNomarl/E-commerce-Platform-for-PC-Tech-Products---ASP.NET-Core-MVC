@@ -276,8 +276,20 @@ namespace Eshop.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BuildGroupKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BuildName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ComponentType")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("OrderCode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PcBuildId")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)

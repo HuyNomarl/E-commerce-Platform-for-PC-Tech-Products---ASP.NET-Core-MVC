@@ -84,9 +84,103 @@ namespace Eshop.Controllers.Api
             });
         }
 
+        [HttpPost("add-to-cart")]
+        public async Task<IActionResult> AddToCart([FromBody] SavePcBuildRequest request)
+        {
+            if (request.Items == null || !request.Items.Any())
+                return BadRequest(new { message = "Chưa có linh kiện nào trong cấu hình." });
+
+            var checkResult = await _compatibilityService.CheckAsync(new PcBuildCheckRequest
+            {
+                Items = request.Items
+            });
+
+            var productIds = request.Items.Select(x => x.ProductId).Distinct().ToList();
+
+            var products = await _context.Products
+                .Where(x => productIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
+            foreach (var item in request.Items)
+            {
+                if (!products.TryGetValue(item.ProductId, out var product))
+                    return BadRequest(new { message = $"Không tìm thấy sản phẩm ID = {item.ProductId}" });
+
+                if (product.Quantity < item.Quantity)
+                    return BadRequest(new { message = $"Sản phẩm \"{product.Name}\" chỉ còn {product.Quantity} trong kho." });
+            }
+
+            var build = new PcBuildModel
+            {
+                BuildName = string.IsNullOrWhiteSpace(request.BuildName) ? "PC Build mới" : request.BuildName!,
+                TotalPrice = checkResult.TotalPrice,
+                UserId = User.Identity?.IsAuthenticated == true
+                    ? User.FindFirstValue(ClaimTypes.NameIdentifier)
+                    : null
+            };
+
+            _context.PcBuilds.Add(build);
+            await _context.SaveChangesAsync();
+
+            foreach (var item in request.Items)
+            {
+                _context.PcBuildItems.Add(new PcBuildItemModel
+                {
+                    PcBuildId = build.Id,
+                    ComponentType = item.ComponentType,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var buildGroupKey = Guid.NewGuid().ToString("N");
+
+            foreach (var item in request.Items)
+            {
+                var product = products[item.ProductId];
+
+                var cartItem = new CartItemModel(product)
+                {
+                    Quantity = item.Quantity,
+                    PcBuildId = build.Id,
+                    BuildGroupKey = buildGroupKey,
+                    BuildName = build.BuildName,
+                    IsPcBuildItem = true,
+                    ComponentType = item.ComponentType.ToString()
+                };
+
+                cart.Add(cartItem);
+            }
+
+            HttpContext.Session.SetJson("Cart", cart);
+
+            return Ok(new
+            {
+                message = "Đã thêm cấu hình vào giỏ hàng.",
+                buildId = build.Id,
+                buildCode = build.BuildCode
+            });
+        }
+
         [HttpPost("check")]
         public async Task<IActionResult> Check([FromBody] PcBuildCheckRequest request)
         {
+            if (request?.Items == null || !request.Items.Any())
+            {
+                return Ok(new
+                {
+                    totalPrice = 0,
+                    estimatedPower = 0,
+                    messages = new[]
+                    {
+                new { level = "info", message = "Chưa có linh kiện để kiểm tra tương thích." }
+            }
+                });
+            }
+
             var result = await _compatibilityService.CheckAsync(request);
             return Ok(result);
         }
@@ -352,6 +446,9 @@ namespace Eshop.Controllers.Api
             catch
             {
             }
+
+
         }
+
     }
 }

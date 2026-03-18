@@ -42,7 +42,7 @@
     const currentUserId = document.getElementById("currentUserId").value;
 
     const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/chatHub")
+    .withUrl("/hubs/chat")
     .withAutomaticReconnect()
     .build();
 

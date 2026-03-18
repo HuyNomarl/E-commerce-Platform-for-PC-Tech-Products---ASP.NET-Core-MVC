@@ -1,12 +1,6 @@
-﻿using Eshop.Areas.Admin.Repository;
-using Eshop.Models;
-using Eshop.Models.ViewModel;
-using Eshop.Repository;
+﻿using Eshop.Models.ViewModel;
 using Eshop.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Security.Claims;
 
 namespace Eshop.Controllers
 {
@@ -18,6 +12,7 @@ namespace Eshop.Controllers
         {
             _orderService = orderService;
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(CheckoutInputViewModel model)
@@ -28,44 +23,29 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, model);
-
-            if (string.IsNullOrEmpty(orderCode))
+            try
             {
-                TempData["Error"] = "Không thể tạo đơn hàng.";
+                var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, model);
+
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    TempData["Error"] = "Không thể tạo đơn hàng.";
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                TempData["Success"] = $"Đặt hàng thành công, mã đơn: {orderCode}";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
                 return RedirectToAction("Index", "Cart");
             }
-
-            TempData["Success"] = $"Đặt hàng thành công, mã đơn: {orderCode}";
-            return RedirectToAction("Index", "Home");
-        }
-        private decimal CalculateDiscount(CouponModel coupon, decimal subTotal)
-        {
-            decimal discountAmount = 0;
-
-            if (coupon == null || subTotal <= 0)
-                return 0;
-
-            if (coupon.DiscountType == 1)
+            catch
             {
-                discountAmount = subTotal * coupon.Discount / 100;
+                TempData["Error"] = "Có lỗi xảy ra trong quá trình đặt hàng.";
+                return RedirectToAction("Index", "Cart");
             }
-            else if (coupon.DiscountType == 2)
-            {
-                discountAmount = coupon.Discount;
-            }
-
-            if (coupon.MaxDiscountAmount.HasValue && discountAmount > coupon.MaxDiscountAmount.Value)
-            {
-                discountAmount = coupon.MaxDiscountAmount.Value;
-            }
-
-            if (discountAmount > subTotal)
-            {
-                discountAmount = subTotal;
-            }
-
-            return discountAmount;
         }
     }
 }

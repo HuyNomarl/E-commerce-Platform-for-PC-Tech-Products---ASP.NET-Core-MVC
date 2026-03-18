@@ -10,6 +10,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] | E-Shopper</title>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 
@@ -223,6 +225,31 @@
                                         padding-left: 0;
                                         padding-right: 0;
                                     }
+                                .notify-dot {
+                                    width: 10px;
+                                    height: 10px;
+                                    min-width: 10px;
+                                    border-radius: 50%;
+                                    background: #ef4444;
+                                    margin-left: auto;
+                                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+                                    animation: notifyPulse 1.4s infinite;
+                                }
+
+                                @@keyframes notifyPulse {
+                                    0% {
+                                        transform: scale(1);
+                                        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35);
+                                    }
+                                    70% {
+                                        transform: scale(1.08);
+                                        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+                                    }
+                                    100% {
+                                        transform: scale(1);
+                                        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                                    }
+                                }
 
                                 @@media (max-width: 991px) {
                                     .admin-grid {
@@ -348,8 +375,10 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a asp-controller="Order" asp-action="Index" class="@(currentController == "Order" ? "active" : "")">
-                                                            <i class="fa fa-shopping-bag"></i> <span>Orders</span>
+                                                        <a asp-controller="Order" asp-action="Index" id="menuOrders" class="@(currentController == "Order" ? "active" : "")">
+                                                            <i class="fa fa-shopping-bag"></i>
+                                                            <span>Orders</span>
+                                                            <span id="orderDot" class="notify-dot" style="display:none;"></span>
                                                         </a>
                                                     </li>
                                                     <li>
@@ -363,8 +392,10 @@
                                                         </a>
                                                     </li>
                                                     <li>
-                                                        <a asp-controller="Chat" asp-action="Index" class="@(currentController == "Chat" ? "active" : "")">
-                                                            <i class="fa fa-comments"></i> <span>Chat</span>
+                                                        <a asp-controller="Chat" asp-action="Index" id="menuChat" class="@(currentController == "Chat" ? "active" : "")">
+                                                            <i class="fa fa-comments"></i>
+                                                            <span>Chat</span>
+                                                            <span id="chatDot" class="notify-dot" style="display:none;"></span>
                                                         </a>
                                                     </li>
                                                     <li>
@@ -422,53 +453,164 @@
                         <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
                         <script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
 
+                        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
                         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
 
                         <script>
                             $(function () {
-                            const successMessage = @Html.Raw(JsonSerializer.Serialize(TempData["SuccessMessage"]));
-                            if (successMessage) {
-                            Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: successMessage,
-                            timer: 2500,
-                            showConfirmButton: false
+                                const successMessage = @Html.Raw(JsonSerializer.Serialize(TempData["SuccessMessage"]));
+                                if (successMessage) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Success',
+                                        text: successMessage,
+                                        timer: 2500,
+                                        showConfirmButton: false
+                                    });
+                                }
+
+                                const errorMessage = @Html.Raw(JsonSerializer.Serialize(TempData["ErrorMessage"]));
+                                if (errorMessage) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error',
+                                        text: errorMessage,
+                                        timer: 3000,
+                                        showConfirmButton: false
+                                    });
+                                }
+
+                                $(document).on('submit', 'form.js-confirm-save', function (e) {
+                                    e.preventDefault();
+
+                                    const form = this;
+
+                                    Swal.fire({
+                                        title: "Do you want to save the changes?",
+                                        showDenyButton: true,
+                                        showCancelButton: true,
+                                        confirmButtonText: "Save",
+                                        denyButtonText: "Don't save"
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            form.submit();
+                                        } else if (result.isDenied) {
+                                            Swal.fire("Changes are not saved", "", "info");
+                                        }
+                                    });
+                                });
+
+                                const ORDER_KEY = "admin_has_new_order";
+                                const CHAT_KEY = "admin_has_new_chat";
+
+                                function setDotVisible(id, visible) {
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+                                    el.style.display = visible ? "inline-block" : "none";
+                                }
+
+                                function restoreDots() {
+                                    setDotVisible("orderDot", localStorage.getItem(ORDER_KEY) === "1");
+                                    setDotVisible("chatDot", localStorage.getItem(CHAT_KEY) === "1");
+                                }
+
+                                function markNewOrder() {
+                                    localStorage.setItem(ORDER_KEY, "1");
+                                    setDotVisible("orderDot", true);
+                                }
+
+                                function markNewChat() {
+                                    localStorage.setItem(CHAT_KEY, "1");
+                                    setDotVisible("chatDot", true);
+                                }
+
+                                function clearOrderMark() {
+                                    localStorage.removeItem(ORDER_KEY);
+                                    setDotVisible("orderDot", false);
+                                }
+
+                                function clearChatMark() {
+                                    localStorage.removeItem(CHAT_KEY);
+                                    setDotVisible("chatDot", false);
+                                }
+
+                                function showRealtimeToast(icon, title, text) {
+                                    Swal.fire({
+                                        toast: true,
+                                        position: 'top-end',
+                                        icon: icon,
+                                        title: title,
+                                        text: text,
+                                        showConfirmButton: false,
+                                        timer: 5000,
+                                        timerProgressBar: true
+                                    });
+                                }
+
+                                restoreDots();
+
+                                const menuOrders = document.getElementById("menuOrders");
+                                const menuChat = document.getElementById("menuChat");
+
+                                if (menuOrders) {
+                                    menuOrders.addEventListener("click", function () {
+                                        clearOrderMark();
+                                    });
+                                }
+
+                                if (menuChat) {
+                                    menuChat.addEventListener("click", function () {
+                                        clearChatMark();
+                                    });
+                                }
+
+                                if (typeof signalR !== "undefined") {
+                                    const notificationConnection = new signalR.HubConnectionBuilder()
+                                        .withUrl("/hubs/notification")
+                                        .withAutomaticReconnect()
+                                        .build();
+
+                                    notificationConnection.on("NewOrderCreated", function (data) {
+                                        markNewOrder();
+
+                                        showRealtimeToast(
+                                            "info",
+                                            "Đơn hàng mới",
+                                            "Mã đơn: " + data.orderCode + " - " + data.fullName
+                                        );
+
+                                        window.dispatchEvent(new CustomEvent("eshop:new-order", {
+                                            detail: data
+                                        }));
+                                    });
+
+                                    notificationConnection.on("NewChatNotification", function (data) {
+                                        markNewChat();
+
+                                        showRealtimeToast(
+                                            "info",
+                                            "Chat mới",
+                                            data.fromUserName + ": " + data.preview
+                                        );
+
+                                        window.dispatchEvent(new CustomEvent("eshop:new-chat", {
+                                            detail: data
+                                        }));
+                                    });
+
+                                    async function startNotificationHub() {
+                                        try {
+                                            await notificationConnection.start();
+                                            console.log("NotificationHub connected");
+                                        } catch (err) {
+                                            console.error(err);
+                                            setTimeout(startNotificationHub, 5000);
+                                        }
+                                    }
+
+                                    startNotificationHub();
+                                }
                             });
-                            }
-
-                            const errorMessage = @Html.Raw(JsonSerializer.Serialize(TempData["ErrorMessage"]));
-                            if (errorMessage) {
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: errorMessage,
-                            timer: 3000,
-                            showConfirmButton: false
-                            });
-                            }
-
-                            $(document).on('submit', 'form.js-confirm-save', function (e) {
-                            e.preventDefault();
-
-                            const form = this;
-
-                            Swal.fire({
-                            title: "Do you want to save the changes?",
-                            showDenyButton: true,
-                            showCancelButton: true,
-                            confirmButtonText: "Save",
-                            denyButtonText: "Don't save"
-                            }).then((result) => {
-                            if (result.isConfirmed) {
-                            form.submit();
-                            } else if (result.isDenied) {
-                            Swal.fire("Changes are not saved", "", "info");
-                            }
-                            });
-                            });
-
-                         
                         </script>
 
                         @await RenderSectionAsync("Scripts", required: false)

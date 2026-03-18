@@ -1,7 +1,24 @@
-﻿@model IEnumerable<Eshop.Models.ProductModel>
+﻿@using System.Globalization
+@model IEnumerable<Eshop.Models.ProductModel>
 
 @{
-    ViewData["title"] = "Product Index";
+    ViewData["Title"] = "Product Index";
+
+    var productList = Model?.ToList() ?? new List<Eshop.Models.ProductModel>();
+
+    var categories = productList
+        .Where(x => x.Category != null && !string.IsNullOrWhiteSpace(x.Category.Name))
+        .Select(x => x.Category!.Name)
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+
+    var publishers = productList
+        .Where(x => x.Publisher != null && !string.IsNullOrWhiteSpace(x.Publisher.Name))
+        .Select(x => x.Publisher!.Name)
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
 }
 
 <div class="row g-3 product-index-page">
@@ -36,8 +53,75 @@
 
                 <div class="toolbar-right">
                     <span class="total-badge">
-                        Tổng: <span id="totalRows">@Model.Count()</span>
+                        Tổng: <span id="totalRows">@productList.Count</span>
                     </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft filter-card">
+            <div class="filter-top">
+                <div class="filter-title">
+                    <i class="fa fa-filter"></i>
+                    <span>Bộ lọc nâng cao</span>
+                </div>
+
+                <button type="button" id="resetFilters" class="btn-reset-filter">
+                    Xóa bộ lọc
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Danh mục</label>
+                    <select id="filterCategory" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Thương hiệu</label>
+                    <select id="filterPublisher" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        @foreach (var publisher in publishers)
+                        {
+                            <option value="@publisher">@publisher</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="filter-label">Tồn kho</label>
+                    <select id="filterStock" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="in">Còn hàng</option>
+                        <option value="out">Hết hàng</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="filter-label">Đã bán</label>
+                    <select id="filterSold" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="sold">Đã có bán</option>
+                        <option value="unsold">Chưa bán</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="filter-label">Giá từ</label>
+                    <input type="text" id="filterMinPrice" class="form-control filter-control" placeholder="Ví dụ: 100000" />
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label class="filter-label">Giá đến</label>
+                    <input type="text" id="filterMaxPrice" class="form-control filter-control" placeholder="Ví dụ: 5000000" />
                 </div>
             </div>
         </div>
@@ -62,7 +146,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in productList)
                         {
                             <tr>
                                 <td>
@@ -103,7 +187,7 @@
                                 </td>
 
                                 <td>
-                                    <span class="price-text">@item.Price</span>
+                                    <span class="price-text">@string.Format(new CultureInfo("vi-VN"), "{0:N0} ₫", item.Price)</span>
                                 </td>
 
                                 <td>
@@ -111,11 +195,11 @@
                                 </td>
 
                                 <td>
-                                    <span class="unit-badge">@item.Category.Name</span>
+                                    <span class="unit-badge">@(item.Category?.Name ?? "-")</span>
                                 </td>
 
                                 <td>
-                                    <span class="unit-badge">@item.Publisher.Name</span>
+                                    <span class="unit-badge">@(item.Publisher?.Name ?? "-")</span>
                                 </td>
 
                                 <td class="text-right">
@@ -167,7 +251,8 @@
         box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
-    .toolbar-card {
+    .toolbar-card,
+    .filter-card {
         padding: 16px 18px;
     }
 
@@ -223,6 +308,62 @@
         font-size: 13px;
         font-weight: 600;
     }
+
+    .filter-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+
+    .filter-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .filter-control {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+        .filter-control:focus,
+        .search-box .form-control:focus {
+            border-color: #9ca3af;
+            box-shadow: none;
+        }
+
+    .btn-reset-filter {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        border-radius: 12px;
+        height: 42px;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-reset-filter:hover {
+            background: #f3f4f6;
+            border-color: #cbd5e1;
+        }
 
     .table-card {
         overflow: hidden;
@@ -382,7 +523,8 @@
     }
 
     @@media (max-width: 767px) {
-        .toolbar-inner {
+        .toolbar-inner,
+        .filter-top {
             flex-direction: column;
             align-items: stretch;
         }
@@ -390,6 +532,10 @@
         .toolbar-left,
         .search-box {
             max-width: 100%;
+        }
+
+        .btn-reset-filter {
+            width: 100%;
         }
     }
 </style>
@@ -403,15 +549,101 @@
         });
 
         const searchInput = document.getElementById('tableSearch');
+        const totalEl = document.getElementById('totalRows');
+
+        const filterCategory = document.getElementById('filterCategory');
+        const filterPublisher = document.getElementById('filterPublisher');
+        const filterStock = document.getElementById('filterStock');
+        const filterSold = document.getElementById('filterSold');
+        const filterMinPrice = document.getElementById('filterMinPrice');
+        const filterMaxPrice = document.getElementById('filterMaxPrice');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+
+        function parseNumber(value) {
+            if (!value) return 0;
+            const cleaned = value.toString().replace(/[^\d\-]/g, '');
+            return cleaned ? parseInt(cleaned, 10) : 0;
+        }
+
+        DataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'myTable') return true;
+
+            const rowStock = parseNumber(data[3]);
+            const rowSold = parseNumber(data[4]);
+            const rowPrice = parseNumber(data[5]);
+            const rowCategory = (data[7] || '').trim();
+            const rowPublisher = (data[8] || '').trim();
+
+            const selectedCategory = (filterCategory?.value || '').trim();
+            const selectedPublisher = (filterPublisher?.value || '').trim();
+            const selectedStock = (filterStock?.value || '').trim();
+            const selectedSold = (filterSold?.value || '').trim();
+            const minPriceRaw = (filterMinPrice?.value || '').trim();
+            const maxPriceRaw = (filterMaxPrice?.value || '').trim();
+            const minPrice = parseNumber(minPriceRaw);
+            const maxPrice = parseNumber(maxPriceRaw);
+
+            if (selectedCategory && rowCategory !== selectedCategory) return false;
+            if (selectedPublisher && rowPublisher !== selectedPublisher) return false;
+
+            if (selectedStock === 'in' && rowStock <= 0) return false;
+            if (selectedStock === 'out' && rowStock > 0) return false;
+
+            if (selectedSold === 'sold' && rowSold <= 0) return false;
+            if (selectedSold === 'unsold' && rowSold > 0) return false;
+
+            if (minPriceRaw !== '' && rowPrice < minPrice) return false;
+            if (maxPriceRaw !== '' && rowPrice > maxPrice) return false;
+
+            return true;
+        });
+
         if (searchInput) {
             searchInput.addEventListener('keyup', function () {
                 table.search(this.value).draw();
             });
         }
 
+        [
+            filterCategory,
+            filterPublisher,
+            filterStock,
+            filterSold
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('change', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        [
+            filterMinPrice,
+            filterMaxPrice
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('input', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                if (filterCategory) filterCategory.value = '';
+                if (filterPublisher) filterPublisher.value = '';
+                if (filterStock) filterStock.value = '';
+                if (filterSold) filterSold.value = '';
+                if (filterMinPrice) filterMinPrice.value = '';
+                if (filterMaxPrice) filterMaxPrice.value = '';
+
+                table.search('').draw();
+            });
+        }
+
         table.on('draw', function () {
             const info = table.page.info();
-            const totalEl = document.getElementById('totalRows');
             if (totalEl) {
                 totalEl.textContent = info.recordsDisplay;
             }

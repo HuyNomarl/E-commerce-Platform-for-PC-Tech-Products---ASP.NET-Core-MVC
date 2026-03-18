@@ -43,9 +43,6 @@ namespace Eshop.Areas.Admin.Controllers
             return View(data);
         }
 
-        // =========================
-        // CREATE
-        // =========================
         public async Task<IActionResult> Create()
         {
             await LoadParentCategories();
@@ -97,9 +94,6 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // =========================
-        // EDIT
-        // =========================
         public async Task<IActionResult> Edit(int id)
         {
             var category = await _dataContext.Categories.FindAsync(id);

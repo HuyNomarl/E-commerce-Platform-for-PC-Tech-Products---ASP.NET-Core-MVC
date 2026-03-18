@@ -12,6 +12,11 @@ namespace Eshop.Models
         public int Quantity { get; set; }
         [ForeignKey(nameof(ProductId))]
         public ProductModel Product { get; set; }
+        //Build PC
+        public string? BuildGroupKey { get; set; }
+        public int? PcBuildId { get; set; }
+        public string? BuildName { get; set; }
+        public string? ComponentType { get; set; }
 
 
     }

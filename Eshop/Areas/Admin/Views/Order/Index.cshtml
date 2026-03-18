@@ -4,14 +4,7 @@
 }
 
 <div class="row g-3 orders-index-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Đơn hàng</h4>
-                <div class="small page-subtitle">Quản lý danh sách đơn hàng và trạng thái xử lý</div>
-            </div>
-        </div>
-    </div>
+
 
     <div class="col-12">
         <div class="card-soft table-card">
@@ -33,6 +26,16 @@
                         Tổng: <span id="totalRows">@Model.Count()</span>
                     </span>
                 </div>
+            </div>
+
+            <div id="orderLiveBanner" class="live-banner" style="display:none;">
+            <div>
+                <strong>Có đơn hàng mới</strong>
+                <span id="orderLiveText" class="live-banner-text"></span>
+            </div>
+                <button type="button" id="reloadOrdersBtn" class="btn btn-sm btn-primary">
+                    Tải lại
+                </button>
             </div>
 
             <div class="table-responsive">
@@ -139,6 +142,24 @@
 </div>
 
 <style>
+    .live-banner {
+    margin: 0 22px 16px 22px;
+    padding: 12px 14px;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.live-banner-text {
+    margin-left: 8px;
+    font-size: 13px;
+}
     .orders-index-page .page-subtitle {
         opacity: .75;
     }
@@ -369,6 +390,30 @@
             }
         });
     </script>
+
+    <script>
+    const orderBanner = document.getElementById("orderLiveBanner");
+    const orderLiveText = document.getElementById("orderLiveText");
+    const reloadOrdersBtn = document.getElementById("reloadOrdersBtn");
+
+    window.addEventListener("eshop:new-order", function (e) {
+        const data = e.detail || {};
+
+        if (orderBanner) {
+            orderBanner.style.display = "flex";
+        }
+
+        if (orderLiveText) {
+            orderLiveText.textContent = `- ${data.orderCode || ""} / ${data.fullName || ""}`;
+        }
+    });
+
+    if (reloadOrdersBtn) {
+        reloadOrdersBtn.addEventListener("click", function () {
+            window.location.reload();
+        });
+    }
+</script>
 
     <script>
         const table = new DataTable('#myTable', {

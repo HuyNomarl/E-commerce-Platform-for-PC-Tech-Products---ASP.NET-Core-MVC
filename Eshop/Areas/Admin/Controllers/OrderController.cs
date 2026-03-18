@@ -107,7 +107,6 @@ namespace Eshop.Areas.Admin.Controllers
                     .Where(p => pids.Contains(p.Id))
                     .ToDictionaryAsync(p => p.Id);
 
-                // ====== SOLD LOGIC ======
                 // Khi chuyển sang Completed: +Sold (chỉ 1 lần)
                 if (newStatus == OrderStatus.Completed && oldStatus != OrderStatus.Completed)
                 {
@@ -125,7 +124,6 @@ namespace Eshop.Areas.Admin.Controllers
                     }
                 }
 
-                // ====== STOCK LOGIC ======
                 // Khi chuyển sang Cancelled: hoàn kho (Quantity) (chỉ 1 lần)
                 if (newStatus == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
                 {

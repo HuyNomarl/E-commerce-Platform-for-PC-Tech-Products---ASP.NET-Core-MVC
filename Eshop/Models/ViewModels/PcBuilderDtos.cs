@@ -1,9 +1,11 @@
 ﻿using Eshop.Models.Enums;
+using System.Text.Json.Serialization;
 
 namespace Eshop.Models.ViewModels
 {
     public class PcBuildCheckItemDto
     {
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public PcComponentType ComponentType { get; set; }
         public int ProductId { get; set; }
         public int Quantity { get; set; } = 1;

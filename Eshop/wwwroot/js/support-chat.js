@@ -40,7 +40,7 @@ function initSupportChat() {
     let isLoaded = false;
 
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub")
+        .withUrl("/hubs/chat")
         .withAutomaticReconnect()
         .build();
 

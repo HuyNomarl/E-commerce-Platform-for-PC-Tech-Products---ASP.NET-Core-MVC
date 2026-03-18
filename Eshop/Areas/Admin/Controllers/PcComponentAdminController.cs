@@ -36,19 +36,23 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(PcComponentType? componentType)
         {
             var vm = new PcComponentCreateViewModel
             {
                 Product = new ProductModel
                 {
-                    ProductType = ProductType.Component,
+                    ProductType = componentType == PcComponentType.Monitor
+                        ? ProductType.Monitor
+                        : ProductType.Component,
+                    ComponentType = componentType,
                     Quantity = 1,
                     Price = 1
-                }
+                },
+                Specifications = new List<ProductSpecificationInputViewModel>()
             };
 
-            await LoadDropdowns(vm);
+            await LoadFormData(vm);
             return View(vm);
         }
 
@@ -56,7 +60,10 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PcComponentCreateViewModel vm)
         {
-            await LoadDropdowns(vm);
+            vm.Product ??= new ProductModel();
+            vm.Specifications ??= new List<ProductSpecificationInputViewModel>();
+
+            await LoadFormData(vm);
 
             if (vm.Product.ComponentType == null || vm.Product.ComponentType == PcComponentType.None)
             {
@@ -84,7 +91,10 @@ namespace Eshop.Areas.Admin.Controllers
             _context.Products.Add(vm.Product);
             await _context.SaveChangesAsync();
 
-            await SaveOrUpdateSpecifications(vm.Product.Id, vm.Product.ComponentType!.Value, vm.Specifications);
+            await SaveOrUpdateSpecifications(
+                vm.Product.Id,
+                vm.Product.ComponentType!.Value,
+                vm.Specifications ?? new List<ProductSpecificationInputViewModel>());
 
             TempData["success"] = "Tạo linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -109,12 +119,11 @@ namespace Eshop.Areas.Admin.Controllers
 
             var vm = new PcComponentCreateViewModel
             {
-                Product = product
+                Product = product,
+                Specifications = new List<ProductSpecificationInputViewModel>()
             };
 
-            await LoadDropdowns(vm);
-
-            if (product.ComponentType.HasValue)
+            if (product.ComponentType.HasValue && product.ComponentType.Value != PcComponentType.None)
             {
                 var defs = await _context.SpecificationDefinitions
                     .Where(x => x.ComponentType == product.ComponentType)
@@ -140,6 +149,7 @@ namespace Eshop.Areas.Admin.Controllers
                 }).ToList();
             }
 
+            await LoadFormData(vm);
             return View(vm);
         }
 
@@ -147,7 +157,10 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, PcComponentCreateViewModel vm)
         {
-            await LoadDropdowns(vm);
+            vm.Product ??= new ProductModel();
+            vm.Specifications ??= new List<ProductSpecificationInputViewModel>();
+
+            await LoadFormData(vm);
 
             var product = await _context.Products
                 .Include(x => x.Specifications)
@@ -193,7 +206,10 @@ namespace Eshop.Areas.Admin.Controllers
                 product.Image = await SaveImageAsync(vm.Product.ImageUpload);
             }
 
-            await SaveOrUpdateSpecifications(product.Id, product.ComponentType!.Value, vm.Specifications);
+            await SaveOrUpdateSpecifications(
+                product.Id,
+                product.ComponentType!.Value,
+                vm.Specifications ?? new List<ProductSpecificationInputViewModel>());
 
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
@@ -309,6 +325,44 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task LoadFormData(PcComponentCreateViewModel vm)
+        {
+            await LoadDropdowns(vm);
+
+            vm.Product ??= new ProductModel();
+            vm.Specifications ??= new List<ProductSpecificationInputViewModel>();
+
+            if (!vm.Product.ComponentType.HasValue || vm.Product.ComponentType.Value == PcComponentType.None)
+            {
+                return;
+            }
+
+            var defs = await _context.SpecificationDefinitions
+                .Where(x => x.ComponentType == vm.Product.ComponentType.Value)
+                .OrderBy(x => x.SortOrder)
+                .ToListAsync();
+
+            var currentSpecs = vm.Specifications ?? new List<ProductSpecificationInputViewModel>();
+
+            vm.Specifications = defs.Select(def =>
+            {
+                var oldValue = currentSpecs.FirstOrDefault(x => x.SpecificationDefinitionId == def.Id);
+
+                return new ProductSpecificationInputViewModel
+                {
+                    SpecificationDefinitionId = def.Id,
+                    Name = def.Name,
+                    Code = def.Code,
+                    DataType = def.DataType,
+                    Unit = def.Unit,
+                    ValueText = oldValue?.ValueText,
+                    ValueNumber = oldValue?.ValueNumber,
+                    ValueBool = oldValue?.ValueBool,
+                    ValueJson = oldValue?.ValueJson
+                };
+            }).ToList();
         }
 
         private async Task LoadDropdowns(PcComponentCreateViewModel vm)

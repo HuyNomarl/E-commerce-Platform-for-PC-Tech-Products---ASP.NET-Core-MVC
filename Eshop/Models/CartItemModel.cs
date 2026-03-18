@@ -23,6 +23,12 @@
 
         public CartItemModel() { }
 
+        public string? BuildGroupKey { get; set; }
+        public int? PcBuildId { get; set; }
+        public string? BuildName { get; set; }
+        public bool IsPcBuildItem { get; set; } = false;
+        public string? ComponentType { get; set; }
+
         public CartItemModel(ProductModel product)
         {
             ProductId = product.Id;

@@ -1,6 +1,22 @@
 [
   {
     "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "AddToCart",
+    "RelativePath": "api/pc-builder/add-to-cart",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Eshop.Models.ViewModels.SavePcBuildRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
     "Method": "Check",
     "RelativePath": "api/pc-builder/check",
     "HttpMethod": "POST",

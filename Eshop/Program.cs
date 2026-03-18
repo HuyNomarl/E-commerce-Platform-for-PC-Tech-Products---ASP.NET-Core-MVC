@@ -8,6 +8,7 @@ using Eshop.Services.Momo;
 using Eshop.Services.VNPay;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,13 +18,29 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+// Services
 builder.Services.AddScoped<IPcCompatibilityService, PcCompatibilityService>();
-
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IMomoService, MomoService>();
+builder.Services.AddScoped<ICatalogCacheService, CatalogCacheService>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.Configure<MomoOptionModel>(
+    builder.Configuration.GetSection("MomoAPI")
+);
 
+// MVC + JSON
+builder.Services
+    .AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+// Cache + Session
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddSession(options =>
 {
@@ -31,8 +48,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
-builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Identity
 builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
@@ -63,13 +78,6 @@ builder.Services.AddAuthentication()
         options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
         options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
     });
-
-// VNPay
-builder.Services.AddScoped<IVnPayService, VnPayService>();
-
-// Momo
-builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoAPI"));
-builder.Services.AddScoped<IMomoService, MomoService>();
 
 // SignalR
 builder.Services.AddSignalR(options =>
@@ -125,7 +133,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// SignalR Hub
+// SignalR Hubs
+app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<ChatHub>("/chatHub");
+app.MapHub<NotificationHub>("/hubs/notification");
 
 app.Run();

@@ -728,7 +728,7 @@ const pickerCompatibleOnly = document.getElementById("pickerCompatibleOnly");
     document.getElementById("btnSearchPicker")?.addEventListener("click", applyPickerFilters);
     document.getElementById("btnConfirmPicker")?.addEventListener("click", confirmPickerSelection);
     document.getElementById("btnResetBuild")?.addEventListener("click", resetBuild);
-    document.getElementById("saveBuildBtn")?.addEventListener("click", saveBuild);
+    document.getElementById("saveBuildBtn").addEventListener("click", addBuildToCart);
     document.getElementById("btnClearPickerFilters")?.addEventListener("click", clearPickerFilters);
 
     pickerSort?.addEventListener("change", () => {
@@ -1422,11 +1422,19 @@ function isCompatibleWithCurrentBuild(item, targetType) {
             body: JSON.stringify({ items })
         });
 
-        if (!res.ok) {
-            throw new Error("Không kiểm tra được tương thích.");
+        const text = await res.text();
+        console.log("CHECK RESPONSE:", res.status, text);
+
+        let data = {};
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch {
+            throw new Error(`API check trả về không phải JSON. HTTP ${res.status}`);
         }
 
-        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.title || data.message || `HTTP ${res.status}`);
+        }
 
         compatibilityState = {
             totalPrice: data.totalPrice || 0,
@@ -1436,18 +1444,17 @@ function isCompatibleWithCurrentBuild(item, targetType) {
                 : [{ level: "info", message: "Cấu hình hiện chưa có cảnh báo tương thích." }]
         };
     } catch (error) {
+        console.error("CHECK ERROR:", error);
         compatibilityState = {
             totalPrice: 0,
             estimatedPower: 0,
-            messages: [{ level: "warning", message: "Không kiểm tra được tương thích lúc này." }]
+            messages: [{ level: "warning", message: error.message || "Không kiểm tra được tương thích lúc này." }]
         };
-        console.error(error);
     }
 
     renderTotals();
     renderMessages();
 }
-
     function renderTotals() {
         const priceText = formatPrice(compatibilityState.totalPrice || 0);
         topTotalPrice.textContent = priceText;
@@ -1522,6 +1529,37 @@ function isCompatibleWithCurrentBuild(item, targetType) {
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
     }
+
+    async function addBuildToCart() {
+    const items = collectPayloadItems();
+
+    if (items.length === 0) {
+        alert("Bạn chưa chọn linh kiện nào.");
+        return;
+    }
+
+    const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
+    if (buildName === null) return;
+
+    const res = await fetch("/api/pc-builder/add-to-cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            buildName: buildName,
+            items: items
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert(data.message || "Không thể thêm cấu hình vào giỏ hàng.");
+        return;
+    }
+
+    alert(data.message || "Đã thêm cấu hình vào giỏ hàng.");
+    window.location.href = "/Cart/Index";
+}
 
     window.openPicker = openPicker;
     window.changeQty = changeQty;

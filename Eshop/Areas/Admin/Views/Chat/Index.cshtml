@@ -3,14 +3,7 @@
 }
 
 <div class="row g-3 chat-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Chat hỗ trợ</h4>
-                <div class="small page-subtitle">Trao đổi trực tiếp với khách hàng qua hệ thống hỗ trợ</div>
-            </div>
-        </div>
-    </div>
+  
 
     <div class="col-12 col-lg-4">
         <div class="card-soft users-card">
@@ -28,6 +21,10 @@
     <div class="col-12 col-lg-8">
         <div class="card-soft chat-card">
             <div class="panel-head chat-head">
+                <div id="chatLiveBanner" class="chat-live-banner" style="display:none;">
+                    <strong>Có tin nhắn mới</strong>
+                    <span id="chatLiveText"></span>
+                </div>
                 <div>
                     <div class="section-title mb-0">Hội thoại</div>
                     <div id="chatTitle" class="section-subtitle">Chọn khách hàng để chat</div>
@@ -40,6 +37,8 @@
                     <div>Chưa có cuộc trò chuyện nào được chọn.</div>
                 </div>
             </div>
+
+            @Html.AntiForgeryToken()
 
             <div class="chat-input-wrap">
                 <div class="chat-input-group">
@@ -57,6 +56,15 @@
 </div>
 
 <style>
+    .chat-live-banner {
+    margin: 14px 18px 0 18px;
+    padding: 10px 12px;
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 12px;
+    font-size: 13px;
+}
     .chat-page .page-subtitle {
         opacity: .75;
     }
@@ -298,135 +306,155 @@
         const chatTitle = document.getElementById("chatTitle");
         const messageInput = document.getElementById("messageInput");
         const sendBtn = document.getElementById("sendBtn");
+        const chatLiveBanner = document.getElementById("chatLiveBanner");
+        const chatLiveText = document.getElementById("chatLiveText");
 
         const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub")
-        .withAutomaticReconnect()
-        .build();
+            .withUrl("/hubs/chat")
+            .withAutomaticReconnect()
+            .build();
 
         function renderEmptyChat() {
-        chatMessages.classList.add("empty-state");
-        chatMessages.innerHTML = `
-        <div class="empty-wrap">
-        <i class="fa fa-comments-o empty-icon"></i>
-        <div>Chưa có tin nhắn trong cuộc trò chuyện này.</div>
-        </div>
-        `;
+            chatMessages.classList.add("empty-state");
+            chatMessages.innerHTML = `
+                <div class="empty-wrap">
+                    <i class="fa fa-comments-o empty-icon"></i>
+                    <div>Chưa có tin nhắn trong cuộc trò chuyện này.</div>
+                </div>
+            `;
         }
 
         function appendMessage(msg, isMe) {
-        if (chatMessages.classList.contains("empty-state")) {
-        chatMessages.classList.remove("empty-state");
-        chatMessages.innerHTML = "";
-        }
+            if (chatMessages.classList.contains("empty-state")) {
+                chatMessages.classList.remove("empty-state");
+                chatMessages.innerHTML = "";
+            }
 
-        const row = document.createElement("div");
-        row.className = `message-row ${isMe ? "me" : "other"}`;
+            const row = document.createElement("div");
+            row.className = `message-row ${isMe ? "me" : "other"}`;
 
-        row.innerHTML = `
-        <div class="message-bubble">
-        <div>${msg.content}</div>
-        <small class="message-time">${msg.createdAt || ''}</small>
-        </div>
-        `;
+            row.innerHTML = `
+                <div class="message-bubble">
+                    <div>${msg.content}</div>
+                    <small class="message-time">${msg.createdAt || ''}</small>
+                </div>
+            `;
 
-        chatMessages.appendChild(row);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessages.appendChild(row);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
         function setActiveUser(selectedLi) {
-        document.querySelectorAll(".user-item").forEach(x => x.classList.remove("active"));
-        if (selectedLi) selectedLi.classList.add("active");
+            document.querySelectorAll(".user-item").forEach(x => x.classList.remove("active"));
+            if (selectedLi) selectedLi.classList.add("active");
         }
 
         async function loadUsers() {
-        const res = await fetch('/Admin/Chat/GetUsersChatted');
-        const users = await res.json();
+            const res = await fetch('/Admin/Chat/GetUsersChatted');
+            const users = await res.json();
 
-        userList.innerHTML = "";
+            userList.innerHTML = "";
 
-        if (!users || !users.length) {
-        userList.innerHTML = `
-        <div class="empty-wrap" style="padding: 24px 12px;">
-        <i class="fa fa-user-o empty-icon"></i>
-        <div>Chưa có khách hàng nào nhắn tin.</div>
-        </div>
-        `;
-        return;
-        }
+            if (!users || !users.length) {
+                userList.innerHTML = `
+                    <div class="empty-wrap" style="padding: 24px 12px;">
+                        <i class="fa fa-user-o empty-icon"></i>
+                        <div>Chưa có khách hàng nào nhắn tin.</div>
+                    </div>
+                `;
+                return;
+            }
 
-        users.forEach(user => {
-        const item = document.createElement("button");
-        item.type = "button";
-        item.className = "user-item";
-        item.innerHTML = `
-        <div class="user-name">${user.userName}</div>
-        <div class="user-meta">${user.email}</div>
-        `;
+            users.forEach(user => {
+                const item = document.createElement("button");
+                item.type = "button";
+                item.className = "user-item";
+                item.dataset.userId = user.id;
+                item.innerHTML = `
+                    <div class="user-name">${user.userName}</div>
+                    <div class="user-meta">${user.email}</div>
+                `;
 
-        item.addEventListener("click", async () => {
-        selectedUserId = user.id;
-        chatTitle.textContent = "Đang chat với: " + user.userName;
-        setActiveUser(item);
-        await loadMessages(user.id);
-        });
+                item.addEventListener("click", async () => {
+                    selectedUserId = user.id;
+                    chatTitle.textContent = "Đang chat với: " + user.userName;
+                    setActiveUser(item);
 
-        userList.appendChild(item);
-        });
+                    if (chatLiveBanner) {
+                        chatLiveBanner.style.display = "none";
+                    }
+
+                    await loadMessages(user.id);
+                });
+
+                userList.appendChild(item);
+            });
         }
 
         async function loadMessages(userId) {
-        const res = await fetch('/Admin/Chat/GetMessages?userId=' + encodeURIComponent(userId));
-        const messages = await res.json();
+            const res = await fetch('/Admin/Chat/GetMessages?userId=' + encodeURIComponent(userId));
+            const messages = await res.json();
 
-        chatMessages.innerHTML = "";
-        chatMessages.classList.remove("empty-state");
+            chatMessages.innerHTML = "";
+            chatMessages.classList.remove("empty-state");
 
-        if (!messages || !messages.length) {
-        renderEmptyChat();
-        return;
+            if (!messages || !messages.length) {
+                renderEmptyChat();
+                return;
+            }
+
+            messages.forEach(msg => {
+                const isMe = msg.senderId !== userId;
+                appendMessage(msg, isMe);
+            });
         }
 
-        messages.forEach(msg => {
-        const isMe = msg.senderId !== userId;
-        appendMessage(msg, isMe);
-        });
-        }
+        connection.on("ReceiveSupportMessage", async function (msg) {
+            await loadUsers();
 
-        connection.on("ReceiveSupportMessage", function (msg) {
-        if (!selectedUserId) return;
+            if (chatLiveBanner && !selectedUserId) {
+                chatLiveBanner.style.display = "block";
+                chatLiveText.textContent = `${msg.senderName || "Khách hàng"}: ${msg.content || ""}`;
+            }
 
-        const related =
-        msg.senderId === selectedUserId || msg.receiverId === selectedUserId;
+            if (!selectedUserId) return;
 
-        if (!related) return;
+            const related =
+                msg.senderId === selectedUserId || msg.receiverId === selectedUserId;
 
-        const isMe = msg.senderId !== selectedUserId;
-        appendMessage(msg, isMe);
+            if (!related) return;
+
+            const isMe = msg.senderId !== selectedUserId;
+            appendMessage(msg, isMe);
         });
 
         sendBtn.addEventListener("click", async function () {
-        const content = messageInput.value.trim();
-        if (!content || !selectedUserId) return;
+            const content = messageInput.value.trim();
+            if (!content || !selectedUserId) return;
 
-        try {
-        await connection.invoke("SendMessage", selectedUserId, content);
-        messageInput.value = "";
-        messageInput.focus();
-        } catch (err) {
-        console.error(err);
-        }
+            try {
+                await connection.invoke("SendMessage", selectedUserId, content);
+                messageInput.value = "";
+                messageInput.focus();
+            } catch (err) {
+                console.error(err);
+            }
         });
 
         messageInput.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-        sendBtn.click();
-        }
+            if (e.key === "Enter") {
+                sendBtn.click();
+            }
         });
 
         async function start() {
-        await connection.start();
-        await loadUsers();
+            try {
+                await connection.start();
+                await loadUsers();
+            } catch (err) {
+                console.error(err);
+                setTimeout(start, 5000);
+            }
         }
 
         start();

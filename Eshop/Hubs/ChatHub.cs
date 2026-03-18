@@ -11,10 +11,12 @@ namespace Eshop.Hubs
     public class ChatHub : Hub
     {
         private readonly DataContext _context;
+        private readonly IHubContext<NotificationHub> _notificationHub;
 
-        public ChatHub(DataContext context)
+        public ChatHub(DataContext context, IHubContext<NotificationHub> notificationHub)
         {
             _context = context;
+            _notificationHub = notificationHub;
         }
 
         public async Task SendMessage(string receiverId, string content)
@@ -63,6 +65,18 @@ namespace Eshop.Hubs
 
             await Clients.User(senderId).SendAsync("ReceiveSupportMessage", payload);
             await Clients.User(receiverId).SendAsync("ReceiveSupportMessage", payload);
+
+            if (!Context.User!.IsInRole("Admin"))
+            {
+                await _notificationHub.Clients.Group("Admins").SendAsync("NewChatNotification", new
+                {
+                    fromUserId = senderId,
+                    fromUserName = sender.UserName ?? "Khách hàng",
+                    preview = message.Content,
+                    createdAt = payload.createdAt,
+                    url = "/Admin/Chat"
+                });
+            }
         }
     }
 }
