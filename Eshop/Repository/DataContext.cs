@@ -34,6 +34,8 @@ namespace Eshop.Repository
         public DbSet<PrebuiltPcComponentModel> PrebuiltPcComponents { get; set; }
         public DbSet<PcBuildModel> PcBuilds { get; set; }
         public DbSet<PcBuildItemModel> PcBuildItems { get; set; }
+        public DbSet<ProductImageModel> ProductImages { get; set; }
+        public DbSet<ProductTechnicalAssetModel> ProductTechnicalAssets { get; set; }
 
 
 
@@ -41,6 +43,25 @@ namespace Eshop.Repository
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<OrderModel>()
+        .HasKey(x => x.OrderId);
+
+            builder.Entity<OrderModel>()
+        .HasIndex(x => x.OrderCode)
+        .IsUnique();
+
+            builder.Entity<OrderDetails>()
+                .HasOne(od => od.Order)
+                .WithMany(o => o.OrderDetails)
+                .HasForeignKey(od => od.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<OrderDetails>()
+                .HasOne(od => od.Product)
+                .WithMany(p => p.OrderDetails)
+                .HasForeignKey(od => od.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<AppUserModel>(b =>
             {
@@ -142,6 +163,17 @@ namespace Eshop.Repository
                 .OnDelete(DeleteBehavior.Restrict);
 
             PcSpecificationSeed.Seed(builder);
+            builder.Entity<ProductImageModel>()
+      .HasOne(x => x.Product)
+      .WithMany(x => x.ProductImages)
+      .HasForeignKey(x => x.ProductId)
+      .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<ProductTechnicalAssetModel>()
+                .HasOne(x => x.Product)
+                .WithOne(x => x.TechnicalAsset)
+                .HasForeignKey<ProductTechnicalAssetModel>(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
 

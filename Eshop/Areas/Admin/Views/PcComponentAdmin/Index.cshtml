@@ -190,7 +190,11 @@
                                         <div class="thumb-wrap">
                                             @if (!string.IsNullOrWhiteSpace(item.Image))
                                             {
-                                                <img src="~/media/products/@item.Image"
+                                                var imageSrc = item.Image.StartsWith("http://") || item.Image.StartsWith("https://")
+                                                    ? item.Image
+                                                    : Url.Content("~/media/products/" + item.Image);
+
+                                                <img src="@imageSrc"
                                                      class="thumb"
                                                      alt="@item.Name" />
                                             }

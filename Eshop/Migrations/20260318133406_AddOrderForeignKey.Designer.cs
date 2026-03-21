@@ -4,6 +4,7 @@ using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Eshop.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260318133406_AddOrderForeignKey")]
+    partial class AddOrderForeignKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -285,6 +288,9 @@ namespace Eshop.Migrations
                     b.Property<string>("ComponentType")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("OrderCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -298,14 +304,11 @@ namespace Eshop.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ProductImage")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -487,38 +490,6 @@ namespace Eshop.Migrations
                     b.ToTable("PrebuiltPcComponents");
                 });
 
-            modelBuilder.Entity("Eshop.Models.ProductImageModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsMain")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PublicId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ProductImages");
-                });
-
             modelBuilder.Entity("Eshop.Models.ProductModel", b =>
                 {
                     b.Property<int>("Id")
@@ -538,9 +509,6 @@ namespace Eshop.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImagePublicId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsPcBuild")
@@ -702,43 +670,6 @@ namespace Eshop.Migrations
                     b.HasIndex("SpecificationDefinitionId");
 
                     b.ToTable("ProductSpecifications");
-                });
-
-            modelBuilder.Entity("Eshop.Models.ProductTechnicalAssetModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContentType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OriginalFileName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PublicId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ResourceType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId")
-                        .IsUnique();
-
-                    b.ToTable("ProductTechnicalAssets");
                 });
 
             modelBuilder.Entity("Eshop.Models.PublisherModel", b =>
@@ -1515,7 +1446,7 @@ namespace Eshop.Migrations
                         .IsRequired();
 
                     b.HasOne("Eshop.Models.ProductModel", "Product")
-                        .WithMany("OrderDetails")
+                        .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1559,17 +1490,6 @@ namespace Eshop.Migrations
                         .IsRequired();
 
                     b.Navigation("ComponentProduct");
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("Eshop.Models.ProductImageModel", b =>
-                {
-                    b.HasOne("Eshop.Models.ProductModel", "Product")
-                        .WithMany("ProductImages")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Product");
                 });
@@ -1639,17 +1559,6 @@ namespace Eshop.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("SpecificationDefinition");
-                });
-
-            modelBuilder.Entity("Eshop.Models.ProductTechnicalAssetModel", b =>
-                {
-                    b.HasOne("Eshop.Models.ProductModel", "Product")
-                        .WithOne("TechnicalAsset")
-                        .HasForeignKey("Eshop.Models.ProductTechnicalAssetModel", "ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingModel", b =>
@@ -1746,19 +1655,13 @@ namespace Eshop.Migrations
                 {
                     b.Navigation("OptionGroups");
 
-                    b.Navigation("OrderDetails");
-
                     b.Navigation("PrebuiltComponents");
-
-                    b.Navigation("ProductImages");
 
                     b.Navigation("ProductQuantities");
 
                     b.Navigation("RatingModel");
 
                     b.Navigation("Specifications");
-
-                    b.Navigation("TechnicalAsset");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionGroupModel", b =>

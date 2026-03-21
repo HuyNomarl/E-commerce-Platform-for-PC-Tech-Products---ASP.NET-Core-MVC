@@ -155,7 +155,20 @@
 
                                 <td>
                                     <div class="thumb-wrap">
-                                        <img src="~/media/products/@item.Image" alt="@item.Name" class="thumb" />
+                                        @{
+                                            var imageSrc = !string.IsNullOrWhiteSpace(item.Image)
+                                                ? item.Image
+                                                : item.ProductImages?
+                                                    .OrderBy(x => x.SortOrder)
+                                                    .FirstOrDefault()?.Url;
+
+                                            if (string.IsNullOrWhiteSpace(imageSrc))
+                                            {
+                                                imageSrc = Url.Content("~/media/products/noname.jpg");
+                                            }
+                                        }
+
+                                        <img src="@imageSrc" alt="@item.Name" class="thumb" />
                                     </div>
                                 </td>
 

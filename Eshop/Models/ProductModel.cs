@@ -34,10 +34,8 @@ namespace Eshop.Models
         [Required, Range(1, int.MaxValue, ErrorMessage = "Yêu cầu chọn danh mục!")]
         public int CategoryId { get; set; }
 
-        // Giữ lại để không phá code cũ
         public bool IsPcBuild { get; set; } = false;
 
-        // Mới
         public ProductType ProductType { get; set; } = ProductType.Normal;
         public PcComponentType? ComponentType { get; set; }
 
@@ -47,10 +45,14 @@ namespace Eshop.Models
         public ICollection<RatingModel> RatingModel { get; set; } = new List<RatingModel>();
 
         public string? Image { get; set; }
+        public string? ImagePublicId { get; set; }
 
         [NotMapped]
         [FileExtension]
         public IFormFile? ImageUpload { get; set; }
+        public ICollection<ProductImageModel> ProductImages { get; set; } = new List<ProductImageModel>();
+
+        public ProductTechnicalAssetModel? TechnicalAsset { get; set; }
 
         // PC dựng sẵn
         public ICollection<PrebuiltPcComponentModel> PrebuiltComponents { get; set; } = new List<PrebuiltPcComponentModel>();
@@ -62,5 +64,6 @@ namespace Eshop.Models
 
         // Spec kỹ thuật cho builder
         public ICollection<ProductSpecificationModel> Specifications { get; set; } = new List<ProductSpecificationModel>();
+        public ICollection<OrderDetails> OrderDetails { get; set; } = new List<OrderDetails>();
     }
 }

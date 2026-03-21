@@ -149,14 +149,19 @@ namespace Eshop.Services
                 };
 
                 _dataContext.Orders.Add(order);
+                await _dataContext.SaveChangesAsync();
 
                 foreach (var cart in cartItems)
                 {
+                    if (!products.TryGetValue((int)cart.ProductId, out var product))
+                        throw new InvalidOperationException($"Sản phẩm #{cart.ProductId} không tồn tại.");
+
                     _dataContext.OrderDetails.Add(new OrderDetails
                     {
-                        UserName = userEmail,
-                        OrderCode = orderCode,
+                        OrderId = order.OrderId,
                         ProductId = (int)cart.ProductId,
+                        ProductName = product.Name,
+                        ProductImage = product.Image,
                         Price = cart.Price,
                         Quantity = cart.Quantity,
                         BuildGroupKey = cart.BuildGroupKey,

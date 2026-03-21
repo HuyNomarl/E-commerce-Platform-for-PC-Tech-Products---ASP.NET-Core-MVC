@@ -10,7 +10,7 @@ namespace Eshop.Models
 
         [Required]
         [StringLength(100)]
-        public string OrderCode { get; set; }
+        public string OrderCode { get; set; } = string.Empty;
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal SubTotal { get; set; } = 0;
@@ -29,7 +29,7 @@ namespace Eshop.Models
 
         [Required]
         [StringLength(256)]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = string.Empty;
 
         [StringLength(150)]
         public string? FullName { get; set; }
@@ -58,5 +58,7 @@ namespace Eshop.Models
         public DateTime CreatedTime { get; set; } = DateTime.Now;
 
         public int Status { get; set; } = 1;
+
+        public ICollection<OrderDetails> OrderDetails { get; set; } = new List<OrderDetails>();
     }
 }

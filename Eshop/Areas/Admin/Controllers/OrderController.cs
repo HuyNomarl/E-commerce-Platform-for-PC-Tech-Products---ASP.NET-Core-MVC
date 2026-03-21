@@ -13,6 +13,7 @@ namespace Eshop.Areas.Admin.Controllers
     public class OrderController : Controller
     {
         private readonly DataContext _dataContext;
+
         public OrderController(DataContext dataContext)
         {
             _dataContext = dataContext;
@@ -20,30 +21,33 @@ namespace Eshop.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _dataContext.Orders
+            var orders = await _dataContext.Orders
                 .OrderByDescending(p => p.OrderId)
-                .ToListAsync());
+                .ToListAsync();
+
+            return View(orders);
         }
 
         public async Task<IActionResult> ViewOrder(string orderCode)
         {
-            if (string.IsNullOrWhiteSpace(orderCode)) return NotFound();
+            if (string.IsNullOrWhiteSpace(orderCode))
+                return NotFound();
 
             var order = await _dataContext.Orders
                 .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
 
-            if (order == null) return NotFound();
+            if (order == null)
+                return NotFound();
 
             var details = await _dataContext.OrderDetails
                 .Include(od => od.Product)
-                .Where(od => od.OrderCode == orderCode)
+                .Where(od => od.OrderId == order.OrderId)
                 .ToListAsync();
 
             var vm = new OrderDetailViewModel
             {
                 OrderCode = order.OrderCode,
                 UserName = order.UserName,
-
                 FullName = order.FullName,
                 Phone = order.Phone,
                 Email = order.Email,
@@ -52,23 +56,21 @@ namespace Eshop.Areas.Admin.Controllers
                 District = order.District,
                 Ward = order.Ward,
                 Note = order.Note,
-
                 Status = order.Status,
                 OrderDetails = details,
                 StatusList = new List<SelectListItem>
-    {
-        new("Pending", "1"),
-        new("Processing", "2"),
-        new("Shipped", "3"),
-        new("Delivered", "4"),
-        new("Completed", "5"),
-        new("Cancelled", "6"),
-    }
+                {
+                    new("Pending", "1"),
+                    new("Processing", "2"),
+                    new("Shipped", "3"),
+                    new("Delivered", "4"),
+                    new("Completed", "5"),
+                    new("Cancelled", "6"),
+                }
             };
 
             return View(vm);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -80,10 +82,13 @@ namespace Eshop.Areas.Admin.Controllers
             if (!Enum.IsDefined(typeof(OrderStatus), status))
                 return BadRequest(new { success = false, message = "Invalid status" });
 
-            using var tx = await _dataContext.Database.BeginTransactionAsync();
+            await using var tx = await _dataContext.Database.BeginTransactionAsync();
+
             try
             {
-                var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+                var order = await _dataContext.Orders
+                    .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
                 if (order == null)
                     return NotFound(new { success = false, message = "Order not found" });
 
@@ -93,42 +98,31 @@ namespace Eshop.Areas.Admin.Controllers
                 if (oldStatus == newStatus)
                     return Json(new { success = true, message = "No changes" });
 
-                // Không cho "mở lại" đơn Cancelled (tuỳ bạn)
+                // Không cho mở lại đơn đã hủy
                 if (oldStatus == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled)
                     return BadRequest(new { success = false, message = "Order is cancelled. Not allowed to reopen." });
 
-                // Load details & products
-                var details = await _dataContext.OrderDetails
-                    .Where(d => d.OrderCode == orderCode)
-                    .ToListAsync();
-
-                var pids = details.Select(d => d.ProductId).Distinct().ToList();
-                var products = await _dataContext.Products
-                    .Where(p => pids.Contains(p.Id))
-                    .ToDictionaryAsync(p => p.Id);
-
-                // Khi chuyển sang Completed: +Sold (chỉ 1 lần)
-                if (newStatus == OrderStatus.Completed && oldStatus != OrderStatus.Completed)
-                {
-                    foreach (var d in details)
-                        products[d.ProductId].Sold += d.Quantity;
-                }
-
-                // Khi rời khỏi Completed (vd Completed -> Cancelled): -Sold
-                if (oldStatus == OrderStatus.Completed && newStatus != OrderStatus.Completed)
-                {
-                    foreach (var d in details)
-                    {
-                        var p = products[d.ProductId];
-                        p.Sold = Math.Max(0, p.Sold - d.Quantity);
-                    }
-                }
-
-                // Khi chuyển sang Cancelled: hoàn kho (Quantity) (chỉ 1 lần)
+                //Hủy đơn hàng: cộng lại số lượng vào kho
                 if (newStatus == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
                 {
-                    foreach (var d in details)
-                        products[d.ProductId].Quantity += d.Quantity;
+                    var details = await _dataContext.OrderDetails
+                        .Where(d => d.OrderId == order.OrderId)
+                        .ToListAsync();
+
+                    var productIds = details.Select(d => d.ProductId).Distinct().ToList();
+
+                    var products = await _dataContext.Products
+                        .Where(p => productIds.Contains(p.Id))
+                        .ToDictionaryAsync(p => p.Id);
+
+                    foreach (var detail in details)
+                    {
+                        if (products.TryGetValue(detail.ProductId, out var product))
+                        {
+                            product.Quantity += detail.Quantity;
+                            product.Sold = Math.Max(0, product.Sold - detail.Quantity);
+                        }
+                    }
                 }
 
                 order.Status = (int)newStatus;

@@ -1,117 +1,158 @@
-﻿@model Eshop.Models.ProductModel
+﻿@model Eshop.Models.ViewModels.ProductUpsertViewModel
 
 @{
-    ViewData["Title"] = "Create Product";
+    ViewData["Title"] = "Tạo sản phẩm";
 }
 
 <div class="row g-3 product-create-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
+            @* <div>
                 <h4 class="mb-1">Tạo sản phẩm</h4>
-                <div class="small page-subtitle">Nhập thông tin sản phẩm và tạo mới</div>
-            </div>
+                <div class="small page-subtitle">Nhập thông tin sản phẩm, ảnh và tài liệu kỹ thuật</div>
+            </div> *@
 
             <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
+                <i class="fa fa-arrow-left me-1"></i> Quay lại      
             </a>
         </div>
     </div>
 
-    <div class="col-12 col-xl-9">
-        <div class="card card-soft shadow-sm border-0">
-            <div class="card-body p-4">
-                <form asp-action="Create" method="post" enctype="multipart/form-data">
-                    @Html.AntiForgeryToken()
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="col-12">
+        @Html.AntiForgeryToken()
 
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <div class="row g-3">
-                        <div class="col-12 col-md-8">
-                            <label asp-for="Name" class="form-label">Tên sản phẩm</label>
-                            <input asp-for="Name" class="form-control bg-transparent" placeholder="Ví dụ: PC Gaming RTX 4060..." />
-                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
-                        </div>
+        <input asp-for="PrimaryImageSource" type="hidden" value="new" />
+        <input asp-for="PrimaryNewImageIndex" type="hidden" id="PrimaryNewImageIndex" />
+        <input asp-for="WidgetImagesJson" type="hidden" id="WidgetImagesJson" />
 
-                        <div class="col-12 col-md-4">
-                            <label asp-for="Price" class="form-label">Giá</label>
-                            <input asp-for="Price" class="form-control bg-transparent" placeholder="Nhập giá sản phẩm" />
-                            <span asp-validation-for="Price" class="text-danger small d-block mt-1"></span>
-                        </div>
+        <div class="row g-3">
+            <div class="col-12 col-xl-8">
+                <div class="card-soft form-card mb-3">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Thông tin chung</div>
 
-                        <div class="col-12">
-                            <label asp-for="Description" class="form-label">Mô tả</label>
-                            <textarea asp-for="Description" class="form-control bg-transparent" rows="5" placeholder="Mô tả về sản phẩm..."></textarea>
-                            <span asp-validation-for="Description" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <label asp-for="CategoryId" class="form-label">Danh mục sản phẩm</label>
-                            <select asp-for="CategoryId" class="form-select bg-transparent" asp-items="ViewBag.Categories">
-                                <option value="">-- Chọn danh mục --</option>
-                            </select>
-                            <span asp-validation-for="CategoryId" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <label asp-for="PublisherId" class="form-label">Thương hiệu</label>
-                            <select asp-for="PublisherId" class="form-select bg-transparent" asp-items="ViewBag.Publishers">
-                                <option value="">-- Chọn thương hiệu --</option>
-                            </select>
-                            <span asp-validation-for="PublisherId" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="IsPcBuild" class="form-label">Loại sản phẩm</label>
-
-                            <div class="pc-build-box">
-                                <div class="form-check m-0">
-                                    <input asp-for="IsPcBuild" class="form-check-input" />
-                                    <label asp-for="IsPcBuild" class="form-check-label">
-                                        Đây là PC có cấu hình nâng cấp
-                                    </label>
-                                </div>
-                                <div class="small text-muted mt-2">
-                                    Bật tùy chọn này nếu sản phẩm là bộ PC build có thể nâng cấp linh kiện.
-                                </div>
+                        <div class="row form-grid">
+                            <div class="col-12 col-md-8 form-col">
+                                <label asp-for="Product.Name" class="form-label">Tên sản phẩm</label>
+                                <input asp-for="Product.Name" class="form-control input-soft" placeholder="Nhập tên sản phẩm" />
+                                <span asp-validation-for="Product.Name" class="text-danger small d-block mt-1"></span>
                             </div>
 
-                            <span asp-validation-for="IsPcBuild" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="ImageUpload" class="form-label">Ảnh sản phẩm</label>
-                            <input asp-for="ImageUpload" type="file" class="form-control bg-transparent" accept="image/*" />
-                            <span asp-validation-for="ImageUpload" class="text-danger small d-block mt-1"></span>
-
-                            <div class="small text-muted mt-2">
-                                Chọn 1 ảnh đại diện cho sản phẩm.
+                            <div class="col-12 col-md-4 form-col">
+                                <label asp-for="Product.Price" class="form-label">Giá</label>
+                                <input asp-for="Product.Price" class="form-control input-soft" placeholder="Nhập giá sản phẩm" />
+                                <span asp-validation-for="Product.Price" class="text-danger small d-block mt-1"></span>
                             </div>
 
-                            <div class="mt-3">
-                                <div class="image-preview-box">
-                                    <img id="imgpreview" src="#" alt="Preview" class="img-preview" style="display:none;" />
-                                    <div id="preview-placeholder" class="preview-placeholder">
-                                        Chưa chọn ảnh
+                            <div class="col-12 form-col">
+                                <label asp-for="Product.Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Product.Description"
+                                          rows="5"
+                                          class="form-control input-soft textarea-soft"
+                                          placeholder="Nhập mô tả sản phẩm"></textarea>
+                                <span asp-validation-for="Product.Description" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-12 col-md-6 form-col">
+                                <label asp-for="Product.CategoryId" class="form-label">Danh mục sản phẩm</label>
+                                <select asp-for="Product.CategoryId" class="form-select input-soft" asp-items="ViewBag.Categories">
+                                    <option value="">-- Chọn danh mục --</option>
+                                </select>
+                                <span asp-validation-for="Product.CategoryId" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-12 col-md-6 form-col">
+                                <label asp-for="Product.PublisherId" class="form-label">Thương hiệu</label>
+                                <select asp-for="Product.PublisherId" class="form-select input-soft" asp-items="ViewBag.Publishers">
+                                    <option value="">-- Chọn thương hiệu --</option>
+                                </select>
+                                <span asp-validation-for="Product.PublisherId" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-12 form-col">
+                                <label asp-for="Product.IsPcBuild" class="form-label">Loại sản phẩm</label>
+
+                                <div class="feature-box">
+                                    <div class="checkbox-wrap">
+                                        <input asp-for="Product.IsPcBuild" class="form-check-input-custom" />
+                                        <label asp-for="Product.IsPcBuild" class="form-check-label-custom mb-0">
+                                            Đây là PC có cấu hình nâng cấp
+                                        </label>
+                                    </div>
+                                    <div class="small helper-text mt-2">
+                                        Bật tùy chọn này nếu sản phẩm là bộ PC có thể nâng cấp cấu hình.
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="d-flex gap-2 mt-4 flex-wrap">
-                        <button type="submit" class="btn btn-accent">
-                            <i class="fa-solid fa-circle-plus me-1"></i> Tạo sản phẩm
-                        </button>
+                <div class="card-soft form-card mb-3">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Ảnh sản phẩm</div>
 
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại danh sách
-                        </a>
+                        <div class="d-flex gap-2 flex-wrap mb-2">
+                            <button type="button" class="btn btn-outline-primary" id="btnAddCreateImages">
+                                <i class="fa fa-image me-1"></i> Thêm ảnh
+                            </button>
+                        </div>
+
+                        <span asp-validation-for="WidgetImagesJson" class="text-danger small d-block mt-1"></span>
+
+                        <div class="small helper-text mt-2">
+                            Chọn 1 ảnh làm đại diện, các ảnh còn lại là ảnh phụ.
+                        </div>
+
+                        <div id="create-image-list" class="image-row mt-3"></div>
                     </div>
-                </form>
+                </div>
+
+                <div class="card-soft form-card">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Tài liệu kỹ thuật</div>
+
+                        <div class="form-col p-0 mb-0">
+                            <label asp-for="TechnicalFileUpload" class="form-label">File / ảnh thông số kỹ thuật</label>
+                            <input asp-for="TechnicalFileUpload"
+                                   type="file"
+                                   class="form-control input-soft"
+                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx" />
+                            <span asp-validation-for="TechnicalFileUpload" class="text-danger small d-block mt-1"></span>
+
+                            <div class="small helper-text mt-2">
+                                Có thể là ảnh hoặc file PDF, Word, Excel.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-xl-4">
+                <div class="card-soft form-card sticky-action-card">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Thao tác</div>
+
+                        <div class="action-box">
+                            <button type="submit" class="btn btn-accent w-100">
+                                <i class="fa fa-save me-1"></i> Tạo sản phẩm
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                                Quay lại danh sách
+                            </a>
+                        </div>
+
+                        <div class="action-note mt-3">
+                            Hãy kiểm tra lại thông tin, ảnh đại diện và tài liệu kỹ thuật trước khi tạo mới.
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
 
 <style>
@@ -120,83 +161,220 @@
     }
 
     .card-soft {
-        background: var(--main-extra-bg, #fff);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 1rem;
-        color: var(--font-color, inherit);
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
-        .card-soft .form-control,
-        .card-soft .form-select {
-            border-radius: .75rem;
-            min-height: 46px;
-            border: 1px solid var(--border-color, #ced4da);
-        }
+    .form-card {
+        overflow: hidden;
+    }
 
-        .card-soft textarea.form-control {
-            min-height: unset;
-        }
+    .card-body-custom {
+        padding: 24px;
+    }
 
-        .card-soft .form-control:focus,
-        .card-soft .form-select:focus {
-            box-shadow: 0 0 0 .15rem rgba(13, 110, 253, .15);
+    .section-heading {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .form-grid {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .form-col {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
             border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
         }
+
+    .textarea-soft {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .helper-text {
+        color: #6b7280;
+    }
+
+    .text-danger.small {
+        font-size: 12px;
+    }
 
     .btn-accent {
-        background: var(--main-color, #0d6efd);
-        border: 1px solid var(--hover-border-color, #0d6efd);
-        color: var(--dark, #fff);
-        border-radius: .75rem;
-        padding: .625rem 1rem;
+        background: #111827;
+        border: 1px solid #111827;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
     }
 
-        .btn-accent:hover {
-            filter: brightness(1.05);
-            color: var(--dark, #fff);
+        .btn-accent:hover,
+        .btn-accent:focus {
+            color: #fff;
+            background: #0f172a;
+            border-color: #0f172a;
         }
 
-    .btn-outline-secondary {
-        border-radius: .75rem;
-        padding: .625rem 1rem;
+    .btn-outline-secondary,
+    .btn-outline-primary {
+        border-radius: 12px;
+        padding: 10px 18px;
     }
 
-    .pc-build-box {
-        border: 1px solid var(--border-color, #dee2e6);
-        background: rgba(255,255,255,.03);
-        border-radius: .75rem;
-        padding: 1rem;
+    .action-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
-    .image-preview-box {
-        width: 100%;
-        max-width: 320px;
-        min-height: 220px;
-        border: 1px dashed var(--border-color, #ced4da);
-        border-radius: .75rem;
+    .action-note {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .sticky-action-card {
+        position: sticky;
+        top: 20px;
+    }
+
+    .feature-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #f8fafc;
+        padding: 14px 16px;
+    }
+
+    .checkbox-wrap {
         display: flex;
         align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        background: rgba(255,255,255,.03);
+        gap: 10px;
     }
 
-    .img-preview {
+    .form-check-input-custom {
+        width: 18px;
+        height: 18px;
+        margin-top: 0;
+        accent-color: #111827;
+    }
+
+    .form-check-label-custom {
+        font-weight: 600;
+        color: #111827;
+        cursor: pointer;
+    }
+
+    .image-row {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .image-card {
+        min-width: 220px;
+        max-width: 220px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #fff;
+        padding: 12px;
+        flex: 0 0 auto;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    .image-thumb-wrap {
         width: 100%;
-        max-height: 320px;
+        height: 180px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f8f9fa;
+        border: 1px solid #edf0f2;
+    }
+
+    .image-thumb {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
         display: block;
     }
 
-    .preview-placeholder {
-        color: #6c757d;
-        font-size: .95rem;
-        padding: 1rem;
-        text-align: center;
+    .image-meta {
+        margin-top: 10px;
     }
 
-    .text-danger.small {
-        font-size: .875rem;
+    .image-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 6px;
+        color: #111827;
+    }
+
+    .image-actions {
+        margin-top: 10px;
+    }
+
+    .image-empty {
+        padding: 16px;
+        border: 1px dashed #ced4da;
+        border-radius: 12px;
+        color: #6c757d;
+        background: #fafafa;
+        min-width: 320px;
+    }
+
+    @@media (max-width: 1199px) {
+        .sticky-action-card {
+            position: static;
+            top: unset;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .card-body-custom {
+            padding: 16px;
+        }
+
+        .checkbox-wrap {
+            align-items: flex-start;
+        }
+
+        .image-card {
+            min-width: 200px;
+            max-width: 200px;
+        }
+
+        .image-empty {
+            min-width: 260px;
+        }
     }
 </style>
 
@@ -205,26 +383,155 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 
-    <script>
-        function readURL(input) {
-            const preview = $("#imgpreview");
-            const placeholder = $("#preview-placeholder");
+    <script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
 
-            if (input.files && input.files[0]) {
-                let reader = new FileReader();
-                reader.onload = function (e) {
-                    preview.attr("src", e.target.result).show();
-                    placeholder.hide();
-                };
-                reader.readAsDataURL(input.files[0]);
-            } else {
-                preview.attr("src", "#").hide();
-                placeholder.show();
-            }
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+        const list = document.getElementById("create-image-list");
+        const btnAdd = document.getElementById("btnAddCreateImages");
+        const primaryIndexInput = document.getElementById("PrimaryNewImageIndex");
+        const widgetImagesInput = document.getElementById("WidgetImagesJson");
+
+        let images = [];
+        let primaryId = null;
+
+        function uid() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return "img_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
         }
 
-        $("#ImageUpload").change(function () {
-            readURL(this);
+        function syncHidden() {
+        widgetImagesInput.value = JSON.stringify(
+        images.map(x => ({
+        publicId: x.publicId,
+        url: x.url,
+        resourceType: x.resourceType,
+        originalFileName: x.originalFileName
+        }))
+        );
+
+        const primaryIndex = images.findIndex(x => x.id === primaryId);
+        primaryIndexInput.value = primaryIndex >= 0 ? primaryIndex : "";
+        }
+
+        function ensurePrimary() {
+        if (!images.length) {
+        primaryId = null;
+        return;
+        }
+
+        if (!images.some(x => x.id === primaryId)) {
+        primaryId = images[0].id;
+        }
+        }
+
+        function render() {
+        ensurePrimary();
+        syncHidden();
+
+        if (!images.length) {
+        list.innerHTML = `<div class="image-empty">Chưa có ảnh nào. Bấm <strong>Thêm ảnh</strong> để mở Cloudinary Widget.</div>`;
+        return;
+        }
+
+        list.innerHTML = images.map((item, index) => `
+        <div class="image-card">
+        <div class="image-thumb-wrap">
+        <img src="${item.url}" class="image-thumb" alt="preview-${index}" />
+        </div>
+
+        <div class="image-meta">
+        <div class="image-title">Ảnh ${index + 1}</div>
+
+        <div class="form-check">
+        <input class="form-check-input js-create-primary"
+        type="radio"
+        name="createPrimaryPreview"
+        value="${item.id}"
+        ${item.id === primaryId ? "checked" : ""}>
+        <label class="form-check-label">Đặt làm ảnh đại diện</label>
+        </div>
+
+        <div class="image-actions">
+        <button type="button"
+        class="btn btn-outline-danger btn-sm w-100 js-create-delete"
+        data-id="${item.id}">
+        Xóa
+        </button>
+        </div>
+        </div>
+        </div>
+        `).join("");
+        }
+
+        if (!window.cloudinary) {
+        console.error("Cloudinary widget chưa load.");
+        list.innerHTML = `<div class="image-empty text-danger">Không thể tải Cloudinary Widget.</div>`;
+        btnAdd.disabled = true;
+        return;
+        }
+
+        const widget = cloudinary.createUploadWidget(
+        {
+        cloudName: "dd120zgwr",
+        uploadPreset: "ml_default",
+        multiple: true,
+        maxFiles: 20,
+        resourceType: "image",
+        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+        sources: ["url", "camera", "google_drive", "dropbox", "local"],
+        defaultSource: "url"
+        },
+        function (error, result) {
+        if (error) {
+        console.error(error);
+        return;
+        }
+
+        if (result && result.event === "success") {
+        images.push({
+        id: uid(),
+        publicId: result.info.public_id,
+        url: result.info.secure_url,
+        resourceType: result.info.resource_type || "image",
+        originalFileName: result.info.original_filename || ""
+        });
+
+        if (!primaryId && images.length) {
+        primaryId = images[0].id;
+        }
+
+        render();
+        }
+        }
+        );
+
+        btnAdd.addEventListener("click", function () {
+        widget.open();
+        });
+
+        list.addEventListener("click", function (e) {
+        const btnDelete = e.target.closest(".js-create-delete");
+        if (!btnDelete) return;
+
+        const id = btnDelete.dataset.id;
+        images = images.filter(x => x.id !== id);
+
+        if (primaryId === id) {
+        primaryId = images.length ? images[0].id : null;
+        }
+
+        render();
+        });
+
+        list.addEventListener("change", function (e) {
+        if (!e.target.classList.contains("js-create-primary")) return;
+
+        primaryId = e.target.value;
+        render();
+        });
+
+        render();
         });
     </script>
 }

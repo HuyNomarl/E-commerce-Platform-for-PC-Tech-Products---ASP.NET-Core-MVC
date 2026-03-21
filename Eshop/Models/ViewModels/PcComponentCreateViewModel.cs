@@ -18,13 +18,13 @@ namespace Eshop.Models.ViewModels
         public string? ValueJson { get; set; }
     }
 
-    public class PcComponentCreateViewModel
-    {
-        public ProductModel Product { get; set; } = new ProductModel();
+    //public class PcComponentCreateViewModel
+    //{
+    //    public ProductModel Product { get; set; } = new ProductModel();
 
-        public List<ProductSpecificationInputViewModel> Specifications { get; set; } = new();
+    //    public List<ProductSpecificationInputViewModel> Specifications { get; set; } = new();
 
-        public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();
-        public IEnumerable<SelectListItem> Publishers { get; set; } = Enumerable.Empty<SelectListItem>();
-    }
+    //    public IEnumerable<SelectListItem> Categories { get; set; } = Enumerable.Empty<SelectListItem>();
+    //    public IEnumerable<SelectListItem> Publishers { get; set; } = Enumerable.Empty<SelectListItem>();
+    //}
 }

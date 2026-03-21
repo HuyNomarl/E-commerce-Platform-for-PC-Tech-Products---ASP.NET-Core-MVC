@@ -1,90 +1,164 @@
-﻿@model Eshop.Models.ViewModels.PcComponentCreateViewModel
+﻿@model Eshop.Areas.Admin.Models.ViewModels.PcComponentCreateViewModel
 @using Eshop.Models.Enums
+@using System.Text.Json
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Sửa linh kiện PC";
+
+    var initialWidgetImagesJson = string.IsNullOrWhiteSpace(Model.WidgetImagesJson)
+        ? "[]"
+        : Model.WidgetImagesJson;
+
+    var deletedIdsJson = JsonSerializer.Serialize(Model.DeletedImageIds ?? new List<int>());
 }
 
-<div class="container-fluid">
-    <h2 class="mb-3">Sửa linh kiện PC</h2>
+<div class="row g-3 pc-component-edit-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Sửa linh kiện PC</h4>
+                <div class="small page-subtitle">Cập nhật thông tin linh kiện, ảnh sản phẩm và thông số kỹ thuật</div>
+            </div>
 
-    <form asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Edit" asp-route-id="@Model.Product.Id" method="post" enctype="multipart/form-data">
+            <a asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fa fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </div>
+
+    <form asp-area="Admin"
+          asp-controller="PcComponentAdmin"
+          asp-action="Edit"
+          asp-route-id="@Model.Product.Id"
+          method="post"
+          enctype="multipart/form-data"
+          class="col-12">
+        @Html.AntiForgeryToken()
+
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
+        <input asp-for="PrimaryImageSource" type="hidden" id="PrimaryImageSource" />
+        <input asp-for="PrimaryExistingImageId" type="hidden" id="PrimaryExistingImageId" />
+        <input asp-for="PrimaryNewImageIndex" type="hidden" id="PrimaryNewImageIndex" />
+        <input asp-for="DeleteLegacyImage" type="hidden" id="DeleteLegacyImage" />
+        <input asp-for="WidgetImagesJson" type="hidden" id="WidgetImagesJson" />
+
+        <div id="deleted-image-ids-box"></div>
+
         <div class="row g-3">
-            <div class="col-lg-8">
-                <div class="card mb-3">
-                    <div class="card-header">Thông tin chung</div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label asp-for="Product.Name" class="form-label"></label>
-                            <input asp-for="Product.Name" class="form-control" />
-                            <span asp-validation-for="Product.Name" class="text-danger"></span>
-                        </div>
+            <div class="col-12 col-xl-8">
+                <div class="card-soft form-card mb-3">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Thông tin chung</div>
 
-                        <div class="mb-3">
-                            <label asp-for="Product.Description" class="form-label"></label>
-                            <textarea asp-for="Product.Description" rows="4" class="form-control"></textarea>
-                            <span asp-validation-for="Product.Description" class="text-danger"></span>
-                        </div>
+                        <div class="row form-grid">
+                            <div class="col-12 form-col">
+                                <label asp-for="Product.Name" class="form-label">Tên linh kiện</label>
+                                <input asp-for="Product.Name" class="form-control input-soft" placeholder="Nhập tên linh kiện" />
+                                <span asp-validation-for="Product.Name" class="text-danger small d-block mt-1"></span>
+                            </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label asp-for="Product.Price" class="form-label"></label>
-                                <input asp-for="Product.Price" class="form-control" />
-                                <span asp-validation-for="Product.Price" class="text-danger"></span>
+                            <div class="col-12 form-col">
+                                <label asp-for="Product.Description" class="form-label">Mô tả</label>
+                                <textarea asp-for="Product.Description"
+                                          rows="5"
+                                          class="form-control input-soft textarea-soft"
+                                          placeholder="Nhập mô tả linh kiện"></textarea>
+                                <span asp-validation-for="Product.Description" class="text-danger small d-block mt-1"></span>
                             </div>
-                            <div class="col-md-4">
-                                <label asp-for="Product.Quantity" class="form-label"></label>
-                                <input asp-for="Product.Quantity" class="form-control" />
-                                <span asp-validation-for="Product.Quantity" class="text-danger"></span>
+
+                            <div class="col-12 col-md-4 form-col">
+                                <label asp-for="Product.Price" class="form-label">Giá</label>
+                                <input asp-for="Product.Price" class="form-control input-soft" placeholder="Nhập giá" />
+                                <span asp-validation-for="Product.Price" class="text-danger small d-block mt-1"></span>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-12 col-md-4 form-col">
+                                <label asp-for="Product.Quantity" class="form-label">Số lượng</label>
+                                <input asp-for="Product.Quantity" class="form-control input-soft" placeholder="Nhập số lượng" />
+                                <span asp-validation-for="Product.Quantity" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-12 col-md-4 form-col">
                                 <label asp-for="Product.ComponentType" class="form-label">Loại linh kiện</label>
-                                <select asp-for="Product.ComponentType" class="form-select" asp-items="Html.GetEnumSelectList<PcComponentType>()">
+                                <select asp-for="Product.ComponentType"
+                                        class="form-select input-soft"
+                                        asp-items="Html.GetEnumSelectList<PcComponentType>()"
+                                        id="Product_ComponentType">
                                     <option value="">-- Chọn loại linh kiện --</option>
                                 </select>
-                                <span asp-validation-for="Product.ComponentType" class="text-danger"></span>
+                                <span asp-validation-for="Product.ComponentType" class="text-danger small d-block mt-1"></span>
                             </div>
-                        </div>
 
-                        <div class="row g-3 mt-1">
-                            <div class="col-md-6">
+                            <div class="col-12 col-md-6 form-col">
                                 <label asp-for="Product.PublisherId" class="form-label">Thương hiệu</label>
-                                <select asp-for="Product.PublisherId" asp-items="Model.Publishers" class="form-select">
+                                <select asp-for="Product.PublisherId" asp-items="Model.Publishers" class="form-select input-soft">
                                     <option value="">-- Chọn thương hiệu --</option>
                                 </select>
-                                <span asp-validation-for="Product.PublisherId" class="text-danger"></span>
+                                <span asp-validation-for="Product.PublisherId" class="text-danger small d-block mt-1"></span>
                             </div>
-                            <div class="col-md-6">
+
+                            <div class="col-12 col-md-6 form-col">
                                 <label asp-for="Product.CategoryId" class="form-label">Danh mục</label>
-                                <select asp-for="Product.CategoryId" asp-items="Model.Categories" class="form-select">
+                                <select asp-for="Product.CategoryId" asp-items="Model.Categories" class="form-select input-soft">
                                     <option value="">-- Chọn danh mục --</option>
                                 </select>
-                                <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+                                <span asp-validation-for="Product.CategoryId" class="text-danger small d-block mt-1"></span>
                             </div>
-                        </div>
-
-                        <div class="mt-3">
-                            @if (!string.IsNullOrWhiteSpace(Model.Product.Image))
-                            {
-                                <div class="mb-2">
-                                    <img src="~/media/products/@Model.Product.Image" style="width:120px;height:120px;object-fit:cover;border:1px solid #ddd;padding:4px;" />
-                                </div>
-                            }
-
-                            <label asp-for="Product.ImageUpload" class="form-label">Ảnh sản phẩm</label>
-                            <input asp-for="Product.ImageUpload" type="file" class="form-control" />
-                            <span asp-validation-for="Product.ImageUpload" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-header">Thông số kỹ thuật</div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
+                <div class="card-soft form-card mb-3">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Ảnh sản phẩm</div>
+
+                        <div class="d-flex gap-2 flex-wrap mb-2">
+                            <button type="button" class="btn btn-outline-primary" id="btnAddEditImages">
+                                <i class="fa fa-image me-1"></i> Thêm ảnh mới
+                            </button>
+                        </div>
+
+                        <span asp-validation-for="WidgetImagesJson" class="text-danger small d-block mt-1"></span>
+
+                        <div class="small helper-text mt-2">
+                            Ảnh bị xóa ở đây chỉ mờ đi. Khi bấm <strong>Lưu thay đổi</strong> thì mới cập nhật thật.
+                        </div>
+
+                        <div id="edit-image-list" class="image-row mt-3"></div>
+
+                        <div id="existing-image-source" class="d-none">
+                            @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+                            {
+                                foreach (var img in Model.ExistingImages)
+                                {
+                                    <div class="js-existing-image"
+                                         data-key="e-@img.Id"
+                                         data-id="@img.Id"
+                                         data-url="@img.Url"
+                                         data-legacy="false"
+                                         data-is-main="@img.IsMain.ToString().ToLower()"></div>
+                                }
+                            }
+                            else if (!string.IsNullOrWhiteSpace(Model.Product.Image))
+                            {
+                                <div class="js-existing-image"
+                                     data-key="legacy"
+                                     data-id=""
+                                     data-url="@Model.Product.Image"
+                                     data-legacy="true"
+                                     data-is-main="true"></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-soft form-card">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Thông số kỹ thuật</div>
+
+                        <div class="alert alert-info custom-alert">
                             Với field JSON, ví dụ nhập:
                             <code>["ATX","M-ATX","ITX"]</code>
                         </div>
@@ -92,7 +166,7 @@
                         <div id="specification-container">
                             @for (int i = 0; i < Model.Specifications.Count; i++)
                             {
-                                <div class="mb-3">
+                                <div class="spec-item">
                                     <label class="form-label">
                                         @Model.Specifications[i].Name
                                         @if (!string.IsNullOrWhiteSpace(Model.Specifications[i].Unit))
@@ -109,15 +183,15 @@
 
                                     @if (Model.Specifications[i].DataType == SpecificationDataType.Text)
                                     {
-                                        <input asp-for="Specifications[i].ValueText" class="form-control" />
+                                        <input asp-for="Specifications[i].ValueText" class="form-control input-soft" />
                                     }
                                     else if (Model.Specifications[i].DataType == SpecificationDataType.Number)
                                     {
-                                        <input asp-for="Specifications[i].ValueNumber" type="number" step="0.01" class="form-control" />
+                                        <input asp-for="Specifications[i].ValueNumber" type="number" step="0.01" class="form-control input-soft" />
                                     }
                                     else if (Model.Specifications[i].DataType == SpecificationDataType.Boolean)
                                     {
-                                        <select asp-for="Specifications[i].ValueBool" class="form-select">
+                                        <select asp-for="Specifications[i].ValueBool" class="form-select input-soft">
                                             <option value="">-- Chọn --</option>
                                             <option value="true">Có</option>
                                             <option value="false">Không</option>
@@ -125,7 +199,7 @@
                                     }
                                     else if (Model.Specifications[i].DataType == SpecificationDataType.Json)
                                     {
-                                        <textarea asp-for="Specifications[i].ValueJson" rows="2" class="form-control"></textarea>
+                                        <textarea asp-for="Specifications[i].ValueJson" rows="2" class="form-control input-soft textarea-soft"></textarea>
                                     }
                                 </div>
                             }
@@ -134,12 +208,24 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-header">Thao tác</div>
-                    <div class="card-body d-grid gap-2">
-                        <button type="submit" class="btn btn-success">Lưu thay đổi</button>
-                        <a asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+            <div class="col-12 col-xl-4">
+                <div class="card-soft form-card sticky-action-card">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Thao tác</div>
+
+                        <div class="action-box">
+                            <button type="submit" class="btn btn-accent w-100">
+                                <i class="fa fa-save me-1"></i> Lưu thay đổi
+                            </button>
+
+                            <a asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Index" class="btn btn-outline-secondary w-100">
+                                Quay lại danh sách
+                            </a>
+                        </div>
+
+                        <div class="action-note mt-3">
+                            Khi đổi loại linh kiện, danh sách thông số kỹ thuật sẽ được tải lại theo loại mới đã chọn.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -147,56 +233,883 @@
     </form>
 </div>
 
+<style>
+    .pc-component-edit-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .form-card {
+        overflow: hidden;
+    }
+
+    .card-body-custom {
+        padding: 24px;
+    }
+
+    .section-heading {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eef2f7;
+    }
+
+    .form-grid {
+        margin-left: -10px;
+        margin-right: -10px;
+    }
+
+    .form-col {
+        padding-left: 10px;
+        padding-right: 10px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+        .input-soft:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+        }
+
+    .textarea-soft {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .helper-text {
+        color: #6b7280;
+    }
+
+    .btn-accent {
+        background: #111827;
+        border: 1px solid #111827;
+        color: #fff;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+    }
+
+        .btn-accent:hover,
+        .btn-accent:focus {
+            color: #fff;
+            background: #0f172a;
+            border-color: #0f172a;
+        }
+
+    .btn-outline-secondary,
+    .btn-outline-primary {
+        border-radius: 12px;
+        padding: 10px 18px;
+    }
+
+    .text-danger.small {
+        font-size: 12px;
+    }
+
+    .custom-alert {
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .action-box {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .action-note {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .sticky-action-card {
+        position: sticky;
+        top: 20px;
+    }
+
+    .image-row {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .image-card {
+        min-width: 220px;
+        max-width: 220px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #fff;
+        padding: 12px;
+        flex: 0 0 auto;
+        transition: .2s ease;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+        .image-card.is-deleted {
+            opacity: .45;
+            filter: grayscale(1);
+        }
+
+    .image-thumb-wrap {
+        width: 100%;
+        height: 180px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #f8f9fa;
+        border: 1px solid #edf0f2;
+    }
+
+    .image-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .image-meta {
+        margin-top: 10px;
+    }
+
+    .image-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: #111827;
+    }
+
+    .image-note {
+        font-size: 12px;
+        color: #6c757d;
+        min-height: 18px;
+        line-height: 1.5;
+    }
+
+    .image-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .image-empty {
+        padding: 16px;
+        border: 1px dashed #ced4da;
+        border-radius: 12px;
+        color: #6c757d;
+        background: #fafafa;
+        min-width: 320px;
+    }
+
+    .spec-item {
+        margin-bottom: 18px;
+    }
+
+        .spec-item:last-child {
+            margin-bottom: 0;
+        }
+
+    @@media (max-width: 1199px) {
+        .sticky-action-card {
+            position: static;
+            top: unset;
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .card-body-custom {
+            padding: 16px;
+        }
+
+        .image-card {
+            min-width: 200px;
+            max-width: 200px;
+        }
+
+        .image-empty {
+            min-width: 260px;
+        }
+    }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://upload-widget.cloudinary.com/latest/global/all.js"></script>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
         const componentTypeSelect = document.getElementById("Product_ComponentType");
         const specContainer = document.getElementById("specification-container");
+        const getDefinitionsUrl = '@Url.Action("GetDefinitions", "PcComponentAdmin", new { area = "Admin" })';
 
-        componentTypeSelect.addEventListener("change", async function () {
-            const componentType = this.value;
-            if (!componentType) return;
+        const list = document.getElementById("edit-image-list");
+        const btnAdd = document.getElementById("btnAddEditImages");
 
-            const response = await fetch(`/Admin/PcComponentAdmin/GetDefinitions?componentType=${componentType}`);
-            const specs = await response.json();
+        const primarySourceInput = document.getElementById("PrimaryImageSource");
+        const primaryExistingIdInput = document.getElementById("PrimaryExistingImageId");
+        const primaryNewImageIndexInput = document.getElementById("PrimaryNewImageIndex");
+        const deleteLegacyImageInput = document.getElementById("DeleteLegacyImage");
+        const deletedIdsBox = document.getElementById("deleted-image-ids-box");
+        const widgetImagesInput = document.getElementById("WidgetImagesJson");
 
-            specContainer.innerHTML = "";
+        const initialWidgetImages = @Html.Raw(initialWidgetImagesJson);
+        const initialDeletedIds = @Html.Raw(deletedIdsJson);
+        const initialDeleteLegacy = @(Model.DeleteLegacyImage ? "true" : "false");
+        const initialPrimarySource = '@(Model.PrimaryImageSource ?? "")';
+        const initialPrimaryExistingId = @(Model.PrimaryExistingImageId.HasValue? Model.PrimaryExistingImageId.Value.ToString() : "null");
+        const initialPrimaryNewIndex = @(Model.PrimaryNewImageIndex.HasValue? Model.PrimaryNewImageIndex.Value.ToString() : "null");
 
-            specs.forEach((spec, index) => {
-                let inputHtml = "";
+        const existingImages = Array.from(document.querySelectorAll(".js-existing-image")).map(el => ({
+        key: el.dataset.key,
+        id: el.dataset.id ? Number(el.dataset.id) : null,
+        url: el.dataset.url,
+        isLegacy: el.dataset.legacy === "true",
+        isMain: el.dataset.isMain === "true"
+        }));
 
-                if (spec.dataType === 1) {
-                    inputHtml = `<input class="form-control" name="Specifications[${index}].ValueText" />`;
-                } else if (spec.dataType === 2) {
-                    inputHtml = `<input type="number" step="0.01" class="form-control" name="Specifications[${index}].ValueNumber" />`;
-                } else if (spec.dataType === 3) {
-                    inputHtml = `
-                        <select class="form-select" name="Specifications[${index}].ValueBool">
-                            <option value="">-- Chọn --</option>
-                            <option value="true">Có</option>
-                            <option value="false">Không</option>
-                        </select>`;
-                } else if (spec.dataType === 4) {
-                    inputHtml = `<textarea rows="2" class="form-control" name="Specifications[${index}].ValueJson"></textarea>`;
-                }
+        let newImages = Array.isArray(initialWidgetImages)
+        ? initialWidgetImages.map(x => ({
+        tempId: uid(),
+        publicId: x.publicId || x.PublicId || "",
+        url: x.url || x.Url || "",
+        resourceType: x.resourceType || x.ResourceType || "image",
+        originalFileName: x.originalFileName || x.OriginalFileName || "",
+        replacedExistingKey: null
+        }))
+        : [];
 
-                specContainer.innerHTML += `
-                    <div class="mb-3">
-                        <label class="form-label">
-                            ${spec.name}${spec.unit ? ` (${spec.unit})` : ""}
-                        </label>
+        let deletedExistingIds = new Set(Array.isArray(initialDeletedIds) ? initialDeletedIds.map(Number) : []);
+        let deleteLegacy = initialDeleteLegacy === true || initialDeleteLegacy === "true";
+        let replacementMap = new Map();
+        let replaceContext = null;
+        let primary = null;
 
-                        <input type="hidden" name="Specifications[${index}].SpecificationDefinitionId" value="${spec.id}" />
-                        <input type="hidden" name="Specifications[${index}].Name" value="${spec.name}" />
-                        <input type="hidden" name="Specifications[${index}].Code" value="${spec.code}" />
-                        <input type="hidden" name="Specifications[${index}].DataType" value="${spec.dataType}" />
-                        <input type="hidden" name="Specifications[${index}].Unit" value="${spec.unit ?? ''}" />
+        function uid() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return "img_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+        }
 
-                        ${inputHtml}
-                    </div>
-                `;
-            });
+        function escapeHtml(value) {
+        return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+        }
+
+        function getExistingByKey(key) {
+        return existingImages.find(x => x.key === key);
+        }
+
+        function getExistingDeleted(item) {
+        return item.isLegacy ? deleteLegacy : deletedExistingIds.has(item.id);
+        }
+
+        function getExistingReplaced(item) {
+        return replacementMap.has(item.key);
+        }
+
+        function getSelectableItems() {
+        const result = [];
+
+        existingImages.forEach(item => {
+        if (!getExistingDeleted(item) && !getExistingReplaced(item)) {
+        result.push({
+        type: item.isLegacy ? "legacy" : "existing",
+        key: item.key,
+        existingId: item.id
+        });
+        }
+        });
+
+        newImages.forEach(item => {
+        result.push({
+        type: "new",
+        key: item.tempId
+        });
+        });
+
+        return result;
+        }
+
+        function ensurePrimary() {
+        const selectable = getSelectableItems();
+
+        if (!selectable.length) {
+        primary = null;
+        return;
+        }
+
+        const valid = primary && selectable.some(x => x.type === primary.type && x.key === primary.key);
+        if (!valid) {
+        primary = {
+        type: selectable[0].type,
+        key: selectable[0].key
+        };
+        }
+        }
+
+        function syncHiddenFields() {
+        deletedIdsBox.innerHTML = "";
+
+        Array.from(deletedExistingIds).forEach(id => {
+        deletedIdsBox.insertAdjacentHTML(
+        "beforeend",
+        `<input type="hidden" name="DeletedImageIds" value="${id}" />`
+        );
+        });
+
+        deleteLegacyImageInput.value = deleteLegacy ? "true" : "false";
+
+        widgetImagesInput.value = JSON.stringify(
+        newImages.map(x => ({
+        publicId: x.publicId,
+        url: x.url,
+        resourceType: x.resourceType,
+        originalFileName: x.originalFileName
+        }))
+        );
+
+        ensurePrimary();
+
+        primarySourceInput.value = "";
+        primaryExistingIdInput.value = "";
+        primaryNewImageIndexInput.value = "";
+
+        if (!primary) return;
+
+        if (primary.type === "existing") {
+        const current = getExistingByKey(primary.key);
+        primarySourceInput.value = "existing";
+        primaryExistingIdInput.value = current && current.id ? current.id : "";
+        }
+        else if (primary.type === "legacy") {
+        primarySourceInput.value = "legacy";
+        }
+        else if (primary.type === "new") {
+        const idx = newImages.findIndex(x => x.tempId === primary.key);
+        primarySourceInput.value = "new";
+        primaryNewImageIndexInput.value = idx >= 0 ? idx : "";
+        }
+        }
+
+        function addWidgetImage(info, replacedExistingKey = null) {
+        const item = {
+        tempId: uid(),
+        publicId: info.public_id,
+        url: info.secure_url,
+        resourceType: info.resource_type || "image",
+        originalFileName: info.original_filename || "",
+        replacedExistingKey: replacedExistingKey
+        };
+
+        newImages.push(item);
+
+        if (replacedExistingKey) {
+        const oldItem = getExistingByKey(replacedExistingKey);
+        replacementMap.set(replacedExistingKey, item.tempId);
+
+        if (oldItem) {
+        if (oldItem.isLegacy) {
+        deleteLegacy = true;
+        } else if (oldItem.id) {
+        deletedExistingIds.add(oldItem.id);
+        }
+        }
+        }
+
+        if (!primary) {
+        primary = { type: "new", key: item.tempId };
+        }
+
+        renderImages();
+        }
+
+        function removeNewImage(tempId) {
+        const index = newImages.findIndex(x => x.tempId === tempId);
+        if (index === -1) return;
+
+        const item = newImages[index];
+
+        if (item.replacedExistingKey) {
+        replacementMap.delete(item.replacedExistingKey);
+
+        const oldItem = getExistingByKey(item.replacedExistingKey);
+        if (oldItem) {
+        if (oldItem.isLegacy) {
+        deleteLegacy = false;
+        } else if (oldItem.id) {
+        deletedExistingIds.delete(oldItem.id);
+        }
+        }
+        }
+
+        newImages.splice(index, 1);
+
+        if (primary && primary.type === "new" && primary.key === tempId) {
+        primary = null;
+        }
+
+        renderImages();
+        }
+
+        function replaceExistingImage(existingKey, info) {
+        const oldItem = getExistingByKey(existingKey);
+        if (!oldItem) return;
+
+        const currentReplacementId = replacementMap.get(existingKey);
+        if (currentReplacementId) {
+        const target = newImages.find(x => x.tempId === currentReplacementId);
+        if (target) {
+        target.publicId = info.public_id;
+        target.url = info.secure_url;
+        target.resourceType = info.resource_type || "image";
+        target.originalFileName = info.original_filename || "";
+        }
+
+        if (primary && (primary.type === "existing" || primary.type === "legacy") && primary.key === existingKey) {
+        primary = { type: "new", key: currentReplacementId };
+        }
+
+        renderImages();
+        return;
+        }
+
+        addWidgetImage(info, existingKey);
+
+        const newItem = newImages[newImages.length - 1];
+        if (primary && (primary.type === "existing" || primary.type === "legacy") && primary.key === existingKey) {
+        primary = { type: "new", key: newItem.tempId };
+        }
+        }
+
+        function replaceNewImage(tempId, info) {
+        const item = newImages.find(x => x.tempId === tempId);
+        if (!item) return;
+
+        item.publicId = info.public_id;
+        item.url = info.secure_url;
+        item.resourceType = info.resource_type || "image";
+        item.originalFileName = info.original_filename || "";
+
+        renderImages();
+        }
+
+        function toggleExistingDelete(existingKey) {
+        const item = getExistingByKey(existingKey);
+        if (!item) return;
+
+        if (getExistingReplaced(item)) {
+        const replacementId = replacementMap.get(existingKey);
+        if (replacementId) {
+        removeNewImage(replacementId);
+        }
+        return;
+        }
+
+        if (item.isLegacy) {
+        deleteLegacy = !deleteLegacy;
+        } else if (item.id) {
+        if (deletedExistingIds.has(item.id)) {
+        deletedExistingIds.delete(item.id);
+        } else {
+        deletedExistingIds.add(item.id);
+        }
+        }
+
+        if (primary && primary.key === existingKey) {
+        primary = null;
+        }
+
+        renderImages();
+        }
+
+        function renderImages() {
+        syncHiddenFields();
+
+        const cards = [];
+
+        existingImages.forEach((item, index) => {
+        const isDeleted = getExistingDeleted(item);
+        const isReplaced = getExistingReplaced(item);
+        const canSelectPrimary = !isDeleted && !isReplaced;
+
+        let note = "Ảnh hiện tại";
+        if (item.isLegacy) note = "Ảnh hiện tại (kiểu cũ)";
+        if (item.isMain && !isDeleted && !isReplaced) note = "Ảnh đại diện hiện tại";
+        if (isDeleted) note = "Sẽ xóa khi lưu";
+        if (isReplaced) note = "Ảnh cũ sẽ bị thay khi lưu";
+
+        cards.push(`
+        <div class="image-card ${!canSelectPrimary ? "is-deleted" : ""}">
+        <div class="image-thumb-wrap">
+        <img src="${escapeHtml(item.url)}" class="image-thumb" alt="existing-${index}" />
+        </div>
+
+        <div class="image-meta">
+        <div class="image-title">Ảnh hiện tại ${index + 1}</div>
+        <div class="image-note">${note}</div>
+
+        <div class="form-check mt-2">
+        <input class="form-check-input js-edit-primary"
+        type="radio"
+        name="editPrimaryPreview"
+        data-type="${item.isLegacy ? "legacy" : "existing"}"
+        data-key="${escapeHtml(item.key)}"
+        ${primary && primary.key === item.key && primary.type === (item.isLegacy ? "legacy" : "existing") ? "checked" : ""}
+        ${canSelectPrimary ? "" : "disabled"}>
+        <label class="form-check-label">Đặt làm ảnh đại diện</label>
+        </div>
+
+        <div class="image-actions">
+        <button type="button"
+        class="btn btn-sm ${canSelectPrimary ? "btn-outline-danger" : "btn-outline-secondary"} js-existing-toggle-delete"
+        data-key="${escapeHtml(item.key)}">
+        ${canSelectPrimary ? "Xóa" : "Hoàn tác"}
+        </button>
+
+        <button type="button"
+        class="btn btn-outline-secondary btn-sm js-existing-replace"
+        data-key="${escapeHtml(item.key)}">
+        ${isReplaced ? "Thay ảnh khác" : "Thay ảnh"}
+        </button>
+        </div>
+        </div>
+        </div>
+        `);
+        });
+
+        newImages.forEach((item, index) => {
+        const isReplacement = !!item.replacedExistingKey;
+        let title = `Ảnh mới ${index + 1}`;
+        let note = "Ảnh sẽ được thêm khi lưu";
+
+        if (isReplacement) {
+        const target = getExistingByKey(item.replacedExistingKey);
+        title = "Ảnh thay thế";
+        note = target && target.isLegacy
+        ? "Ảnh này sẽ thay cho ảnh cũ"
+        : `Ảnh này sẽ thay cho ảnh ID ${target?.id ?? ""}`;
+        }
+
+        cards.push(`
+        <div class="image-card">
+        <div class="image-thumb-wrap">
+        <img src="${escapeHtml(item.url)}" class="image-thumb" alt="new-${index}" />
+        </div>
+
+        <div class="image-meta">
+        <div class="image-title">${title}</div>
+        <div class="image-note">${note}</div>
+
+        <div class="form-check mt-2">
+        <input class="form-check-input js-edit-primary"
+        type="radio"
+        name="editPrimaryPreview"
+        data-type="new"
+        data-key="${escapeHtml(item.tempId)}"
+        ${primary && primary.type === "new" && primary.key === item.tempId ? "checked" : ""}>
+        <label class="form-check-label">Đặt làm ảnh đại diện</label>
+        </div>
+
+        <div class="image-actions">
+        <button type="button"
+        class="btn btn-outline-danger btn-sm js-new-delete"
+        data-id="${escapeHtml(item.tempId)}">
+        Xóa
+        </button>
+
+        <button type="button"
+        class="btn btn-outline-secondary btn-sm js-new-replace"
+        data-id="${escapeHtml(item.tempId)}">
+        Thay ảnh
+        </button>
+        </div>
+        </div>
+        </div>
+        `);
+        });
+
+        list.innerHTML = cards.length
+        ? cards.join("")
+        : `<div class="image-empty">Chưa có ảnh nào. Bấm <strong>Thêm ảnh mới</strong> để mở Cloudinary Widget.</div>`;
+        }
+
+        function initPrimary() {
+        if (initialPrimarySource === "existing" && initialPrimaryExistingId != null) {
+        const existing = existingImages.find(x => x.id === Number(initialPrimaryExistingId));
+        if (existing) {
+        primary = { type: "existing", key: existing.key };
+        return;
+        }
+        }
+
+        if (initialPrimarySource === "legacy") {
+        const legacy = existingImages.find(x => x.isLegacy);
+        if (legacy) {
+        primary = { type: "legacy", key: legacy.key };
+        return;
+        }
+        }
+
+        if (initialPrimarySource === "new" && initialPrimaryNewIndex != null) {
+        const idx = Number(initialPrimaryNewIndex);
+        if (idx >= 0 && idx < newImages.length) {
+        primary = { type: "new", key: newImages[idx].tempId };
+        return;
+        }
+        }
+
+        const mainExisting = existingImages.find(x => x.isMain && !getExistingDeleted(x));
+        if (mainExisting) {
+        primary = {
+        type: mainExisting.isLegacy ? "legacy" : "existing",
+        key: mainExisting.key
+        };
+        return;
+        }
+
+        if (newImages.length) {
+        primary = { type: "new", key: newImages[0].tempId };
+        }
+        }
+
+        if (!window.cloudinary) {
+        console.error("Cloudinary widget chưa load.");
+        btnAdd.disabled = true;
+        }
+
+        const addWidget = window.cloudinary
+        ? cloudinary.createUploadWidget(
+        {
+        cloudName: "dd120zgwr",
+        uploadPreset: "ml_default",
+        multiple: true,
+        maxFiles: 20,
+        resourceType: "image",
+        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+        sources: ["url", "camera", "google_drive", "dropbox", "local"],
+        defaultSource: "url"
+        },
+        function (error, result) {
+        if (error) {
+        console.error(error);
+        return;
+        }
+
+        if (result && result.event === "success") {
+        addWidgetImage(result.info);
+        }
+        }
+        )
+        : null;
+
+        const replaceWidget = window.cloudinary
+        ? cloudinary.createUploadWidget(
+        {
+        cloudName: "dd120zgwr",
+        uploadPreset: "ml_default",
+        multiple: false,
+        maxFiles: 1,
+        resourceType: "image",
+        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+        sources: ["url", "camera", "google_drive", "dropbox", "local"],
+        defaultSource: "url"
+        },
+        function (error, result) {
+        if (error) {
+        console.error(error);
+        return;
+        }
+
+        if (!(result && result.event === "success") || !replaceContext) {
+        return;
+        }
+
+        if (replaceContext.mode === "existing") {
+        replaceExistingImage(replaceContext.key, result.info);
+        } else if (replaceContext.mode === "new") {
+        replaceNewImage(replaceContext.key, result.info);
+        }
+
+        replaceContext = null;
+        }
+        )
+        : null;
+
+        btnAdd?.addEventListener("click", function () {
+        replaceContext = null;
+        addWidget?.open();
+        });
+
+        list.addEventListener("click", function (e) {
+        const existingDeleteBtn = e.target.closest(".js-existing-toggle-delete");
+        const existingReplaceBtn = e.target.closest(".js-existing-replace");
+        const newDeleteBtn = e.target.closest(".js-new-delete");
+        const newReplaceBtn = e.target.closest(".js-new-replace");
+
+        if (existingDeleteBtn) {
+        toggleExistingDelete(existingDeleteBtn.dataset.key);
+        return;
+        }
+
+        if (existingReplaceBtn) {
+        replaceContext = {
+        mode: "existing",
+        key: existingReplaceBtn.dataset.key
+        };
+        replaceWidget?.open();
+        return;
+        }
+
+        if (newDeleteBtn) {
+        removeNewImage(newDeleteBtn.dataset.id);
+        return;
+        }
+
+        if (newReplaceBtn) {
+        replaceContext = {
+        mode: "new",
+        key: newReplaceBtn.dataset.id
+        };
+        replaceWidget?.open();
+        }
+        });
+
+        list.addEventListener("change", function (e) {
+        if (e.target.classList.contains("js-edit-primary")) {
+        primary = {
+        type: e.target.dataset.type,
+        key: e.target.dataset.key
+        };
+        renderImages();
+        }
+        });
+
+        async function loadSpecifications() {
+        const componentType = componentTypeSelect.value;
+
+        if (!componentType) {
+        specContainer.innerHTML = `<div class="text-muted">Vui lòng chọn loại linh kiện để hiển thị thông số kỹ thuật.</div>`;
+        return;
+        }
+
+        try {
+        const response = await fetch(`${getDefinitionsUrl}?componentType=${encodeURIComponent(componentType)}`, {
+        method: "GET",
+        headers: {
+        "X-Requested-With": "XMLHttpRequest"
+        }
+        });
+
+        if (!response.ok) {
+        throw new Error(`Lỗi HTTP: ${response.status}`);
+        }
+
+        const rawText = await response.text();
+        let specs;
+
+        try {
+        specs = JSON.parse(rawText);
+        } catch {
+        throw new Error("Dữ liệu trả về không hợp lệ.");
+        }
+
+        specContainer.innerHTML = "";
+
+        if (!Array.isArray(specs) || specs.length === 0) {
+        specContainer.innerHTML = `<div class="alert alert-warning mb-0 custom-alert">Loại linh kiện này chưa có bộ thông số.</div>`;
+        return;
+        }
+
+        specContainer.innerHTML = specs.map((item, index) => {
+        const spec = {
+        id: item.id ?? item.Id,
+        name: item.name ?? item.Name,
+        code: item.code ?? item.Code,
+        dataType: item.dataType ?? item.DataType,
+        unit: item.unit ?? item.Unit ?? ""
+        };
+
+        let inputHtml = "";
+        const dataTypeValue = typeof spec.dataType === "string"
+        ? spec.dataType.toLowerCase()
+        : Number(spec.dataType);
+
+        if (dataTypeValue === 1 || dataTypeValue === "text") {
+        inputHtml = `<input class="form-control input-soft" name="Specifications[${index}].ValueText" />`;
+        } else if (dataTypeValue === 2 || dataTypeValue === "number") {
+        inputHtml = `<input type="number" step="0.01" class="form-control input-soft" name="Specifications[${index}].ValueNumber" />`;
+        } else if (dataTypeValue === 3 || dataTypeValue === "boolean" || dataTypeValue === "bool") {
+        inputHtml = `
+        <select class="form-select input-soft" name="Specifications[${index}].ValueBool">
+        <option value="">-- Chọn --</option>
+        <option value="true">Có</option>
+        <option value="false">Không</option>
+        </select>
+        `;
+        } else if (dataTypeValue === 4 || dataTypeValue === "json") {
+        inputHtml = `<textarea rows="2" class="form-control input-soft textarea-soft" name="Specifications[${index}].ValueJson"></textarea>`;
+        } else {
+        inputHtml = `<input class="form-control input-soft" name="Specifications[${index}].ValueText" />`;
+        }
+
+        return `
+        <div class="spec-item">
+        <label class="form-label">
+        ${spec.name}${spec.unit ? ` (${spec.unit})` : ""}
+        </label>
+
+        <input type="hidden" name="Specifications[${index}].SpecificationDefinitionId" value="${spec.id}" />
+        <input type="hidden" name="Specifications[${index}].Name" value="${spec.name}" />
+        <input type="hidden" name="Specifications[${index}].Code" value="${spec.code}" />
+        <input type="hidden" name="Specifications[${index}].DataType" value="${spec.dataType}" />
+        <input type="hidden" name="Specifications[${index}].Unit" value="${spec.unit}" />
+
+        ${inputHtml}
+        </div>
+        `;
+        }).join("");
+
+        if (window.jQuery && $.validator && $.validator.unobtrusive) {
+        $.validator.unobtrusive.parse(specContainer);
+        }
+        } catch (error) {
+        console.error("Lỗi tải thông số:", error);
+        specContainer.innerHTML = `<div class="alert alert-danger mb-0 custom-alert">Không thể tải thông số kỹ thuật.</div>`;
+        }
+        }
+
+        if (componentTypeSelect) {
+        componentTypeSelect.addEventListener("change", loadSpecifications);
+        }
+
+        initPrimary();
+        renderImages();
         });
     </script>
 }

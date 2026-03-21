@@ -1,6 +1,8 @@
-﻿using Eshop.Areas.Admin.Repository;
+﻿using CloudinaryDotNet;
+using Eshop.Areas.Admin.Repository;
 using Eshop.Hubs;
 using Eshop.Models;
+using Eshop.Models.Configurations;
 using Eshop.Models.Momo;
 using Eshop.Repository;
 using Eshop.Services;
@@ -8,6 +10,7 @@ using Eshop.Services.Momo;
 using Eshop.Services.VNPay;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +28,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<ICatalogCacheService, CatalogCacheService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 builder.Services.Configure<MomoOptionModel>(
     builder.Configuration.GetSection("MomoAPI")
@@ -47,6 +51,25 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+});
+
+//Cloudinary
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddSingleton(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<CloudinarySettings>>().Value;
+
+    var account = new Account(
+        settings.CloudName,
+        settings.ApiKey,
+        settings.ApiSecret);
+
+    var cloudinary = new Cloudinary(account);
+    cloudinary.Api.Secure = true;
+
+    return cloudinary;
 });
 
 // Identity
@@ -135,7 +158,7 @@ app.MapControllerRoute(
 
 // SignalR Hubs
 app.MapHub<ChatHub>("/hubs/chat");
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatHub>("/chatHub");    
 app.MapHub<NotificationHub>("/hubs/notification");
 
 app.Run();
