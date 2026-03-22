@@ -27,11 +27,93 @@
             Products = g.ToList()
         })
         .ToList();
+
+
+    var recommendedProducts = ViewBag.RecommendedProducts as List<Eshop.Models.ProductModel>
+    ?? new List<Eshop.Models.ProductModel>();
 }
 
 <link rel="stylesheet" href="~/css/home-index.css" />
 
 <div class="col-sm-12 home-page-wrapper">
+
+    @if (recommendedProducts.Any())
+    {
+        <div class="section-block">
+            <div class="section-header">
+                <div class="section-title-ribbon">Gợi ý cho bạn</div>
+            </div>
+
+            <div class="products-scroll-wrap">
+                <div class="products-scroll" style="overflow-x:auto;">
+                    @foreach (var item in recommendedProducts)
+                    {
+                        var oldPrice = item.Price * 1.08m;
+                        var discountPercent = oldPrice > 0
+                            ? Math.Round((oldPrice - item.Price) / oldPrice * 100)
+                            : 0;
+
+                        <div class="category-col">
+                            <div class="product-card">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="product-thumb-wrap">
+                                    <img class="product-thumb" src="~/media/products/@item.Image" alt="@item.Name" />
+                                </a>
+
+                                <div class="product-body">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" style="text-decoration:none;">
+                                        <div class="product-name">@item.Name</div>
+                                    </a>
+
+                                    <div class="price-current">@item.Price.ToString("#,##0")đ</div>
+
+                                    <div class="price-old-row">
+                                        <div class="price-old">@oldPrice.ToString("#,##0")đ</div>
+                                        <div class="discount-badge">-@discountPercent%</div>
+                                    </div>
+
+                                    <div class="product-footer">
+                                        <div class="product-action-row">
+                                            @if (item.Quantity > 0)
+                                            {
+                                                <button type="button" class="btn btn-cart-main add-to-cart" data-product_id="@item.Id">
+                                                    <span class="cart-icon-box">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                    </span>
+                                                    <span class="cart-label">THÊM VÀO GIỎ</span>
+                                                </button>
+                                                <span class="stock-badge">Còn hàng</span>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-cart-main" disabled>
+                                                    <span class="cart-icon-box">
+                                                        <i class="fa fa-shopping-cart"></i>
+                                                    </span>
+                                                    <span class="cart-label">HẾT HÀNG</span>
+                                                </button>
+                                                <span class="stock-badge out">Hết hàng</span>
+                                            }
+                                        </div>
+
+                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                        {
+                                            <div class="mini-actions">
+                                                <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
+                                                <button class="btn add-btn-compare" data-product_id="@item.Id">So sánh</button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+
+
 
     @if (hotSlides.Any())
     {

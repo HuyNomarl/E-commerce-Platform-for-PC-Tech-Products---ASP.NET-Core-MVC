@@ -29,6 +29,13 @@
                 <div class="small page-subtitle">Quản lý danh sách sản phẩm</div>
             </div>
 
+            <form asp-area="Admin" asp-controller="Recommendation" asp-action="Train" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary">
+                    Train recommendation
+                </button>
+            </form>
+
             <a asp-area="Admin"
                    asp-action="Create"
                    asp-controller="Product"

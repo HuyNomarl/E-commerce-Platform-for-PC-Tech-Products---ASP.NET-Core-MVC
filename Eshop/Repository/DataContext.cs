@@ -175,6 +175,10 @@ namespace Eshop.Repository
                 .HasForeignKey<ProductTechnicalAssetModel>(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<WishlistModel>()
+        .HasIndex(x => new { x.UserId, x.ProductId })
+        .IsUnique();
+
         }
 
     }

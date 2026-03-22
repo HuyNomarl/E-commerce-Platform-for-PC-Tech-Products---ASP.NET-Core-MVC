@@ -7,6 +7,9 @@ namespace Eshop.Models
     {
         [Key]
         public int OrderId { get; set; }
+        [Required]
+        [StringLength(450)]
+        public string UserId { get; set; } = string.Empty;
 
         [Required]
         [StringLength(100)]

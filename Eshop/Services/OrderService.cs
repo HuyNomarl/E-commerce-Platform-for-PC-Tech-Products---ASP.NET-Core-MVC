@@ -28,7 +28,13 @@ namespace Eshop.Services
 
         public async Task<string?> CreateOrderFromSessionAsync(HttpContext httpContext, ClaimsPrincipal user, CheckoutInputViewModel model)
         {
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
             var userEmail = user.FindFirstValue(ClaimTypes.Email);
+            var userName = user.Identity?.Name;
+
+            if (string.IsNullOrEmpty(userId))
+                return null;
+
             if (string.IsNullOrEmpty(userEmail))
                 return null;
 
@@ -129,8 +135,9 @@ namespace Eshop.Services
 
                 var order = new OrderModel
                 {
+                    UserId = userId,
+                    UserName = userName ?? userEmail,
                     OrderCode = orderCode,
-                    UserName = userEmail,
                     FullName = model.FullName,
                     Phone = model.Phone,
                     Email = model.Email,

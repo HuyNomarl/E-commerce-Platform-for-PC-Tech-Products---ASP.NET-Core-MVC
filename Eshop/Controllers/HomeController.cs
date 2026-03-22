@@ -1,6 +1,7 @@
 ﻿using Eshop.Constants;
 using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Services;
 using Eshop.Views.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,17 +17,20 @@ namespace Eshop.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<AppUserModel> _userManager;
         private readonly IMemoryCache _memoryCache;
+        private readonly RecommendationPredictService _recommendService;
 
         public HomeController(
-            ILogger<HomeController> logger,
-            DataContext dataContext,
-            UserManager<AppUserModel> userManager,
-            IMemoryCache memoryCache)
+              ILogger<HomeController> logger,
+              DataContext dataContext,
+              UserManager<AppUserModel> userManager,
+              IMemoryCache memoryCache,
+              RecommendationPredictService recommendService)
         {
             _logger = logger;
             _dataContext = dataContext;
             _userManager = userManager;
             _memoryCache = memoryCache;
+            _recommendService = recommendService;
         }
 
         public async Task<IActionResult> Index()
@@ -72,7 +76,17 @@ namespace Eshop.Controllers
                 _logger.LogInformation("CACHE HIT: HomeSliders");
             }
 
+            List<ProductModel> recommendedProducts = new();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                recommendedProducts = await _recommendService.RecommendAsync(user.Id, 8);
+            }
+
             ViewBag.Sliders = sliders;
+            ViewBag.RecommendedProducts = recommendedProducts;
+
             return View(products);
         }
 
