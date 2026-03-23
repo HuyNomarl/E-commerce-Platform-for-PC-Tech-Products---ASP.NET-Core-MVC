@@ -56,7 +56,22 @@
                         <div class="category-col">
                             <div class="product-card">
                                 <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="product-thumb-wrap">
-                                    <img class="product-thumb" src="~/media/products/@item.Image" alt="@item.Name" />
+                                    @if (!string.IsNullOrWhiteSpace(item.Image))
+                                    {
+                                        var imageSrc = item.Image.StartsWith("http://") || item.Image.StartsWith("https://")
+                                            ? item.Image
+                                            : Url.Content("~/media/products/" + item.Image);
+
+                                        <img src="@imageSrc"
+                                             class="product-thumb"
+                                             alt="@item.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="thumb thumb-placeholder">
+                                            <i class="fa fa-image"></i>
+                                        </div>
+                                    }
                                 </a>
 
                                 <div class="product-body">
@@ -238,7 +253,22 @@
                         <div class="category-col">
                             <div class="product-card">
                                 <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="product-thumb-wrap">
-                                    <img class="product-thumb" src="~/media/products/@item.Image" alt="@item.Name" />
+                                    @if (!string.IsNullOrWhiteSpace(item.Image))
+                                    {
+                                        var imageSrc = item.Image.StartsWith("http://") || item.Image.StartsWith("https://")
+                                            ? item.Image
+                                            : Url.Content("~/media/products/" + item.Image);
+
+                                        <img src="@imageSrc"
+                                             class="product-thumb"
+                                             alt="@item.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="thumb thumb-placeholder">
+                                            <i class="fa fa-image"></i>
+                                        </div>
+                                    }
                                 </a>
 
                                 <div class="product-body">

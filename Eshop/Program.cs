@@ -57,10 +57,33 @@ builder.Services.AddScoped<ICatalogCacheService, CatalogCacheService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<RecommendationTrainingService>();
 builder.Services.AddScoped<RecommendationPredictService>();
+builder.Services.AddScoped<IBuildRequirementExtractor, BuildRequirementExtractor>();
+builder.Services.AddScoped<IPcBuildRecommendationService, PcBuildRecommendationService>();
+builder.Services.AddScoped<IPcBuildSuggestionService, PcBuildSuggestionService>();
+builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
 
 builder.Services.Configure<MomoOptionModel>(
     builder.Configuration.GetSection("MomoAPI")
 );
+
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+            );
+
+        return new BadRequestObjectResult(new
+        {
+            message = "Model binding failed",
+            errors
+        });
+    };
+});
 
 // MVC + AntiForgery
 builder.Services
@@ -85,6 +108,15 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
+
+//RAG Client
+builder.Services.AddHttpClient<ILlmChatClient, LlmChatClient>();
+builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
+builder.Services.AddHttpClient<RagClient>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:8001");
+});
+
 
 // Cloudinary
 builder.Services.Configure<CloudinarySettings>(
@@ -121,7 +153,7 @@ builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.AllowedForNewUsers = true;
 
-    options.SignIn.RequireConfirmedEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders();

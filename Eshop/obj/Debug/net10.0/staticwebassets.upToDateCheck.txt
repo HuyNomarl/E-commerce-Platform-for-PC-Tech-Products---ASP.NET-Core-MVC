@@ -12,6 +12,7 @@ wwwroot\css\site-custom.css
 wwwroot\favicon.ico
 wwwroot\images\dune.jpg
 wwwroot\images\gallery1.jpg
+wwwroot\images\Logo\bfe68383-fed2-4775-954a-a5ac3c1d5291.png
 wwwroot\images\love_in_the_time_of_cholera.jpg
 wwwroot\js\bootstrap.min.js
 wwwroot\js\contact.js
@@ -105,9 +106,27 @@ wwwroot\media\products\f4646229b36c4fefb148102f45206a31.jpg
 wwwroot\media\sliders\33c94fdb-5168-47f3-930f-0f666be2fe6f.jpg
 wwwroot\media\sliders\7e95033a-80e9-4279-82c5-6f099fbb45cb.jpg
 wwwroot\media\sliders\84bbfe4a-f523-4936-9092-f88a6e01d2cd.jpg
-E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
-E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
+E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
+E:\Web C#\Eshop\Eshop\wwwroot\css\account-dashboard.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\home-index.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
+E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
+E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
+E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css
@@ -167,22 +186,4 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\LICENSE.txt
-E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
-E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\contact.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\gmaps.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\html5shiv.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
-E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
 E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\home-index.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\account-dashboard.css

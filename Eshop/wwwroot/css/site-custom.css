@@ -3,16 +3,7 @@ body {
     font-family: Arial, sans-serif;
 }
 
-.tt-header {
-    width: 100%;
-    position: relative;
-    z-index: 1000;
-}
 
-.tt-header-top {
-    background: #003b46;
-    padding: 10px 0;
-}
 
 .tt-top-inner {
     display: flex;
@@ -38,10 +29,8 @@ body {
         font-size: 14px;
     }
 
-.tt-header-main {
-    background: #f3f3f3;
-    padding: 18px 0 12px;
-}
+
+
 
 .tt-main-row {
     display: flex;
@@ -168,10 +157,7 @@ body {
         font-size: 14px;
     }
 
-.tt-header-bottom {
-    background: #f3f3f3;
-    padding-bottom: 14px;
-}
+
 
 .tt-bottom-row {
     display: flex;
@@ -576,5 +562,7 @@ body {
         bottom: 10px;
     }
 }
+
+
 
 </style >

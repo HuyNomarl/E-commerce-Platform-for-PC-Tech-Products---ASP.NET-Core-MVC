@@ -3,113 +3,6 @@
 }
 
 <style>
-    .picker-layout {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 14px;
-    min-height: 500px;
-}
-
-.picker-sidebar {
-    background: #f3f3f3;
-    border-right: 1px solid #ddd;
-    padding-right: 8px;
-}
-
-.picker-filter-box {
-    background: #f3f3f3;
-}
-
-.picker-filter-title {
-    font-size: 16px;
-    font-weight: 800;
-    text-transform: uppercase;
-    border: 1px solid #d8d8d8;
-    background: #efefef;
-    text-align: center;
-    padding: 10px 12px;
-    margin-bottom: 14px;
-}
-
-.picker-filter-tools {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
-.picker-sort-select {
-    height: 38px;
-    border: 1px solid #ccc;
-    background: #fff;
-    padding: 0 10px;
-    border-radius: 4px;
-}
-
-.picker-inline-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.picker-clear-filter-btn {
-    border: none;
-    background: #ef1b12;
-    color: #fff;
-    padding: 8px 10px;
-    border-radius: 4px;
-    font-weight: 700;
-}
-
-.filter-group {
-    margin-bottom: 18px;
-}
-
-.filter-group-title {
-    font-size: 15px;
-    font-weight: 800;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.filter-options-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 18px;
-}
-
-.filter-option-label {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    line-height: 1.35;
-}
-
-.filter-option-label input {
-    margin-top: 2px;
-}
-
-.filter-option-count {
-    color: #555;
-}
-
-.picker-content {
-    min-width: 0;
-}
-
-@@media (max-width: 992px) {
-    .picker-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .filter-options-grid {
-        grid-template-columns: 1fr;
-    }
-}
     .pc-builder-page {
         background: #efefef;
         padding: 20px 0 28px;
@@ -453,6 +346,104 @@
         padding: 14px;
     }
 
+    .picker-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 14px;
+        min-height: 500px;
+    }
+
+    .picker-sidebar {
+        background: #f3f3f3;
+        border-right: 1px solid #ddd;
+        padding-right: 8px;
+    }
+
+    .picker-filter-box {
+        background: #f3f3f3;
+    }
+
+    .picker-filter-title {
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: 1px solid #d8d8d8;
+        background: #efefef;
+        text-align: center;
+        padding: 10px 12px;
+        margin-bottom: 14px;
+    }
+
+    .picker-filter-tools {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .picker-sort-select {
+        height: 38px;
+        border: 1px solid #ccc;
+        background: #fff;
+        padding: 0 10px;
+        border-radius: 4px;
+    }
+
+    .picker-inline-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .picker-clear-filter-btn {
+        border: none;
+        background: #ef1b12;
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+
+    .filter-group {
+        margin-bottom: 18px;
+    }
+
+    .filter-group-title {
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .filter-options-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 18px;
+    }
+
+    .filter-option-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1.35;
+    }
+
+        .filter-option-label input {
+            margin-top: 2px;
+        }
+
+    .filter-option-count {
+        color: #555;
+    }
+
+    .picker-content {
+        min-width: 0;
+    }
+
     .picker-list {
         display: flex;
         flex-direction: column;
@@ -536,6 +527,119 @@
         color: #666;
     }
 
+    .build-chatbox {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        width: 360px;
+        max-height: 70vh;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        display: flex;
+        flex-direction: column;
+        z-index: 1300;
+        overflow: hidden;
+    }
+
+        .build-chatbox.collapsed .build-chatbox-body,
+        .build-chatbox.collapsed .build-chatbox-actions,
+        .build-chatbox.collapsed .build-chatbox-input {
+            display: none;
+        }
+
+    .build-chatbox-header {
+        background: #003a3f;
+        color: #fff;
+        padding: 12px 14px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+        .build-chatbox-header button {
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+    .build-chatbox-body {
+        padding: 12px;
+        background: #f8f8f8;
+        overflow: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 220px;
+    }
+
+    .chat-message {
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+        max-width: 88%;
+        white-space: pre-wrap;
+    }
+
+        .chat-message.bot {
+            background: #eef5ff;
+            align-self: flex-start;
+        }
+
+        .chat-message.user {
+            background: #ffefe8;
+            align-self: flex-end;
+        }
+
+    .build-chatbox-actions {
+        padding: 10px 12px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        border-top: 1px solid #eee;
+        background: #fff;
+    }
+
+    .chat-quick-btn {
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 20px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .build-chatbox-input {
+        display: flex;
+        gap: 8px;
+        padding: 12px;
+        border-top: 1px solid #eee;
+        background: #fff;
+    }
+
+        .build-chatbox-input input {
+            flex: 1;
+            height: 40px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 0 12px;
+        }
+
+        .build-chatbox-input button {
+            border: none;
+            background: #ef1b12;
+            color: #fff;
+            border-radius: 6px;
+            padding: 0 14px;
+            font-weight: 700;
+        }
+
     @@media (max-width: 1200px) {
         .selected-item {
             grid-template-columns: 66px 1fr;
@@ -550,6 +654,16 @@
 
         .builder-actions {
             grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .picker-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .filter-options-grid {
+            grid-template-columns: 1fr;
         }
     }
 
@@ -577,6 +691,13 @@
 
         .builder-actions {
             grid-template-columns: 1fr;
+        }
+
+        .build-chatbox {
+            left: 12px;
+            right: 12px;
+            width: auto;
+            bottom: 12px;
         }
     }
 </style>
@@ -612,6 +733,30 @@
     </div>
 </div>
 
+<div class="build-chatbox" id="buildChatbox">
+    <div class="build-chatbox-header">
+        <div>Hỗ trợ build PC</div>
+        <button type="button" id="toggleBuildChatbox">−</button>
+    </div>
+
+    <div class="build-chatbox-body" id="buildChatMessages">
+        <div class="chat-message bot">
+            Mình có thể giúp bạn kiểm tra lỗi cấu hình, tư vấn PSU, case, hoặc giải thích vì sao linh kiện chưa tương thích.
+        </div>
+    </div>
+
+    <div class="build-chatbox-actions">
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Cấu hình hiện tại có lỗi gì?')">Kiểm tra lỗi</button>
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Nguồn hiện tại có đủ không?')">Gợi ý PSU</button>
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Case hiện tại có phù hợp không?')">Gợi ý Case</button>
+    </div>
+
+    <div class="build-chatbox-input">
+        <input type="text" id="buildChatInput" placeholder="Hỏi về cấu hình hiện tại..." />
+        <button type="button" id="sendBuildChatBtn">Gửi</button>
+    </div>
+</div>
+
 <div class="picker-overlay" id="pickerOverlay">
     <div class="picker-modal">
         <div class="picker-header">
@@ -631,26 +776,26 @@
                     <div class="picker-filter-box">
                         <div class="picker-filter-title">LỌC SẢN PHẨM THEO</div>
 
-                       <div class="picker-filter-tools">
-    <select id="pickerSort" class="picker-sort-select">
-        <option value="default">Sắp xếp: Tùy chọn</option>
-        <option value="price_asc">Giá tăng dần</option>
-        <option value="price_desc">Giá giảm dần</option>
-        <option value="name_asc">Tên A-Z</option>
-    </select>
+                        <div class="picker-filter-tools">
+                            <select id="pickerSort" class="picker-sort-select">
+                                <option value="default">Sắp xếp: Tùy chọn</option>
+                                <option value="price_asc">Giá tăng dần</option>
+                                <option value="price_desc">Giá giảm dần</option>
+                                <option value="name_asc">Tên A-Z</option>
+                            </select>
 
-    <label class="picker-inline-check">
-        <input type="checkbox" id="pickerInStockOnly" />
-        <span>Chỉ hiện linh kiện còn hàng</span>
-    </label>
+                            <label class="picker-inline-check">
+                                <input type="checkbox" id="pickerInStockOnly" />
+                                <span>Chỉ hiện linh kiện còn hàng</span>
+                            </label>
 
-    <label class="picker-inline-check">
-        <input type="checkbox" id="pickerCompatibleOnly" checked />
-        <span>Chỉ hiện linh kiện tương thích</span>
-    </label>
+                            <label class="picker-inline-check">
+                                <input type="checkbox" id="pickerCompatibleOnly" checked />
+                                <span>Chỉ hiện linh kiện tương thích</span>
+                            </label>
 
-    <button type="button" id="btnClearPickerFilters" class="picker-clear-filter-btn">Xóa bộ lọc</button>
-</div>
+                            <button type="button" id="btnClearPickerFilters" class="picker-clear-filter-btn">Xóa bộ lọc</button>
+                        </div>
 
                         <div id="pickerFilters"></div>
                     </div>
@@ -671,901 +816,926 @@
 
 @section Scripts {
     <script>
-    const SLOT_CONFIGS = [
-        { type: "CPU",       label: "1. CPU",          buttonText: "Chọn CPU",             multi: false },
-        { type: "Mainboard", label: "2. MAINBOARD",    buttonText: "Chọn Mainboard",       multi: false },
-        { type: "RAM",       label: "3. RAM",          buttonText: "Chọn RAM",             multi: true  },
-        { type: "GPU",       label: "4. CARD ĐỒ HỌA",  buttonText: "Chọn Card Đồ Họa",     multi: false },
-        { type: "SSD",       label: "5. Ổ CỨNG",       buttonText: "Chọn Ổ Cứng",          multi: true  },
-        { type: "PSU",       label: "6. NGUỒN (PSU)",  buttonText: "Chọn Nguồn (PSU)",     multi: false },
-        { type: "Cooler",    label: "7. TẢN NHIỆT",    buttonText: "Chọn Tản Nhiệt",       multi: false },
-        { type: "Case",      label: "8. VỎ CASE",      buttonText: "Chọn Vỏ Case",         multi: false },
-        { type: "Monitor",   label: "9. MÀN HÌNH",     buttonText: "Chọn Màn Hình",        multi: true  }
-    ];
+        const SLOT_CONFIGS = [
+            { type: "CPU", label: "1. CPU", buttonText: "Chọn CPU", multi: false },
+            { type: "Mainboard", label: "2. MAINBOARD", buttonText: "Chọn Mainboard", multi: false },
+            { type: "RAM", label: "3. RAM", buttonText: "Chọn RAM", multi: true },
+            { type: "GPU", label: "4. CARD ĐỒ HỌA", buttonText: "Chọn Card Đồ Họa", multi: false },
+            { type: "SSD", label: "5. Ổ CỨNG", buttonText: "Chọn Ổ Cứng", multi: true },
+            { type: "PSU", label: "6. NGUỒN (PSU)", buttonText: "Chọn Nguồn (PSU)", multi: false },
+            { type: "Cooler", label: "7. TẢN NHIỆT", buttonText: "Chọn Tản Nhiệt", multi: false },
+            { type: "Case", label: "8. VỎ CASE", buttonText: "Chọn Vỏ Case", multi: false },
+            { type: "Monitor", label: "9. MÀN HÌNH", buttonText: "Chọn Màn Hình", multi: true }
+        ];
 
-    const buildState = {
-        CPU: null,
-        Mainboard: null,
-        RAM: [],
-        GPU: null,
-        SSD: [],
-        PSU: null,
-        Cooler: null,
-        Case: null,
-        Monitor: []
-    };
+        const buildState = {
+            CPU: null,
+            Mainboard: null,
+            RAM: [],
+            GPU: null,
+            SSD: [],
+            PSU: null,
+            Cooler: null,
+            Case: null,
+            Monitor: []
+        };
 
-    let pickerType = null;
-    let pickerAllItems = [];
-    let pickerFilteredItems = [];
-    let compatibilityState = { totalPrice: 0, estimatedPower: 0, messages: [] };
+        let pickerType = null;
+        let pickerAllItems = [];
+        let pickerFilteredItems = [];
+        let compatibilityState = { totalPrice: 0, estimatedPower: 0, messages: [] };
 
-   const pickerFilterState = {
-    keyword: "",
-    sort: "default",
-    inStockOnly: false,
-    compatibleOnly: true,
-    publisherIds: [],
-    specs: {}
-};
+        const pickerFilterState = {
+            keyword: "",
+            sort: "default",
+            inStockOnly: false,
+            compatibleOnly: true,
+            publisherIds: [],
+            specs: {}
+        };
 
-    const builderTableBody = document.getElementById("builderTableBody");
-    const pickerOverlay = document.getElementById("pickerOverlay");
-    const pickerTitle = document.getElementById("pickerTitle");
-    const pickerList = document.getElementById("pickerList");
-    const pickerKeyword = document.getElementById("pickerKeyword");
-    const topTotalPrice = document.getElementById("topTotalPrice");
-    const bottomTotalPrice = document.getElementById("bottomTotalPrice");
-    const builderMessages = document.getElementById("builderMessages");
-    const pickerFilters = document.getElementById("pickerFilters");
-const pickerSort = document.getElementById("pickerSort");
-const pickerInStockOnly = document.getElementById("pickerInStockOnly");
-const pickerCompatibleOnly = document.getElementById("pickerCompatibleOnly");
+        const builderTableBody = document.getElementById("builderTableBody");
+        const pickerOverlay = document.getElementById("pickerOverlay");
+        const pickerTitle = document.getElementById("pickerTitle");
+        const pickerList = document.getElementById("pickerList");
+        const pickerKeyword = document.getElementById("pickerKeyword");
+        const topTotalPrice = document.getElementById("topTotalPrice");
+        const bottomTotalPrice = document.getElementById("bottomTotalPrice");
+        const builderMessages = document.getElementById("builderMessages");
+        const pickerFilters = document.getElementById("pickerFilters");
+        const pickerSort = document.getElementById("pickerSort");
+        const pickerInStockOnly = document.getElementById("pickerInStockOnly");
+        const pickerCompatibleOnly = document.getElementById("pickerCompatibleOnly");
+        const buildChatMessages = document.getElementById("buildChatMessages");
+        const buildChatInput = document.getElementById("buildChatInput");
+        const sendBuildChatBtn = document.getElementById("sendBuildChatBtn");
+        const toggleBuildChatbox = document.getElementById("toggleBuildChatbox");
+        const buildChatbox = document.getElementById("buildChatbox");
 
-   function initPcBuilderPage() {
-    document.getElementById("btnClosePicker")?.addEventListener("click", closePicker);
-    document.getElementById("btnCancelPicker")?.addEventListener("click", closePicker);
-    document.getElementById("btnSearchPicker")?.addEventListener("click", applyPickerFilters);
-    document.getElementById("btnConfirmPicker")?.addEventListener("click", confirmPickerSelection);
-    document.getElementById("btnResetBuild")?.addEventListener("click", resetBuild);
-    document.getElementById("saveBuildBtn").addEventListener("click", addBuildToCart);
-    document.getElementById("btnClearPickerFilters")?.addEventListener("click", clearPickerFilters);
+        function initPcBuilderPage() {
+            document.getElementById("btnClosePicker")?.addEventListener("click", closePicker);
+            document.getElementById("btnCancelPicker")?.addEventListener("click", closePicker);
+            document.getElementById("btnSearchPicker")?.addEventListener("click", applyPickerFilters);
+            document.getElementById("btnConfirmPicker")?.addEventListener("click", confirmPickerSelection);
+            document.getElementById("btnResetBuild")?.addEventListener("click", resetBuild);
+            document.getElementById("saveBuildBtn")?.addEventListener("click", addBuildToCart);
+            document.getElementById("btnClearPickerFilters")?.addEventListener("click", clearPickerFilters);
 
-    pickerSort?.addEventListener("change", () => {
-        pickerFilterState.sort = pickerSort.value;
-        applyPickerFilters();
-    });
+            pickerSort?.addEventListener("change", () => {
+                pickerFilterState.sort = pickerSort.value;
+                applyPickerFilters();
+            });
 
-    pickerInStockOnly?.addEventListener("change", () => {
-        pickerFilterState.inStockOnly = pickerInStockOnly.checked;
-        applyPickerFilters();
-    });
+            pickerInStockOnly?.addEventListener("change", () => {
+                pickerFilterState.inStockOnly = pickerInStockOnly.checked;
+                applyPickerFilters();
+            });
 
-    pickerCompatibleOnly?.addEventListener("change", () => {
-        pickerFilterState.compatibleOnly = pickerCompatibleOnly.checked;
-        applyPickerFilters();
-    });
+            pickerCompatibleOnly?.addEventListener("change", () => {
+                pickerFilterState.compatibleOnly = pickerCompatibleOnly.checked;
+                applyPickerFilters();
+            });
 
-    pickerOverlay?.addEventListener("click", (e) => {
-        if (e.target === pickerOverlay) closePicker();
-    });
+            pickerOverlay?.addEventListener("click", (e) => {
+                if (e.target === pickerOverlay) closePicker();
+            });
 
-    renderBuildTable();
-    renderMessages();
-}
+            sendBuildChatBtn?.addEventListener("click", () => {
+                askBuildAssistant(buildChatInput.value);
+                buildChatInput.value = "";
+            });
 
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initPcBuilderPage);
-} else {
-    initPcBuilderPage();
-}
+            buildChatInput?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    askBuildAssistant(buildChatInput.value);
+                    buildChatInput.value = "";
+                }
+            });
 
-    function getFilterConfig(type) {
-        switch (type) {
-            case "CPU":
-                return [{ code: "cpu_socket", title: "Socket CPU" }];
+            toggleBuildChatbox?.addEventListener("click", () => {
+                buildChatbox.classList.toggle("collapsed");
+                toggleBuildChatbox.textContent = buildChatbox.classList.contains("collapsed") ? "+" : "−";
+            });
 
-            case "Mainboard":
-                return [
-                    { code: "mb_socket", title: "Socket Mainboard" },
-                    { code: "mb_chipset", title: "Chipset" },
-                    { code: "mb_form_factor", title: "Kích thước Mainboard" },
-                    { code: "mb_ram_type", title: "Loại RAM hỗ trợ" }
-                ];
-
-            case "RAM":
-                return [
-                    { code: "ram_capacity_gb", title: "Dung lượng RAM" },
-                    { code: "ram_type", title: "Loại RAM" },
-                    { code: "ram_bus_mhz", title: "Bus RAM" }
-                ];
-
-            case "SSD":
-                return [
-                    { code: "ssd_storage_type", title: "Loại ổ" },
-                    { code: "ssd_capacity_gb", title: "Dung lượng SSD" },
-                    { code: "ssd_interface", title: "Chuẩn giao tiếp" }
-                ];
-
-            case "GPU":
-                return [
-                    { code: "gpu_chip", title: "GPU" },
-                    { code: "gpu_vram_gb", title: "VRAM" }
-                ];
-
-            case "PSU":
-                return [
-                    { code: "psu_watt", title: "Công suất PSU" },
-                    { code: "psu_efficiency", title: "Chứng nhận" },
-                    { code: "psu_standard", title: "Chuẩn nguồn" }
-                ];
-
-            case "Case":
-                return [
-                    { code: "case_psu_standard", title: "Chuẩn PSU hỗ trợ" }
-                ];
-
-            case "Cooler":
-                return [
-                    { code: "cooler_height_mm", title: "Chiều cao tản nhiệt" }
-                ];
-
-            case "Monitor":
-                return [
-                    { code: "monitor_size_inch", title: "Kích thước màn hình" },
-                    { code: "monitor_resolution", title: "Độ phân giải" },
-                    { code: "monitor_refresh_rate_hz", title: "Tần số quét" },
-                    { code: "monitor_panel_type", title: "Tấm nền" }
-                ];
-
-            default:
-                return [];
+            renderBuildTable();
+            renderMessages();
         }
-    }
 
-    function renderBuildTable() {
-        builderTableBody.innerHTML = SLOT_CONFIGS.map(slot => {
-            const selected = buildState[slot.type];
-            const isMulti = slot.multi;
-            const hasItems = isMulti ? selected.length > 0 : !!selected;
+        function getFilterConfig(type) {
+            switch (type) {
+                case "CPU":
+                    return [{ code: "cpu_socket", title: "Socket CPU" }];
+                case "Mainboard":
+                    return [
+                        { code: "mb_socket", title: "Socket Mainboard" },
+                        { code: "mb_chipset", title: "Chipset" },
+                        { code: "mb_form_factor", title: "Kích thước Mainboard" },
+                        { code: "mb_ram_type", title: "Loại RAM hỗ trợ" }
+                    ];
+                case "RAM":
+                    return [
+                        { code: "ram_capacity_gb", title: "Dung lượng RAM" },
+                        { code: "ram_type", title: "Loại RAM" },
+                        { code: "ram_bus_mhz", title: "Bus RAM" }
+                    ];
+                case "SSD":
+                    return [
+                        { code: "ssd_storage_type", title: "Loại ổ" },
+                        { code: "ssd_capacity_gb", title: "Dung lượng SSD" },
+                        { code: "ssd_interface", title: "Chuẩn giao tiếp" }
+                    ];
+                case "GPU":
+                    return [
+                        { code: "gpu_chip", title: "GPU" },
+                        { code: "gpu_vram_gb", title: "VRAM" }
+                    ];
+                case "PSU":
+                    return [
+                        { code: "psu_watt", title: "Công suất PSU" },
+                        { code: "psu_efficiency", title: "Chứng nhận" },
+                        { code: "psu_standard", title: "Chuẩn nguồn" }
+                    ];
+                case "Case":
+                    return [{ code: "case_psu_standard", title: "Chuẩn PSU hỗ trợ" }];
+                case "Cooler":
+                    return [{ code: "cooler_height_mm", title: "Chiều cao tản nhiệt" }];
+                case "Monitor":
+                    return [
+                        { code: "monitor_size_inch", title: "Kích thước màn hình" },
+                        { code: "monitor_resolution", title: "Độ phân giải" },
+                        { code: "monitor_refresh_rate_hz", title: "Tần số quét" },
+                        { code: "monitor_panel_type", title: "Tấm nền" }
+                    ];
+                default:
+                    return [];
+            }
+        }
+
+        function renderBuildTable() {
+            builderTableBody.innerHTML = SLOT_CONFIGS.map(slot => {
+                const selected = buildState[slot.type];
+                const hasItems = slot.multi ? selected.length > 0 : !!selected;
+
+                return `
+                    <tr>
+                        <td class="slot-col">${slot.label}</td>
+                        <td class="content-col">
+                            ${hasItems
+                                ? renderSelectedContent(slot.type, slot.multi)
+                                : `
+                                    <div class="empty-slot-wrap">
+                                        <button type="button" class="btn-choose-component" onclick="openPicker('${slot.type}')">
+                                            ＋ ${slot.buttonText}
+                                        </button>
+                                    </div>
+                                  `
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            renderTotals();
+        }
+
+        function renderSelectedContent(type, multi) {
+            const items = multi ? buildState[type] : [buildState[type]];
 
             return `
-                <tr>
-                    <td class="slot-col">${slot.label}</td>
-                    <td class="content-col">
-                        ${hasItems
-                            ? renderSelectedContent(slot.type, slot.multi)
-                            : `
-                                <div class="empty-slot-wrap">
-                                    <button type="button" class="btn-choose-component" onclick="openPicker('${slot.type}')">
-                                        ＋ ${slot.buttonText}
-                                    </button>
-                                </div>
-                              `
-                        }
-                    </td>
-                </tr>
+                <div class="selected-group">
+                    ${items.map(item => renderSelectedItem(type, multi, item)).join("")}
+                    <div>
+                        <button type="button" class="btn-choose-component" onclick="openPicker('${type}')">
+                            ＋ ${getButtonText(type)}
+                        </button>
+                    </div>
+                </div>
             `;
-        }).join("");
-
-        renderTotals();
-    }
-
-    function renderSelectedContent(type, multi) {
-        const items = multi ? buildState[type] : [buildState[type]];
-
-        return `
-            <div class="selected-group">
-                ${items.map(item => renderSelectedItem(type, multi, item)).join("")}
-                <div>
-                    <button type="button" class="btn-choose-component" onclick="openPicker('${type}')">
-                        ＋ ${getButtonText(type)}
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    function renderSelectedItem(type, multi, item) {
-        const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
-        const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
-        const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
-
-        return `
-            <div class="selected-item">
-                <img class="selected-thumb" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
-                <div class="selected-info">
-                    <div class="selected-name">${escapeHtml(item.name)}</div>
-                    <div class="selected-sub">
-                        ${renderSummaryLine(item.summarySpecs)}
-                    </div>
-                    <div>- Kho hàng: <span class="${stockClass}">${stockText}</span></div>
-                </div>
-
-                <div class="selected-price-side">
-                    <div class="unit-price">${formatPrice(item.price)}</div>
-
-                    ${multi ? `
-                        <div class="qty-box">
-                            <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, -1)">-</button>
-                            <input class="qty-input" value="${item.quantity || 1}" readonly />
-                            <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, 1)">+</button>
-                        </div>
-                    ` : `
-                        <div class="qty-box">
-                            <input class="qty-input" value="1" readonly />
-                        </div>
-                    `}
-
-                    <div class="line-total">${formatPrice((item.price || 0) * (item.quantity || 1))}</div>
-
-                    <div class="item-actions">
-                        <button type="button" class="mini-action-btn" onclick="openPicker('${type}')">Đổi</button>
-                        <button type="button" class="mini-action-btn mini-remove-btn" onclick="removeSelectedItem('${type}', ${item.id})">Xóa</button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    function renderSummaryLine(summarySpecs) {
-        if (!summarySpecs || summarySpecs.length === 0) return "";
-        return summarySpecs.map(x => `- ${escapeHtml(x)}`).join("<br />");
-    }
-
-    function getButtonText(type) {
-        const slot = SLOT_CONFIGS.find(x => x.type === type);
-        return slot ? slot.buttonText : "Chọn linh kiện";
-    }
-
-    async function openPicker(type) {
-        pickerType = type;
-        pickerTitle.textContent = `CHỌN LINH KIỆN - ${type.toUpperCase()}`;
-        resetPickerFilterState();
-        pickerOverlay.classList.add("show");
-        await loadPickerItems();
-    }
-
-    function closePicker() {
-        pickerOverlay.classList.remove("show");
-        pickerType = null;
-        pickerAllItems = [];
-        pickerFilteredItems = [];
-        pickerList.innerHTML = "";
-        pickerFilters.innerHTML = "";
-    }
-
-function resetPickerFilterState() {
-    pickerFilterState.keyword = "";
-    pickerFilterState.sort = "default";
-    pickerFilterState.inStockOnly = false;
-    pickerFilterState.compatibleOnly = true;
-    pickerFilterState.publisherIds = [];
-    pickerFilterState.specs = {};
-
-    if (pickerKeyword) pickerKeyword.value = "";
-    if (pickerSort) pickerSort.value = "default";
-    if (pickerInStockOnly) pickerInStockOnly.checked = false;
-    if (pickerCompatibleOnly) pickerCompatibleOnly.checked = true;
-}
-
-  async function loadPickerItems() {
-    if (!pickerType) return;
-
-    pickerList.innerHTML = `<div class="empty-picker">Đang tải dữ liệu...</div>`;
-
-    try {
-        const url = `/api/pc-builder/products?componentType=${encodeURIComponent(pickerType)}&page=1&pageSize=1000`;
-        const res = await fetch(url);
-
-        if (!res.ok) {
-            throw new Error("Không tải được danh sách linh kiện.");
         }
 
-        const data = await res.json();
+        function renderSelectedItem(type, multi, item) {
+            const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+            const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
+            const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
 
-        pickerAllItems = data.items || [];
-        renderPickerFilters();
-        applyPickerFilters();
-    } catch (error) {
-        pickerAllItems = [];
-        pickerFilteredItems = [];
-        pickerFilters.innerHTML = "";
-        pickerList.innerHTML = `<div class="empty-picker">Có lỗi khi tải linh kiện.</div>`;
-        console.error(error);
-    }
-}
+            return `
+                <div class="selected-item">
+                    <img class="selected-thumb" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
+                    <div class="selected-info">
+                        <div class="selected-name">${escapeHtml(item.name)}</div>
+                        <div class="selected-sub">${renderSummaryLine(item.summarySpecs)}</div>
+                        <div>- Kho hàng: <span class="${stockClass}">${stockText}</span></div>
+                    </div>
 
-    function renderPickerFilters() {
-        if (!pickerType) {
+                    <div class="selected-price-side">
+                        <div class="unit-price">${formatPrice(item.price)}</div>
+
+                        ${multi ? `
+                            <div class="qty-box">
+                                <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, -1)">-</button>
+                                <input class="qty-input" value="${item.quantity || 1}" readonly />
+                                <button type="button" class="qty-btn" onclick="changeQty('${type}', ${item.id}, 1)">+</button>
+                            </div>
+                        ` : `
+                            <div class="qty-box">
+                                <input class="qty-input" value="1" readonly />
+                            </div>
+                        `}
+
+                        <div class="line-total">${formatPrice((item.price || 0) * (item.quantity || 1))}</div>
+
+                        <div class="item-actions">
+                            <button type="button" class="mini-action-btn" onclick="openPicker('${type}')">Đổi</button>
+                            <button type="button" class="mini-action-btn mini-remove-btn" onclick="removeSelectedItem('${type}', ${item.id})">Xóa</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSummaryLine(summarySpecs) {
+            if (!summarySpecs || summarySpecs.length === 0) return "";
+            return summarySpecs.map(x => `- ${escapeHtml(x)}`).join("<br />");
+        }
+
+        function getButtonText(type) {
+            const slot = SLOT_CONFIGS.find(x => x.type === type);
+            return slot ? slot.buttonText : "Chọn linh kiện";
+        }
+
+        async function openPicker(type) {
+            pickerType = type;
+            pickerTitle.textContent = `CHỌN LINH KIỆN - ${type.toUpperCase()}`;
+            resetPickerFilterState();
+            pickerOverlay.classList.add("show");
+            await loadPickerItems();
+        }
+
+        function closePicker() {
+            pickerOverlay.classList.remove("show");
+            pickerType = null;
+            pickerAllItems = [];
+            pickerFilteredItems = [];
+            pickerList.innerHTML = "";
             pickerFilters.innerHTML = "";
-            return;
         }
 
-        const filterConfig = getFilterConfig(pickerType);
+        function resetPickerFilterState() {
+            pickerFilterState.keyword = "";
+            pickerFilterState.sort = "default";
+            pickerFilterState.inStockOnly = false;
+            pickerFilterState.compatibleOnly = true;
+            pickerFilterState.publisherIds = [];
+            pickerFilterState.specs = {};
 
-        const publisherMap = new Map();
-        pickerAllItems.forEach(item => {
-            const key = item.publisherId;
-            if (!key) return;
+            if (pickerKeyword) pickerKeyword.value = "";
+            if (pickerSort) pickerSort.value = "default";
+            if (pickerInStockOnly) pickerInStockOnly.checked = false;
+            if (pickerCompatibleOnly) pickerCompatibleOnly.checked = true;
+        }
 
-            if (!publisherMap.has(key)) {
-                publisherMap.set(key, {
-                    id: item.publisherId,
-                    name: item.publisherName || "Khác",
-                    count: 0
-                });
+        async function loadPickerItems() {
+            if (!pickerType) return;
+
+            pickerList.innerHTML = `<div class="empty-picker">Đang tải dữ liệu...</div>`;
+
+            try {
+                const url = `/api/pc-builder/products?componentType=${encodeURIComponent(pickerType)}&page=1&pageSize=1000`;
+                const res = await fetch(url);
+
+                const text = await res.text();
+                if (!res.ok) {
+                    console.error("PRODUCTS ERROR:", res.status, text);
+                    throw new Error(`Không tải được danh sách linh kiện. HTTP ${res.status}`);
+                }
+
+                const data = text ? JSON.parse(text) : {};
+                pickerAllItems = data.items || [];
+                renderPickerFilters();
+                applyPickerFilters();
+            } catch (error) {
+                pickerAllItems = [];
+                pickerFilteredItems = [];
+                pickerFilters.innerHTML = "";
+                pickerList.innerHTML = `<div class="empty-picker">${escapeHtml(error.message || "Có lỗi khi tải linh kiện.")}</div>`;
+                console.error(error);
+            }
+        }
+
+        function renderPickerFilters() {
+            if (!pickerType) {
+                pickerFilters.innerHTML = "";
+                return;
             }
 
-            publisherMap.get(key).count++;
-        });
-
-        const publishers = [...publisherMap.values()].sort((a, b) => a.name.localeCompare(b.name));
-
-        const specGroups = filterConfig.map(group => {
-            const valueMap = new Map();
+            const filterConfig = getFilterConfig(pickerType);
+            const publisherMap = new Map();
 
             pickerAllItems.forEach(item => {
-                const specs = item.filterSpecs || [];
-                specs
-                    .filter(s => s.code === group.code)
-                    .forEach(spec => {
+                const key = item.publisherId;
+                if (!key) return;
+
+                if (!publisherMap.has(key)) {
+                    publisherMap.set(key, {
+                        id: item.publisherId,
+                        name: item.publisherName || "Khác",
+                        count: 0
+                    });
+                }
+
+                publisherMap.get(key).count++;
+            });
+
+            const publishers = [...publisherMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+
+            const specGroups = filterConfig.map(group => {
+                const valueMap = new Map();
+
+                pickerAllItems.forEach(item => {
+                    const specs = item.filterSpecs || [];
+                    specs.filter(s => s.code === group.code).forEach(spec => {
                         if (!valueMap.has(spec.value)) {
                             valueMap.set(spec.value, { value: spec.value, count: 0 });
                         }
                         valueMap.get(spec.value).count++;
                     });
-            });
+                });
 
-            return {
-                code: group.code,
-                title: group.title,
-                options: [...valueMap.values()].sort((a, b) => naturalCompare(a.value, b.value))
-            };
-        }).filter(x => x.options.length > 0);
+                return {
+                    code: group.code,
+                    title: group.title,
+                    options: [...valueMap.values()].sort((a, b) => naturalCompare(a.value, b.value))
+                };
+            }).filter(x => x.options.length > 0);
 
-        let html = "";
+            let html = "";
 
-        if (publishers.length > 0) {
-            html += `
+            if (publishers.length > 0) {
+                html += `
+                    <div class="filter-group">
+                        <div class="filter-group-title">Hãng sản xuất</div>
+                        <div class="filter-options-grid">
+                            ${publishers.map(p => `
+                                <label class="filter-option-label">
+                                    <input
+                                        type="checkbox"
+                                        class="publisher-filter-check"
+                                        value="${p.id}"
+                                        ${pickerFilterState.publisherIds.includes(String(p.id)) ? "checked" : ""}
+                                    />
+                                    <span>${escapeHtml(p.name)} <span class="filter-option-count">(${p.count})</span></span>
+                                </label>
+                            `).join("")}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += specGroups.map(group => `
                 <div class="filter-group">
-                    <div class="filter-group-title">Hãng sản xuất</div>
+                    <div class="filter-group-title">${escapeHtml(group.title)}</div>
                     <div class="filter-options-grid">
-                        ${publishers.map(p => `
+                        ${group.options.map(opt => `
                             <label class="filter-option-label">
                                 <input
                                     type="checkbox"
-                                    class="publisher-filter-check"
-                                    value="${p.id}"
-                                    ${pickerFilterState.publisherIds.includes(String(p.id)) ? "checked" : ""}
+                                    class="spec-filter-check"
+                                    data-code="${group.code}"
+                                    value="${escapeHtml(opt.value)}"
+                                    ${((pickerFilterState.specs[group.code] || []).includes(opt.value)) ? "checked" : ""}
                                 />
-                                <span>${escapeHtml(p.name)} <span class="filter-option-count">(${p.count})</span></span>
+                                <span>${escapeHtml(opt.value)} <span class="filter-option-count">(${opt.count})</span></span>
                             </label>
                         `).join("")}
                     </div>
                 </div>
-            `;
-        }
+            `).join("");
 
-        html += specGroups.map(group => `
-            <div class="filter-group">
-                <div class="filter-group-title">${escapeHtml(group.title)}</div>
-                <div class="filter-options-grid">
-                    ${group.options.map(opt => `
-                        <label class="filter-option-label">
-                            <input
-                                type="checkbox"
-                                class="spec-filter-check"
-                                data-code="${group.code}"
-                                value="${escapeHtml(opt.value)}"
-                                ${((pickerFilterState.specs[group.code] || []).includes(opt.value)) ? "checked" : ""}
-                            />
-                            <span>${escapeHtml(opt.value)} <span class="filter-option-count">(${opt.count})</span></span>
-                        </label>
-                    `).join("")}
-                </div>
-            </div>
-        `).join("");
+            pickerFilters.innerHTML = html;
 
-        pickerFilters.innerHTML = html;
-
-        document.querySelectorAll(".publisher-filter-check").forEach(input => {
-            input.addEventListener("change", () => {
-                pickerFilterState.publisherIds = [...document.querySelectorAll(".publisher-filter-check:checked")]
-                    .map(x => x.value);
-                applyPickerFilters();
-            });
-        });
-
-        document.querySelectorAll(".spec-filter-check").forEach(input => {
-            input.addEventListener("change", () => {
-                const all = [...document.querySelectorAll(".spec-filter-check")];
-                const next = {};
-
-                all.forEach(x => {
-                    if (!x.checked) return;
-                    const code = x.dataset.code;
-                    if (!next[code]) next[code] = [];
-                    next[code].push(x.value);
+            document.querySelectorAll(".publisher-filter-check").forEach(input => {
+                input.addEventListener("change", () => {
+                    pickerFilterState.publisherIds = [...document.querySelectorAll(".publisher-filter-check:checked")].map(x => x.value);
+                    applyPickerFilters();
                 });
-
-                pickerFilterState.specs = next;
-                applyPickerFilters();
             });
-        });
-    }
 
-    function applyPickerFilters() {
-        pickerFilterState.keyword = pickerKeyword.value.trim().toLowerCase();
+            document.querySelectorAll(".spec-filter-check").forEach(input => {
+                input.addEventListener("change", () => {
+                    const all = [...document.querySelectorAll(".spec-filter-check")];
+                    const next = {};
 
-        let items = [...pickerAllItems];
-
-        if (pickerFilterState.keyword) {
-            items = items.filter(item => {
-                const name = (item.name || "").toLowerCase();
-                const publisher = (item.publisherName || "").toLowerCase();
-                const specs = (item.filterSpecs || []).map(x => (x.value || "").toLowerCase()).join(" ");
-                return name.includes(pickerFilterState.keyword)
-                    || publisher.includes(pickerFilterState.keyword)
-                    || specs.includes(pickerFilterState.keyword);
-            });
-        }
-
-        if (pickerFilterState.inStockOnly) {
-            items = items.filter(item => Number(item.stock || 0) > 0);
-        }
-
-        if (pickerFilterState.compatibleOnly) {
-        items = items.filter(item => isCompatibleWithCurrentBuild(item, pickerType));
-    }
-
-        if (pickerFilterState.publisherIds.length > 0) {
-            items = items.filter(item => pickerFilterState.publisherIds.includes(String(item.publisherId)));
-        }
-
-        Object.keys(pickerFilterState.specs).forEach(code => {
-            const selectedValues = pickerFilterState.specs[code] || [];
-            if (selectedValues.length === 0) return;
-
-            items = items.filter(item => {
-                const specs = item.filterSpecs || [];
-                return specs.some(s => s.code === code && selectedValues.includes(s.value));
-            });
-        });
-
-        if (pickerFilterState.sort === "price_asc") {
-            items.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-        } else if (pickerFilterState.sort === "price_desc") {
-            items.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
-        } else if (pickerFilterState.sort === "name_asc") {
-            items.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        }
-
-        pickerFilteredItems = items;
-        renderPickerList();
-    }
-
-    function renderPickerList() {
-        if (pickerFilteredItems.length === 0) {
-            pickerList.innerHTML = `<div class="empty-picker">Không có linh kiện phù hợp với bộ lọc hiện tại.</div>`;
-            return;
-        }
-
-        const multi = isMultiSlot(pickerType);
-
-        pickerList.innerHTML = pickerFilteredItems.map(item => {
-            const checked = isCheckedInPicker(item.id, multi, pickerType) ? "checked" : "";
-            const inputType = multi ? "checkbox" : "radio";
-            const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
-            const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
-            const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
-
-            return `
-                <label class="picker-item">
-                    <div class="picker-check-wrap">
-                        <input
-                            class="picker-check"
-                            type="${inputType}"
-                            name="pickerSelection"
-                            value="${item.id}"
-                            ${checked}
-                        />
-                    </div>
-
-                    <img class="picker-img" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
-
-                    <div>
-                        <div class="picker-name">${escapeHtml(item.name)}</div>
-                        <div class="picker-meta">
-                            ${item.publisherName ? `Hãng: ${escapeHtml(item.publisherName)}<br />` : ""}
-                            Kho hàng: <span class="${stockClass}">${stockText}</span><br />
-                            ${renderSummaryLine(item.summarySpecs)}
-                        </div>
-                    </div>
-
-                    <div class="picker-price">${formatPrice(item.price)}</div>
-                </label>
-            `;
-        }).join("");
-    }
-
-    function clearPickerFilters() {
-        resetPickerFilterState();
-        renderPickerFilters();
-        applyPickerFilters();
-    }
-
-    function isCheckedInPicker(itemId, multi, type) {
-        if (multi) {
-            return buildState[type].some(x => x.id === itemId);
-        }
-        return buildState[type] && buildState[type].id === itemId;
-    }
-
-    function isMultiSlot(type) {
-        const slot = SLOT_CONFIGS.find(x => x.type === type);
-        return slot ? slot.multi : false;
-    }
-    function getSpecValues(item, code) {
-    return (item.filterSpecs || [])
-        .filter(x => x.code === code)
-        .map(x => String(x.value || "").trim())
-        .filter(Boolean);
-}
-
-function getFirstSpecValue(item, code) {
-    const values = getSpecValues(item, code);
-    return values.length > 0 ? values[0] : null;
-}
-
-function getFirstSpecNumber(item, code) {
-    const raw = getFirstSpecValue(item, code);
-    if (!raw) return null;
-
-    const match = String(raw).replace(",", ".").match(/-?\d+(\.\d+)?/);
-    return match ? Number(match[0]) : null;
-}
-
-function equalText(a, b) {
-    return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
-}
-
-function includesText(list, value) {
-    return list.some(x => equalText(x, value));
-}
-
-function isCompatibleWithCurrentBuild(item, targetType) {
-    const cpu = buildState.CPU;
-    const mainboard = buildState.Mainboard;
-    const gpu = buildState.GPU;
-    const psu = buildState.PSU;
-    const pcCase = buildState.Case;
-    const cooler = buildState.Cooler;
-
-    if (targetType === "CPU" && mainboard) {
-        const cpuSocket = getFirstSpecValue(item, "cpu_socket");
-        const mbSocket = getFirstSpecValue(mainboard, "mb_socket");
-        if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
-    }
-
-    if (targetType === "Mainboard") {
-        if (cpu) {
-            const cpuSocket = getFirstSpecValue(cpu, "cpu_socket");
-            const mbSocket = getFirstSpecValue(item, "mb_socket");
-            if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
-        }
-
-        if (pcCase) {
-            const mbSize = getFirstSpecValue(item, "mb_form_factor");
-            const supportedSizes = getSpecValues(pcCase, "case_supported_mb_sizes");
-            if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
-        }
-    }
-
-    if (targetType === "RAM" && mainboard) {
-        const ramType = getFirstSpecValue(item, "ram_type");
-        const mbRamType = getFirstSpecValue(mainboard, "mb_ram_type");
-        if (ramType && mbRamType && !equalText(ramType, mbRamType)) return false;
-    }
-
-    if (targetType === "GPU" && pcCase) {
-        const gpuLength = getFirstSpecNumber(item, "gpu_length_mm");
-        const caseMaxGpu = getFirstSpecNumber(pcCase, "case_max_gpu_length_mm");
-        if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
-    }
-
-    if (targetType === "PSU") {
-        if (gpu) {
-            const recommendPsu = getFirstSpecNumber(gpu, "gpu_recommended_psu_w");
-            const psuWatt = getFirstSpecNumber(item, "psu_watt");
-            if (recommendPsu != null && psuWatt != null && psuWatt < recommendPsu) return false;
-        }
-
-        if (pcCase) {
-            const psuStandard = getFirstSpecValue(item, "psu_standard");
-            const casePsuStandard = getFirstSpecValue(pcCase, "case_psu_standard");
-            if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
-        }
-    }
-
-    if (targetType === "Case") {
-        if (mainboard) {
-            const mbSize = getFirstSpecValue(mainboard, "mb_form_factor");
-            const supportedSizes = getSpecValues(item, "case_supported_mb_sizes");
-            if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
-        }
-
-        if (gpu) {
-            const gpuLength = getFirstSpecNumber(gpu, "gpu_length_mm");
-            const caseMaxGpu = getFirstSpecNumber(item, "case_max_gpu_length_mm");
-            if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
-        }
-
-        if (cooler) {
-            const coolerHeight = getFirstSpecNumber(cooler, "cooler_height_mm");
-            const caseMaxCooler = getFirstSpecNumber(item, "case_max_cooler_height_mm");
-            if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
-        }
-
-        if (psu) {
-            const psuStandard = getFirstSpecValue(psu, "psu_standard");
-            const casePsuStandard = getFirstSpecValue(item, "case_psu_standard");
-            if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
-        }
-    }
-
-    if (targetType === "Cooler" && pcCase) {
-        const coolerHeight = getFirstSpecNumber(item, "cooler_height_mm");
-        const caseMaxCooler = getFirstSpecNumber(pcCase, "case_max_cooler_height_mm");
-        if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
-    }
-
-    return true;
-}
-
-    async function confirmPickerSelection() {
-        if (!pickerType) return;
-
-        const multi = isMultiSlot(pickerType);
-        const checkedInputs = [...document.querySelectorAll('input[name="pickerSelection"]:checked')];
-        const checkedIds = checkedInputs.map(x => Number(x.value));
-        const selectedProducts = pickerAllItems.filter(x => checkedIds.includes(x.id));
-
-        if (multi) {
-            buildState[pickerType] = selectedProducts.map(item => {
-                const old = buildState[pickerType].find(x => x.id === item.id);
-                return {
-                    ...item,
-                    quantity: old ? old.quantity : 1
-                };
-            });
-        } else {
-            buildState[pickerType] = selectedProducts.length > 0
-                ? { ...selectedProducts[0], quantity: 1 }
-                : null;
-        }
-
-        closePicker();
-        renderBuildTable();
-        await checkCompatibility();
-    }
-
-    function changeQty(type, productId, delta) {
-        if (!isMultiSlot(type)) return;
-
-        const target = buildState[type].find(x => x.id === productId);
-        if (!target) return;
-
-        target.quantity = (target.quantity || 1) + delta;
-
-        if (target.quantity <= 0) {
-            buildState[type] = buildState[type].filter(x => x.id !== productId);
-        }
-
-        renderBuildTable();
-        checkCompatibility();
-    }
-
-    function removeSelectedItem(type, productId) {
-        if (isMultiSlot(type)) {
-            buildState[type] = buildState[type].filter(x => x.id !== productId);
-        } else {
-            buildState[type] = null;
-        }
-
-        renderBuildTable();
-        checkCompatibility();
-    }
-
-    function collectPayloadItems() {
-        const items = [];
-
-        SLOT_CONFIGS.forEach(slot => {
-            if (slot.multi) {
-                buildState[slot.type].forEach(item => {
-                    items.push({
-                        componentType: slot.type,
-                        productId: item.id,
-                        quantity: item.quantity || 1
+                    all.forEach(x => {
+                        if (!x.checked) return;
+                        const code = x.dataset.code;
+                        if (!next[code]) next[code] = [];
+                        next[code].push(x.value);
                     });
+
+                    pickerFilterState.specs = next;
+                    applyPickerFilters();
                 });
-            } else if (buildState[slot.type]) {
-                items.push({
-                    componentType: slot.type,
-                    productId: buildState[slot.type].id,
-                    quantity: 1
+            });
+        }
+
+        function applyPickerFilters() {
+            pickerFilterState.keyword = pickerKeyword.value.trim().toLowerCase();
+            let items = [...pickerAllItems];
+
+            if (pickerFilterState.keyword) {
+                items = items.filter(item => {
+                    const name = (item.name || "").toLowerCase();
+                    const publisher = (item.publisherName || "").toLowerCase();
+                    const specs = (item.filterSpecs || []).map(x => (x.value || "").toLowerCase()).join(" ");
+                    return name.includes(pickerFilterState.keyword) ||
+                        publisher.includes(pickerFilterState.keyword) ||
+                        specs.includes(pickerFilterState.keyword);
                 });
             }
-        });
 
-        return items;
-    }
+            if (pickerFilterState.inStockOnly) {
+                items = items.filter(item => Number(item.stock || 0) > 0);
+            }
 
-    async function checkCompatibility() {
-    const items = collectPayloadItems();
+            if (pickerFilterState.compatibleOnly) {
+                items = items.filter(item => isCompatibleWithCurrentBuild(item, pickerType));
+            }
 
-    if (items.length === 0) {
-        compatibilityState = {
-            totalPrice: 0,
-            estimatedPower: 0,
-            messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
-        };
-        renderTotals();
-        renderMessages();
-        return;
-    }
+            if (pickerFilterState.publisherIds.length > 0) {
+                items = items.filter(item => pickerFilterState.publisherIds.includes(String(item.publisherId)));
+            }
 
-    try {
-        const res = await fetch("/api/pc-builder/check", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ items })
-        });
+            Object.keys(pickerFilterState.specs).forEach(code => {
+                const selectedValues = pickerFilterState.specs[code] || [];
+                if (selectedValues.length === 0) return;
 
-        const text = await res.text();
-        console.log("CHECK RESPONSE:", res.status, text);
+                items = items.filter(item => {
+                    const specs = item.filterSpecs || [];
+                    return specs.some(s => s.code === code && selectedValues.includes(s.value));
+                });
+            });
 
-        let data = {};
-        try {
-            data = text ? JSON.parse(text) : {};
-        } catch {
-            throw new Error(`API check trả về không phải JSON. HTTP ${res.status}`);
+            if (pickerFilterState.sort === "price_asc") {
+                items.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+            } else if (pickerFilterState.sort === "price_desc") {
+                items.sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+            } else if (pickerFilterState.sort === "name_asc") {
+                items.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+            }
+
+            pickerFilteredItems = items;
+            renderPickerList();
         }
 
-        if (!res.ok) {
-            throw new Error(data.title || data.message || `HTTP ${res.status}`);
+        function renderPickerList() {
+            if (pickerFilteredItems.length === 0) {
+                pickerList.innerHTML = `<div class="empty-picker">Không có linh kiện phù hợp với bộ lọc hiện tại.</div>`;
+                return;
+            }
+
+            const multi = isMultiSlot(pickerType);
+
+            pickerList.innerHTML = pickerFilteredItems.map(item => {
+                const checked = isCheckedInPicker(item.id, multi, pickerType) ? "checked" : "";
+                const inputType = multi ? "checkbox" : "radio";
+                const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+                const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
+                const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
+
+                return `
+                    <label class="picker-item">
+                        <div class="picker-check-wrap">
+                            <input class="picker-check" type="${inputType}" name="pickerSelection" value="${item.id}" ${checked} />
+                        </div>
+
+                        <img class="picker-img" src="${imageUrl}" alt="${escapeHtml(item.name)}" />
+
+                        <div>
+                            <div class="picker-name">${escapeHtml(item.name)}</div>
+                            <div class="picker-meta">
+                                ${item.publisherName ? `Hãng: ${escapeHtml(item.publisherName)}<br />` : ""}
+                                Kho hàng: <span class="${stockClass}">${stockText}</span><br />
+                                ${renderSummaryLine(item.summarySpecs)}
+                            </div>
+                        </div>
+
+                        <div class="picker-price">${formatPrice(item.price)}</div>
+                    </label>
+                `;
+            }).join("");
         }
 
-        compatibilityState = {
-            totalPrice: data.totalPrice || 0,
-            estimatedPower: data.estimatedPower || 0,
-            messages: (data.messages && data.messages.length > 0)
-                ? data.messages
-                : [{ level: "info", message: "Cấu hình hiện chưa có cảnh báo tương thích." }]
-        };
-    } catch (error) {
-        console.error("CHECK ERROR:", error);
-        compatibilityState = {
-            totalPrice: 0,
-            estimatedPower: 0,
-            messages: [{ level: "warning", message: error.message || "Không kiểm tra được tương thích lúc này." }]
-        };
-    }
-
-    renderTotals();
-    renderMessages();
-}
-    function renderTotals() {
-        const priceText = formatPrice(compatibilityState.totalPrice || 0);
-        topTotalPrice.textContent = priceText;
-        bottomTotalPrice.textContent = priceText;
-    }
-
-    function renderMessages() {
-        builderMessages.innerHTML = compatibilityState.messages.map(m => `
-            <div class="builder-message ${m.level || 'info'}">• ${escapeHtml(m.message || "")}</div>
-        `).join("");
-    }
-
-    function resetBuild() {
-        SLOT_CONFIGS.forEach(slot => {
-            buildState[slot.type] = slot.multi ? [] : null;
-        });
-
-        compatibilityState = {
-            totalPrice: 0,
-            estimatedPower: 0,
-            messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
-        };
-
-        renderBuildTable();
-        renderMessages();
-    }
-
-    async function saveBuild() {
-        const items = collectPayloadItems();
-
-        if (items.length === 0) {
-            alert("Bạn chưa chọn linh kiện nào.");
-            return;
+        function clearPickerFilters() {
+            resetPickerFilterState();
+            renderPickerFilters();
+            applyPickerFilters();
         }
 
-        const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
-        if (buildName === null) return;
-
-        const res = await fetch("/api/pc-builder/save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                buildName: buildName,
-                items: items
-            })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(data.message || "Lưu cấu hình thất bại.");
-            return;
+        function isCheckedInPicker(itemId, multi, type) {
+            if (multi) return buildState[type].some(x => x.id === itemId);
+            return buildState[type] && buildState[type].id === itemId;
         }
 
-        alert(`Lưu thành công. Mã build: ${data.buildCode}`);
-    }
+        function isMultiSlot(type) {
+            const slot = SLOT_CONFIGS.find(x => x.type === type);
+            return slot ? slot.multi : false;
+        }
 
-    function formatPrice(value) {
-        return Number(value || 0).toLocaleString("vi-VN") + " đ";
-    }
+        function getSpecValues(item, code) {
+            return (item.filterSpecs || [])
+                .filter(x => x.code === code)
+                .map(x => String(x.value || "").trim())
+                .filter(Boolean);
+        }
 
-    function naturalCompare(a, b) {
-        return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
-    }
+        function getFirstSpecValue(item, code) {
+            const values = getSpecValues(item, code);
+            return values.length > 0 ? values[0] : null;
+        }
 
-    function escapeHtml(str) {
-        if (str == null) return "";
-        return String(str)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
+        function getFirstSpecNumber(item, code) {
+            const raw = getFirstSpecValue(item, code);
+            if (!raw) return null;
+            const match = String(raw).replace(",", ".").match(/-?\d+(\.\d+)?/);
+            return match ? Number(match[0]) : null;
+        }
 
-    async function addBuildToCart() {
-    const items = collectPayloadItems();
+        function equalText(a, b) {
+            return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+        }
 
-    if (items.length === 0) {
-        alert("Bạn chưa chọn linh kiện nào.");
-        return;
-    }
+        function includesText(list, value) {
+            return list.some(x => equalText(x, value));
+        }
 
-    const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
-    if (buildName === null) return;
+        function isCompatibleWithCurrentBuild(item, targetType) {
+            const cpu = buildState.CPU;
+            const mainboard = buildState.Mainboard;
+            const gpu = buildState.GPU;
+            const psu = buildState.PSU;
+            const pcCase = buildState.Case;
+            const cooler = buildState.Cooler;
 
-    const res = await fetch("/api/pc-builder/add-to-cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            buildName: buildName,
-            items: items
-        })
-    });
+            if (targetType === "CPU" && mainboard) {
+                const cpuSocket = getFirstSpecValue(item, "cpu_socket");
+                const mbSocket = getFirstSpecValue(mainboard, "mb_socket");
+                if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
+            }
 
-    const data = await res.json();
+            if (targetType === "Mainboard") {
+                if (cpu) {
+                    const cpuSocket = getFirstSpecValue(cpu, "cpu_socket");
+                    const mbSocket = getFirstSpecValue(item, "mb_socket");
+                    if (cpuSocket && mbSocket && !equalText(cpuSocket, mbSocket)) return false;
+                }
 
-    if (!res.ok) {
-        alert(data.message || "Không thể thêm cấu hình vào giỏ hàng.");
-        return;
-    }
+                if (pcCase) {
+                    const mbSize = getFirstSpecValue(item, "mb_form_factor");
+                    const supportedSizes = getSpecValues(pcCase, "case_supported_mb_sizes");
+                    if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
+                }
+            }
 
-    alert(data.message || "Đã thêm cấu hình vào giỏ hàng.");
-    window.location.href = "/Cart/Index";
-}
+            if (targetType === "RAM" && mainboard) {
+                const ramType = getFirstSpecValue(item, "ram_type");
+                const mbRamType = getFirstSpecValue(mainboard, "mb_ram_type");
+                if (ramType && mbRamType && !equalText(ramType, mbRamType)) return false;
+            }
 
-    window.openPicker = openPicker;
-    window.changeQty = changeQty;
-    window.removeSelectedItem = removeSelectedItem;
+            if (targetType === "GPU" && pcCase) {
+                const gpuLength = getFirstSpecNumber(item, "gpu_length_mm");
+                const caseMaxGpu = getFirstSpecNumber(pcCase, "case_max_gpu_length_mm");
+                if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
+            }
 
-    renderBuildTable();
-    renderMessages();
-</script>
+            if (targetType === "PSU") {
+                if (gpu) {
+                    const recommendPsu = getFirstSpecNumber(gpu, "gpu_recommended_psu_w");
+                    const psuWatt = getFirstSpecNumber(item, "psu_watt");
+                    if (recommendPsu != null && psuWatt != null && psuWatt < recommendPsu) return false;
+                }
+
+                if (pcCase) {
+                    const psuStandard = getFirstSpecValue(item, "psu_standard");
+                    const casePsuStandard = getFirstSpecValue(pcCase, "case_psu_standard");
+                    if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
+                }
+            }
+
+            if (targetType === "Case") {
+                if (mainboard) {
+                    const mbSize = getFirstSpecValue(mainboard, "mb_form_factor");
+                    const supportedSizes = getSpecValues(item, "case_supported_mb_sizes");
+                    if (mbSize && supportedSizes.length > 0 && !includesText(supportedSizes, mbSize)) return false;
+                }
+
+                if (gpu) {
+                    const gpuLength = getFirstSpecNumber(gpu, "gpu_length_mm");
+                    const caseMaxGpu = getFirstSpecNumber(item, "case_max_gpu_length_mm");
+                    if (gpuLength != null && caseMaxGpu != null && gpuLength > caseMaxGpu) return false;
+                }
+
+                if (cooler) {
+                    const coolerHeight = getFirstSpecNumber(cooler, "cooler_height_mm");
+                    const caseMaxCooler = getFirstSpecNumber(item, "case_max_cooler_height_mm");
+                    if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
+                }
+
+                if (psu) {
+                    const psuStandard = getFirstSpecValue(psu, "psu_standard");
+                    const casePsuStandard = getFirstSpecValue(item, "case_psu_standard");
+                    if (psuStandard && casePsuStandard && !equalText(psuStandard, casePsuStandard)) return false;
+                }
+            }
+
+            if (targetType === "Cooler" && pcCase) {
+                const coolerHeight = getFirstSpecNumber(item, "cooler_height_mm");
+                const caseMaxCooler = getFirstSpecNumber(pcCase, "case_max_cooler_height_mm");
+                if (coolerHeight != null && caseMaxCooler != null && coolerHeight > caseMaxCooler) return false;
+            }
+
+            return true;
+        }
+
+        async function confirmPickerSelection() {
+            if (!pickerType) return;
+
+            const multi = isMultiSlot(pickerType);
+            const checkedInputs = [...document.querySelectorAll('input[name="pickerSelection"]:checked')];
+            const checkedIds = checkedInputs.map(x => Number(x.value));
+            const selectedProducts = pickerAllItems.filter(x => checkedIds.includes(x.id));
+
+            if (multi) {
+                buildState[pickerType] = selectedProducts.map(item => {
+                    const old = buildState[pickerType].find(x => x.id === item.id);
+                    return { ...item, quantity: old ? old.quantity : 1 };
+                });
+            } else {
+                buildState[pickerType] = selectedProducts.length > 0 ? { ...selectedProducts[0], quantity: 1 } : null;
+            }
+
+            closePicker();
+            renderBuildTable();
+            await checkCompatibility();
+        }
+
+        function changeQty(type, productId, delta) {
+            if (!isMultiSlot(type)) return;
+
+            const target = buildState[type].find(x => x.id === productId);
+            if (!target) return;
+
+            target.quantity = (target.quantity || 1) + delta;
+
+            if (target.quantity <= 0) {
+                buildState[type] = buildState[type].filter(x => x.id !== productId);
+            }
+
+            renderBuildTable();
+            checkCompatibility();
+        }
+
+        function removeSelectedItem(type, productId) {
+            if (isMultiSlot(type)) {
+                buildState[type] = buildState[type].filter(x => x.id !== productId);
+            } else {
+                buildState[type] = null;
+            }
+
+            renderBuildTable();
+            checkCompatibility();
+        }
+
+        function collectPayloadItems() {
+            const items = [];
+
+            SLOT_CONFIGS.forEach(slot => {
+                if (slot.multi) {
+                    buildState[slot.type].forEach(item => {
+                        items.push({
+                            componentType: slot.type,
+                            productId: item.id,
+                            quantity: item.quantity || 1
+                        });
+                    });
+                } else if (buildState[slot.type]) {
+                    items.push({
+                        componentType: slot.type,
+                        productId: buildState[slot.type].id,
+                        quantity: 1
+                    });
+                }
+            });
+
+            return items;
+        }
+
+        async function checkCompatibility() {
+            const items = collectPayloadItems();
+
+            if (items.length === 0) {
+                compatibilityState = {
+                    totalPrice: 0,
+                    estimatedPower: 0,
+                    messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
+                };
+                renderTotals();
+                renderMessages();
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/pc-builder/check", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items })
+                });
+
+                const text = await res.text();
+                console.log("CHECK RESPONSE:", res.status, text);
+
+                let data = {};
+                try {
+                    data = text ? JSON.parse(text) : {};
+                } catch {
+                    throw new Error(`API check trả về không phải JSON. HTTP ${res.status}`);
+                }
+
+                if (!res.ok) {
+                    throw new Error(data.title || data.message || `HTTP ${res.status}`);
+                }
+
+                compatibilityState = {
+                    totalPrice: data.totalPrice || 0,
+                    estimatedPower: data.estimatedPower || 0,
+                    messages: (data.messages && data.messages.length > 0)
+                        ? data.messages
+                        : [{ level: "info", message: "Cấu hình hiện chưa có cảnh báo tương thích." }]
+                };
+            } catch (error) {
+                console.error("CHECK ERROR:", error);
+                compatibilityState = {
+                    totalPrice: 0,
+                    estimatedPower: 0,
+                    messages: [{ level: "warning", message: error.message || "Không kiểm tra được tương thích lúc này." }]
+                };
+            }
+
+            renderTotals();
+            renderMessages();
+        }
+
+        function renderTotals() {
+            const priceText = formatPrice(compatibilityState.totalPrice || 0);
+            topTotalPrice.textContent = priceText;
+            bottomTotalPrice.textContent = priceText;
+        }
+
+        function renderMessages() {
+            builderMessages.innerHTML = compatibilityState.messages.map(m => `
+                <div class="builder-message ${m.level || 'info'}">• ${escapeHtml(m.message || "")}</div>
+            `).join("");
+        }
+
+        function resetBuild() {
+            SLOT_CONFIGS.forEach(slot => {
+                buildState[slot.type] = slot.multi ? [] : null;
+            });
+
+            compatibilityState = {
+                totalPrice: 0,
+                estimatedPower: 0,
+                messages: [{ level: "info", message: "Chưa có cảnh báo tương thích." }]
+            };
+
+            renderBuildTable();
+            renderMessages();
+        }
+
+        async function saveBuild() {
+            const items = collectPayloadItems();
+            if (items.length === 0) {
+                alert("Bạn chưa chọn linh kiện nào.");
+                return;
+            }
+
+            const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
+            if (buildName === null) return;
+
+            const res = await fetch("/api/pc-builder/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ buildName, items })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Lưu cấu hình thất bại.");
+                return;
+            }
+
+            alert(`Lưu thành công. Mã build: ${data.buildCode}`);
+        }
+
+        function appendChatMessage(role, text) {
+            if (!buildChatMessages) return;
+            const div = document.createElement("div");
+            div.className = `chat-message ${role}`;
+            div.textContent = text || "";
+            buildChatMessages.appendChild(div);
+            buildChatMessages.scrollTop = buildChatMessages.scrollHeight;
+        }
+
+        async function askBuildAssistant(message) {
+            const text = String(message || "").trim();
+            if (!text) return;
+
+            appendChatMessage("user", text);
+            appendChatMessage("bot", "Mình đang kiểm tra cấu hình cho bạn...");
+
+            const loadingNode = buildChatMessages.lastElementChild;
+
+            try {
+                const res = await fetch("/api/pc-builder/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: text,
+                        items: collectPayloadItems()
+                    })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || "Không thể nhận tư vấn lúc này.");
+                }
+
+                loadingNode.remove();
+                appendChatMessage("bot", data.reply || "Mình chưa có câu trả lời phù hợp.");
+            } catch (error) {
+                loadingNode.remove();
+                appendChatMessage("bot", error.message || "Đang có lỗi khi tư vấn cấu hình.");
+            }
+        }
+
+        function formatPrice(value) {
+            return Number(value || 0).toLocaleString("vi-VN") + " đ";
+        }
+
+        function naturalCompare(a, b) {
+            return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+        }
+
+        function escapeHtml(str) {
+            if (str == null) return "";
+            return String(str)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        async function addBuildToCart() {
+            const items = collectPayloadItems();
+
+            if (items.length === 0) {
+                alert("Bạn chưa chọn linh kiện nào.");
+                return;
+            }
+
+            const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
+            if (buildName === null) return;
+
+            const res = await fetch("/api/pc-builder/add-to-cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ buildName, items })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                alert(data.message || "Không thể thêm cấu hình vào giỏ hàng.");
+                return;
+            }
+
+            alert(data.message || "Đã thêm cấu hình vào giỏ hàng.");
+            window.location.href = "/Cart/Index";
+        }
+
+        window.openPicker = openPicker;
+        window.changeQty = changeQty;
+        window.removeSelectedItem = removeSelectedItem;
+        window.askBuildAssistant = askBuildAssistant;
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initPcBuilderPage);
+        } else {
+            initPcBuilderPage();
+        }
+    </script>
 }

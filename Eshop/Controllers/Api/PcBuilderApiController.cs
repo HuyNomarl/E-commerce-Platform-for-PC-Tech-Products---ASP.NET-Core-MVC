@@ -12,15 +12,18 @@ namespace Eshop.Controllers.Api
 {
     [Route("api/pc-builder")]
     [ApiController]
+    [IgnoreAntiforgeryToken]
     public class PcBuilderApiController : ControllerBase
     {
         private readonly DataContext _context;
         private readonly IPcCompatibilityService _compatibilityService;
+        private readonly IPcBuildChatService _pcBuildChatService;
 
-        public PcBuilderApiController(DataContext context, IPcCompatibilityService compatibilityService)
+        public PcBuilderApiController(DataContext context, IPcCompatibilityService compatibilityService, IPcBuildChatService pcBuildChatService)
         {
             _context = context;
             _compatibilityService = compatibilityService;
+            _pcBuildChatService = pcBuildChatService;
         }
 
         [HttpGet("products")]
@@ -33,56 +36,62 @@ namespace Eshop.Controllers.Api
             int page = 1,
             int pageSize = 12)
         {
-            var query = _context.Products
-                .Include(x => x.Publisher)
-                .Include(x => x.Specifications)
-                    .ThenInclude(x => x.SpecificationDefinition)
-                .Where(x =>
-                    x.ComponentType == componentType &&
-                    (x.ProductType == ProductType.Component || x.ProductType == ProductType.Monitor));
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-                query = query.Where(x => x.Name.Contains(keyword));
-
-            if (publisherId.HasValue && publisherId > 0)
-                query = query.Where(x => x.PublisherId == publisherId);
-
-            if (minPrice.HasValue)
-                query = query.Where(x => x.Price >= minPrice.Value);
-
-            if (maxPrice.HasValue)
-                query = query.Where(x => x.Price <= maxPrice.Value);
-
-            var total = await query.CountAsync();
-
-            var products = await query
-                .OrderBy(x => x.Price)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var items = products.Select(x => new PcBuilderProductCardDto
+            try
             {
-                Id = x.Id,
-                Name = x.Name,
-                Image = x.Image,
-                Price = x.Price,
-                PublisherName = x.Publisher?.Name,
-                PublisherId = x.PublisherId,
-                Stock = x.Quantity,
-                ComponentType = x.ComponentType.ToString(),
-                SummarySpecs = BuildSummarySpecs(x),
-                FilterSpecs = BuildFilterSpecs(x)
-            }).ToList();
+                var query = _context.Products
+                    .Include(x => x.Publisher)
+                    .Include(x => x.Specifications)
+                        .ThenInclude(x => x.SpecificationDefinition)
+                    .Where(x =>
+                        x.ComponentType == componentType &&
+                        (x.ProductType == ProductType.Component || x.ProductType == ProductType.Monitor));
 
-            return Ok(new
+                if (!string.IsNullOrWhiteSpace(keyword))
+                    query = query.Where(x => x.Name.Contains(keyword));
+
+                if (publisherId.HasValue && publisherId > 0)
+                    query = query.Where(x => x.PublisherId == publisherId);
+
+                if (minPrice.HasValue)
+                    query = query.Where(x => x.Price >= minPrice.Value);
+
+                if (maxPrice.HasValue)
+                    query = query.Where(x => x.Price <= maxPrice.Value);
+
+                var total = await query.CountAsync();
+
+                var products = await query
+                    .OrderBy(x => x.Price)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                var items = products.Select(x => new PcBuilderProductCardDto
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Image = x.Image,
+                    Price = x.Price,
+                    PublisherName = x.Publisher?.Name,
+                    PublisherId = x.PublisherId,
+                    Stock = x.Quantity,
+                    ComponentType = x.ComponentType.ToString(),
+                    SummarySpecs = BuildSummarySpecs(x),
+                    FilterSpecs = BuildFilterSpecs(x)
+                }).ToList();
+
+                return Ok(new { total, page, pageSize, items });
+            }
+            catch (Exception ex)
             {
-                total,
-                page,
-                pageSize,
-                items
-            });
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    detail = ex.InnerException?.Message
+                });
+            }
         }
+
 
         [HttpPost("add-to-cart")]
         public async Task<IActionResult> AddToCart([FromBody] SavePcBuildRequest request)
@@ -231,9 +240,10 @@ namespace Eshop.Controllers.Api
 
         private static List<string> BuildSummarySpecs(ProductModel product)
         {
-            var specs = product.Specifications.ToDictionary(
-                x => x.SpecificationDefinition.Code,
-                x => x);
+            var specs = (product.Specifications ?? new List<ProductSpecificationModel>())
+                .Where(x => x.SpecificationDefinition != null && !string.IsNullOrWhiteSpace(x.SpecificationDefinition.Code))
+                .GroupBy(x => x.SpecificationDefinition.Code)
+                .ToDictionary(x => x.Key, x => x.First());
 
             var result = new List<string>();
 
@@ -288,6 +298,8 @@ namespace Eshop.Controllers.Api
 
             return result;
         }
+
+
 
         private static void AddText(List<string> result, Dictionary<string, ProductSpecificationModel> specs, string code, string label)
         {
@@ -449,6 +461,27 @@ namespace Eshop.Controllers.Api
 
 
         }
+        [HttpPost("chat")]
+        public async Task<IActionResult> Chat([FromBody] PcBuildChatRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.Message))
+                {
+                    return BadRequest(new { message = "Bạn chưa nhập câu hỏi." });
+                }
 
+                var result = await _pcBuildChatService.AskAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    detail = ex.InnerException?.Message
+                });
+            }
+        }
     }
 }

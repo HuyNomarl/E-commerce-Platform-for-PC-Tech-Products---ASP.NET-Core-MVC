@@ -17,6 +17,22 @@
   },
   {
     "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "Chat",
+    "RelativePath": "api/pc-builder/chat",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Eshop.Models.ViewModels.PcBuildChatRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
     "Method": "Check",
     "RelativePath": "api/pc-builder/check",
     "HttpMethod": "POST",

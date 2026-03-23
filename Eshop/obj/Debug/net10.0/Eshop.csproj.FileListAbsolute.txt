@@ -410,7 +410,6 @@ E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-qtq4xdn8qs-qtq4xdn8qs.gz
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.Google.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\RestSharp.dll
-E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\i56qza1pqi-{0}-ilw7kyy2dl-ilw7kyy2dl.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\6ntqqzfcmv-{0}-4q4zkp0h9j-4q4zkp0h9j.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\x8rundwlqb-{0}-2upz98th3w-2upz98th3w.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\y3doyrfpw3-{0}-1evdvlx9dy-1evdvlx9dy.gz
@@ -460,3 +459,4 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Settings.Configuration.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.Console.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.Debug.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.File.dll
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\i56qza1pqi-{0}-jkggr21kcn-jkggr21kcn.gz
