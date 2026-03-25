@@ -350,6 +350,16 @@
                                                         </a>
                                                     </li>
                                                     <li>
+                                                        <a asp-controller="Warehouse" asp-action="Index" class="@(currentController == "Warehouse" ? "active" : "")">
+                                                            <i class="fa fa-cube"></i> <span>Warehouse</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a asp-controller="Inventory" asp-action="Index" class="@(currentController == "Inventory" ? "active" : "")">
+                                                            <i class="fa fa-cube"></i> <span>Inventory</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
                                                         <a asp-controller="Product" asp-action="Index" class="@(currentController == "Product" ? "active" : "")">
                                                             <i class="fa fa-cube"></i> <span>Product</span>
                                                         </a>

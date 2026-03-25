@@ -26,7 +26,7 @@ namespace Eshop.Controllers
                 .Include(p => p.Publisher)
                 .Include(p => p.RatingModel)
                 .Include(p => p.OptionGroups)
-        .ThenInclude(g => g.OptionValues)
+                    .ThenInclude(g => g.OptionValues)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null) return RedirectToAction(nameof(Index));
@@ -38,16 +38,30 @@ namespace Eshop.Controllers
                 .Take(4)
                 .ToListAsync();
 
+            var totalOnHand = await _dataContext.InventoryStocks
+                .Where(x => x.ProductId == id)
+                .SumAsync(x => (int?)x.OnHandQuantity) ?? 0;
+
+            var totalReserved = await _dataContext.InventoryStocks
+                .Where(x => x.ProductId == id)
+                .SumAsync(x => (int?)x.ReservedQuantity) ?? 0;
+
             ViewBag.RelatedProducts = relatedProducts;
 
             var viewModel = new ProductDetailViewModel
             {
                 ProductDetail = product,
-                //RatingDetail = product.RatingModel   
+                InventorySummary = new ProductInventorySummaryViewModel
+                {
+                    ProductId = id,
+                    TotalOnHand = totalOnHand,
+                    TotalReserved = totalReserved
+                }
             };
 
             return View(viewModel);
         }
+
 
 
         public async Task<IActionResult> Search(string searchTerm)

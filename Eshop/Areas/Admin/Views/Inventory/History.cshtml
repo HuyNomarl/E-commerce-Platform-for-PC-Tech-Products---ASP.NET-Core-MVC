@@ -1,0 +1,38 @@
+﻿@model IEnumerable<Eshop.Models.InventoryTransactionModel>
+
+<h2>Lịch sử kho</h2>
+
+<form method="get" class="mb-3">
+    <input type="text" name="referenceCode" value="@ViewBag.ReferenceCode" class="form-control" placeholder="Tìm theo mã tham chiếu / mã đơn" />
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Mã phiếu</th>
+            <th>Loại</th>
+            <th>Kho</th>
+            <th>Mã tham chiếu</th>
+            <th>Ngày tạo</th>
+            <th>Chi tiết</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var tx in Model)
+        {
+            <tr>
+                <td>@tx.TransactionCode</td>
+                <td>@tx.TransactionType</td>
+                <td>@tx.Warehouse?.Name</td>
+                <td>@tx.ReferenceCode</td>
+                <td>@tx.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                <td>
+                    @foreach (var d in tx.Details)
+                    {
+                        <div>@d.Product?.Name - SL: @d.Quantity - @d.BeforeQuantity -> @d.AfterQuantity</div>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

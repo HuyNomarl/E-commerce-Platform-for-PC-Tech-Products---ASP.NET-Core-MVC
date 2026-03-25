@@ -1,0 +1,51 @@
+﻿@model Eshop.Models.ViewModels.AdminInventoryTransferViewModel
+
+<h2>Chuyển kho</h2>
+
+<form asp-action="Transfer" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="FromWarehouseId">Kho nguồn</label>
+        <select asp-for="FromWarehouseId" asp-items="Model.Warehouses" class="form-control">
+            <option value="">-- Chọn kho nguồn --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ToWarehouseId">Kho đích</label>
+        <select asp-for="ToWarehouseId" asp-items="Model.Warehouses" class="form-control">
+            <option value="">-- Chọn kho đích --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ReferenceCode">Mã tham chiếu</label>
+        <input asp-for="ReferenceCode" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Note">Ghi chú</label>
+        <textarea asp-for="Note" class="form-control"></textarea>
+    </div>
+
+    @for (int i = 0; i < Model.Items.Count; i++)
+    {
+        <div class="border rounded p-3 mb-3">
+            <div class="mb-2">
+                <label>Sản phẩm</label>
+                <select asp-for="Items[@i].ProductId" asp-items="Model.Products" class="form-control">
+                    <option value="">-- Chọn sản phẩm --</option>
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>Số lượng</label>
+                <input asp-for="Items[@i].Quantity" class="form-control" />
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-info">Chuyển kho</button>
+</form>

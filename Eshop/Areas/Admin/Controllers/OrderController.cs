@@ -1,6 +1,7 @@
 ﻿using Eshop.Models;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,11 +14,19 @@ namespace Eshop.Areas.Admin.Controllers
     public class OrderController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly IInventoryService _inventoryService;
+        private readonly IOrderStateService _orderStateService;
 
-        public OrderController(DataContext dataContext)
+        public OrderController(
+                  DataContext dataContext,
+                  IInventoryService inventoryService,
+                  IOrderStateService orderStateService)
         {
             _dataContext = dataContext;
+            _inventoryService = inventoryService;
+            _orderStateService = orderStateService;
         }
+
 
         public async Task<IActionResult> Index()
         {
@@ -95,35 +104,16 @@ namespace Eshop.Areas.Admin.Controllers
                 var oldStatus = (OrderStatus)order.Status;
                 var newStatus = (OrderStatus)status;
 
-                if (oldStatus == newStatus)
-                    return Json(new { success = true, message = "No changes" });
+                var stateCheck = _orderStateService.ValidateTransition(oldStatus, newStatus);
 
-                // Không cho mở lại đơn đã hủy
-                if (oldStatus == OrderStatus.Cancelled && newStatus != OrderStatus.Cancelled)
-                    return BadRequest(new { success = false, message = "Order is cancelled. Not allowed to reopen." });
+                if (!stateCheck.IsValid)
+                    return BadRequest(new { success = false, message = stateCheck.Message });
 
-                //Hủy đơn hàng: cộng lại số lượng vào kho
                 if (newStatus == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
                 {
-                    var details = await _dataContext.OrderDetails
-                        .Where(d => d.OrderId == order.OrderId)
-                        .ToListAsync();
-
-                    var productIds = details.Select(d => d.ProductId).Distinct().ToList();
-
-                    var products = await _dataContext.Products
-                        .Where(p => productIds.Contains(p.Id))
-                        .ToDictionaryAsync(p => p.Id);
-
-                    foreach (var detail in details)
-                    {
-                        if (products.TryGetValue(detail.ProductId, out var product))
-                        {
-                            product.Quantity += detail.Quantity;
-                            product.Sold = Math.Max(0, product.Sold - detail.Quantity);
-                        }
-                    }
+                    await _inventoryService.ReturnOrderAsync(orderCode, User.Identity?.Name, "Admin hủy đơn.");
                 }
+
 
                 order.Status = (int)newStatus;
 

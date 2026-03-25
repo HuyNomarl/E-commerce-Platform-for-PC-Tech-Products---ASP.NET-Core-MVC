@@ -14,30 +14,27 @@ namespace Eshop.Controllers
         private readonly IMomoService _momoService;
         private readonly IVnPayService _vnPayService;
         private readonly IOrderService _orderService;
-
+        private readonly IInventoryService _inventoryService;
         public PaymentController(
-      IMomoService momoService,
-      IVnPayService vnPayService,
-      IOrderService orderService)
+            IMomoService momoService,
+            IVnPayService vnPayService,
+            IOrderService orderService,
+            IInventoryService inventoryService)
         {
             _momoService = momoService;
             _vnPayService = vnPayService;
             _orderService = orderService;
+            _inventoryService = inventoryService;
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult CreatePaymentUrlVnpay(PaymentInformationModel paymentModel, CheckoutInputViewModel checkoutModel)
+        public async Task<IActionResult> CreatePaymentUrlVnpay(PaymentInformationModel paymentModel, CheckoutInputViewModel checkoutModel)
         {
-            if (paymentModel == null)
+            if (paymentModel == null || paymentModel.Amount <= 0)
             {
                 TempData["error"] = "Dữ liệu thanh toán VNPAY không hợp lệ.";
-                return RedirectToAction("Index", "Cart");
-            }
-
-            if (paymentModel.Amount <= 0)
-            {
-                TempData["error"] = "Số tiền thanh toán không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -52,49 +49,84 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            HttpContext.Session.SetJson("CheckoutInfo", checkoutModel);
+            try
+            {
+                checkoutModel.PaymentMethod = "VNPAY";
+                var reservationCode = await _inventoryService.ReserveCartAsync(HttpContext, User, "VNPAY");
 
-            var url = _vnPayService.CreatePaymentUrl(paymentModel, HttpContext);
-            return Redirect(url);
+                HttpContext.Session.SetJson("CheckoutInfo", checkoutModel);
+                HttpContext.Session.SetString("ActiveReservationCode", reservationCode);
+
+                var url = _vnPayService.CreatePaymentUrl(paymentModel, HttpContext);
+                return Redirect(url);
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
+            }
         }
+
 
         [HttpGet]
         public async Task<IActionResult> PaymentCallbackVnpay()
         {
             var response = _vnPayService.PaymentExecute(Request.Query);
+            var reservationCode = HttpContext.Session.GetString("ActiveReservationCode");
 
             if (response == null)
             {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "VNPAY không trả về phản hồi.");
+
                 TempData["error"] = "Không nhận được phản hồi từ VNPAY.";
                 return RedirectToAction("Index", "Cart");
             }
 
             if (!response.Success)
             {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, $"VNPAY fail: {response.VnPayResponseCode}");
+
+                HttpContext.Session.Remove("CheckoutInfo");
+                HttpContext.Session.Remove("ActiveReservationCode");
+
                 TempData["error"] = $"Thanh toán VNPAY thất bại. Mã lỗi: {response.VnPayResponseCode}";
                 return RedirectToAction("Index", "Cart");
             }
 
             var checkoutInfo = HttpContext.Session.GetJson<CheckoutInputViewModel>("CheckoutInfo");
-            if (checkoutInfo == null)
+            if (checkoutInfo == null || string.IsNullOrWhiteSpace(reservationCode))
             {
-                TempData["error"] = "Không tìm thấy thông tin đặt hàng trong phiên làm việc.";
+                TempData["error"] = "Không tìm thấy thông tin checkout hoặc reservation.";
                 return RedirectToAction("Index", "Cart");
             }
 
-            var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, checkoutInfo);
-
-            if (string.IsNullOrEmpty(orderCode))
+            try
             {
-                TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
+                var orderCode = await _orderService.CreateOrderFromReservationAsync(HttpContext, User, checkoutInfo, reservationCode);
+
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Tạo đơn sau VNPAY thất bại.");
+                    TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                HttpContext.Session.Remove("CheckoutInfo");
+                HttpContext.Session.Remove("ActiveReservationCode");
+
+                TempData["success"] = $"Thanh toán VNPAY thành công. Mã đơn: {orderCode}";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Rollback sau lỗi tạo đơn VNPAY.");
+                TempData["error"] = ex.Message;
                 return RedirectToAction("Index", "Cart");
             }
-
-            HttpContext.Session.Remove("CheckoutInfo");
-
-            TempData["success"] = $"Thanh toán VNPAY thành công. Mã đơn: {orderCode}";
-            return RedirectToAction("Index", "Home");
         }
+
 
         [HttpPost]
         public async Task<IActionResult> CreatePaymentMomo(OrderInfoModel model)

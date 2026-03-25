@@ -1,4 +1,5 @@
 ﻿using Eshop.Models;
+using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
@@ -237,6 +238,13 @@ namespace Eshop.Areas.Admin.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
+            var blockReason = await GetDeleteBlockReasonAsync(id);
+            if (!string.IsNullOrWhiteSpace(blockReason))
+            {
+                TempData["error"] = blockReason;
+                return RedirectToAction(nameof(Index));
+            }
+
             var product = await _dataContext.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.TechnicalAsset)
@@ -283,52 +291,19 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> AddQuantity(int id)
         {
-            var product = await _dataContext.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            var logs = await _dataContext.productQuantityModels
-                .Where(pq => pq.ProductId == id)
-                .OrderByDescending(pq => pq.DateCreate)
-                .ToListAsync();
-
-            ViewBag.ProductQuantityLogs = logs;
-            ViewBag.Id = id;
-
-            return View(new ProductQuantityModel
-            {
-                ProductId = id,
-                Quantity = 1
-            });
+            TempData["error"] = "Chức năng cộng trực tiếp Product.Quantity đã bị khóa. Vui lòng quản lý ở phân hệ Kho.";
+            return RedirectToAction("ProductStock", "Inventory", new { area = "Admin", productId = id });
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> StoreProductQuantity(ProductQuantityModel productQuantityModel, int id)
         {
-            var product = await _dataContext.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            product.Quantity += productQuantityModel.Quantity;
-
-            var log = new ProductQuantityModel
-            {
-                ProductId = id,
-                Quantity = productQuantityModel.Quantity,
-                DateCreate = DateTime.Now
-            };
-
-            _dataContext.productQuantityModels.Add(log);
-            await _dataContext.SaveChangesAsync();
-
-            TempData["success"] = "Cập nhật số lượng thành công!";
-            return RedirectToAction(nameof(AddQuantity), new { id });
+            TempData["error"] = "Chức năng này đã ngưng sử dụng. Vui lòng dùng phiếu nhập kho trong phân hệ Kho.";
+            return RedirectToAction("ProductStock", "Inventory", new { area = "Admin", productId = id });
         }
+
 
         private void LoadViewBags(object? selectedCategory = null, object? selectedPublisher = null)
         {
@@ -663,5 +638,45 @@ namespace Eshop.Areas.Admin.Controllers
                 })
                 .ToList();
         }
+
+        private async Task<string?> GetDeleteBlockReasonAsync(int productId)
+        {
+            if (await _dataContext.InventoryStocks.AnyAsync(x =>
+                x.ProductId == productId &&
+                (x.OnHandQuantity > 0 || x.ReservedQuantity > 0)))
+            {
+                return "Sản phẩm đang còn tồn hoặc đang được giữ chỗ trong kho.";
+            }
+
+            if (await _dataContext.InventoryReservationDetails.AnyAsync(x =>
+                x.ProductId == productId &&
+                x.InventoryReservation.Status == InventoryReservationStatus.Active))
+            {
+                return "Sản phẩm đang nằm trong reservation hoạt động.";
+            }
+
+            if (await _dataContext.InventoryTransactionDetails.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Sản phẩm đã có lịch sử nhập/xuất kho nên không được xóa cứng.";
+            }
+
+            if (await _dataContext.OrderDetails.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Sản phẩm đã phát sinh đơn hàng nên không được xóa.";
+            }
+
+            if (await _dataContext.PrebuiltPcComponents.AnyAsync(x => x.ProductId == productId || x.ComponentProductId == productId))
+            {
+                return "Sản phẩm đang được dùng trong PC dựng sẵn.";
+            }
+
+            if (await _dataContext.PcBuildItems.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Sản phẩm đang nằm trong build PC đã lưu.";
+            }
+
+            return null;
+        }
+
     }
 }

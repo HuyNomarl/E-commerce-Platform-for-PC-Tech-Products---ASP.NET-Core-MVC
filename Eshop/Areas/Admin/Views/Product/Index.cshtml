@@ -192,11 +192,12 @@
                                     <div class="qty-cell">
                                         <span class="qty-badge">@item.Quantity</span>
                                         <div class="mt-1">
-                                            <a asp-controller="Product"
-                                                   asp-action="AddQuantity"
-                                                   asp-route-id="@item.Id"
+                                            <a asp-area="Admin"
+                                                   asp-controller="Inventory"
+                                                   asp-action="ProductStock"
+                                                   asp-route-productId="@item.Id"
                                                    class="mini-link">
-                                                Add Quantity
+                                                Quản lý kho
                                             </a>
                                         </div>
                                     </div>

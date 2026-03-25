@@ -18,13 +18,21 @@ namespace Eshop.Controllers.Api
         private readonly DataContext _context;
         private readonly IPcCompatibilityService _compatibilityService;
         private readonly IPcBuildChatService _pcBuildChatService;
+        private readonly IInventoryService _inventoryService;
 
-        public PcBuilderApiController(DataContext context, IPcCompatibilityService compatibilityService, IPcBuildChatService pcBuildChatService)
+
+        public PcBuilderApiController(
+                DataContext context,
+                IPcCompatibilityService compatibilityService,
+                IPcBuildChatService pcBuildChatService,
+                IInventoryService inventoryService)
         {
             _context = context;
             _compatibilityService = compatibilityService;
             _pcBuildChatService = pcBuildChatService;
+            _inventoryService = inventoryService;
         }
+
 
         [HttpGet("products")]
         public async Task<IActionResult> GetProducts(
@@ -115,9 +123,12 @@ namespace Eshop.Controllers.Api
                 if (!products.TryGetValue(item.ProductId, out var product))
                     return BadRequest(new { message = $"Không tìm thấy sản phẩm ID = {item.ProductId}" });
 
-                if (product.Quantity < item.Quantity)
-                    return BadRequest(new { message = $"Sản phẩm \"{product.Name}\" chỉ còn {product.Quantity} trong kho." });
+                var availableStock = await _inventoryService.GetAvailableStockAsync(item.ProductId);
+
+                if (availableStock < item.Quantity)
+                    return BadRequest(new { message = $"Sản phẩm \"{product.Name}\" chỉ còn {availableStock} trong kho." });
             }
+
 
             var build = new PcBuildModel
             {

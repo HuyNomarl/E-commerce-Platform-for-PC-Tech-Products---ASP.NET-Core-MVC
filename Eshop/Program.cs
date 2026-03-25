@@ -61,6 +61,10 @@ builder.Services.AddScoped<IBuildRequirementExtractor, BuildRequirementExtractor
 builder.Services.AddScoped<IPcBuildRecommendationService, PcBuildRecommendationService>();
 builder.Services.AddScoped<IPcBuildSuggestionService, PcBuildSuggestionService>();
 builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IOrderStateService, OrderStateService>();
+builder.Services.AddHostedService<InventoryReservationCleanupHostedService>();
+
 
 builder.Services.Configure<MomoOptionModel>(
     builder.Configuration.GetSection("MomoAPI")

@@ -15,5 +15,7 @@ namespace Eshop.Models.ViewModels
         public int ProductId { get; set; }
 
         public List<SelectedOptionViewModel> SelectedOptions { get; set; } = new();
+        public ProductInventorySummaryViewModel? InventorySummary { get; set; }
+
     }
 }

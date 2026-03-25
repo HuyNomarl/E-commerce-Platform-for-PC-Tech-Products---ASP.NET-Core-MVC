@@ -55,6 +55,12 @@ namespace Eshop.Models
         [StringLength(100)]
         public string? Ward { get; set; }
 
+        [StringLength(30)]
+        public string? PaymentMethod { get; set; }
+
+        [StringLength(50)]
+        public string? ReservationCode { get; set; }
+
         [StringLength(1000)]
         public string? Note { get; set; }
 

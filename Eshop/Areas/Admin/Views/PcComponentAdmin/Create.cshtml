@@ -84,9 +84,11 @@
                             </div>
 
                             <div class="col-12 col-md-4 form-col">
-                                <label asp-for="Product.Quantity" class="form-label">Số lượng</label>
-                                <input asp-for="Product.Quantity" class="form-control input-soft" placeholder="Nhập số lượng" />
-                                <span asp-validation-for="Product.Quantity" class="text-danger small d-block mt-1"></span>
+                                <label class="form-label">Tồn kho</label>
+                                <div class="readonly-box">
+                                    Tồn kho của linh kiện sẽ được quản lý ở phân hệ Kho sau khi tạo sản phẩm.
+                                </div>
+                                <input asp-for="Product.Quantity" type="hidden" value="0" />
                             </div>
 
                             <div class="col-12 col-md-4 form-col">
@@ -173,6 +175,18 @@
 </div>
 
 <style>
+    .readonly-box {
+        min-height: 44px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 10px 14px;
+        color: #374151;
+        display: flex;
+        align-items: center;
+    }
+
+
     .card-soft {
         background: #fff;
         border: 1px solid #e5e7eb;

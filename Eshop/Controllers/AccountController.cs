@@ -2,6 +2,7 @@
 using Eshop.Models;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +17,26 @@ namespace Eshop.Controllers
         private readonly SignInManager<AppUserModel> _signInManager;
         private readonly DataContext _dataContext;
         private readonly IEmailSender _emailSender;
+        private readonly IInventoryService _inventoryService;
+        private readonly IOrderStateService _orderStateService;
 
         public AccountController(
-            UserManager<AppUserModel> userManager,
-            SignInManager<AppUserModel> signInManager,
-            IEmailSender emailSender,
-            DataContext context)
+                UserManager<AppUserModel> userManager,
+                SignInManager<AppUserModel> signInManager,
+                IEmailSender emailSender,
+                DataContext context,
+                IInventoryService inventoryService,
+                IOrderStateService orderStateService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _dataContext = context;
+            _inventoryService = inventoryService;
+            _orderStateService = orderStateService;
         }
+
+
 
         public IActionResult Index() => RedirectToAction(nameof(Login));
 
@@ -373,9 +382,9 @@ namespace Eshop.Controllers
                 return RedirectToAction(nameof(History));
             }
 
-            if (order.Status != 1)
+            if (!_orderStateService.CanCustomerCancel((OrderStatus)order.Status))
             {
-                TempData["error"] = "Chỉ có thể hủy đơn hàng đang chờ xác nhận.";
+                TempData["error"] = "Đơn hàng này không còn ở trạng thái cho phép khách hủy.";
                 return RedirectToAction(nameof(History));
             }
 
@@ -383,25 +392,7 @@ namespace Eshop.Controllers
 
             try
             {
-                var details = await _dataContext.OrderDetails
-                    .Where(d => d.OrderId == order.OrderId)
-                    .ToListAsync();
-
-                var productIds = details.Select(d => d.ProductId).Distinct().ToList();
-
-                var products = await _dataContext.Products
-                    .Where(p => productIds.Contains(p.Id))
-                    .ToDictionaryAsync(p => p.Id);
-
-                foreach (var detail in details)
-                {
-                    if (products.TryGetValue(detail.ProductId, out var product))
-                    {
-                        product.Quantity += detail.Quantity;
-                        product.Sold = Math.Max(0, product.Sold - detail.Quantity);
-                    }
-                }
-
+                await _inventoryService.ReturnOrderAsync(orderCode, currentUser.Id, "Khách hàng hủy đơn.");
                 order.Status = 6;
 
                 await _dataContext.SaveChangesAsync();
@@ -409,14 +400,15 @@ namespace Eshop.Controllers
 
                 TempData["success"] = $"Đã hủy đơn hàng {orderCode} thành công.";
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                TempData["error"] = "Có lỗi xảy ra khi hủy đơn hàng.";
+                TempData["error"] = ex.Message;
             }
 
             return RedirectToAction(nameof(History));
         }
+
 
         [Authorize]
         [HttpGet]

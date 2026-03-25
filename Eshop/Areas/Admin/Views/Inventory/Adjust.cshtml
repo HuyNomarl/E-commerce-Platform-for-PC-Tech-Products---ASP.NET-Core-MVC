@@ -1,0 +1,34 @@
+﻿@model Eshop.Models.ViewModels.AdminInventoryAdjustViewModel
+
+<h2>Điều chỉnh kho</h2>
+
+<form asp-action="Adjust" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="WarehouseId">Kho</label>
+        <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-control">
+            <option value="">-- Chọn kho --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ProductId">Sản phẩm</label>
+        <select asp-for="ProductId" asp-items="Model.Products" class="form-control">
+            <option value="">-- Chọn sản phẩm --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewQuantity">Số lượng mới</label>
+        <input asp-for="NewQuantity" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Note">Lý do</label>
+        <textarea asp-for="Note" class="form-control"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-warning">Điều chỉnh</button>
+</form>

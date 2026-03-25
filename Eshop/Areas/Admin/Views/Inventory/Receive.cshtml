@@ -1,0 +1,44 @@
+﻿@model Eshop.Models.ViewModels.AdminInventoryReceiveViewModel
+
+<h2>Nhập kho</h2>
+
+<form asp-action="Receive" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="WarehouseId">Kho</label>
+        <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-control">
+            <option value="">-- Chọn kho --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Note">Ghi chú</label>
+        <textarea asp-for="Note" class="form-control"></textarea>
+    </div>
+
+    @for (int i = 0; i < Model.Items.Count; i++)
+    {
+        <div class="border rounded p-3 mb-3">
+            <div class="mb-2">
+                <label>Sản phẩm</label>
+                <select asp-for="Items[@i].ProductId" asp-items="Model.Products" class="form-control">
+                    <option value="">-- Chọn sản phẩm --</option>
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>Số lượng</label>
+                <input asp-for="Items[@i].Quantity" class="form-control" />
+            </div>
+
+            <div class="mb-2">
+                <label>Giá nhập</label>
+                <input asp-for="Items[@i].UnitCost" class="form-control" />
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-success">Lưu phiếu nhập</button>
+</form>

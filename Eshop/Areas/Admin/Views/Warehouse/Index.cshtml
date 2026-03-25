@@ -1,0 +1,35 @@
+﻿@model IEnumerable<Eshop.Models.WarehouseModel>
+
+<h2>Danh sách kho</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Thêm kho</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Mã</th>
+            <th>Tên kho</th>
+            <th>Địa chỉ</th>
+            <th>Mặc định</th>
+            <th>Hoạt động</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Code</td>
+                <td>@item.Name</td>
+                <td>@item.Address</td>
+                <td>@(item.IsDefault ? "Có" : "Không")</td>
+                <td>@(item.IsActive ? "Có" : "Không")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

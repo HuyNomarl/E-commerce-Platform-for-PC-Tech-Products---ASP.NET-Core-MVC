@@ -347,7 +347,15 @@
                         </div>
 
                         <div class="product-meta-custom">
-                            <p><b>Tình trạng:</b> @(Model.ProductDetail.Quantity > 0 ? "Còn hàng" : "Hết hàng")</p>
+                            <p>
+                                <b>Tình trạng:</b>
+                                @(Model.InventorySummary != null && Model.InventorySummary.AvailableQuantity > 0 ? "Còn hàng" : "Hết hàng")
+                            </p>
+                            <p>
+                                <b>Số lượng khả dụng:</b>
+                                @(Model.InventorySummary?.AvailableQuantity ?? 0)
+                            </p>
+
                             <p><b>Nhà xuất bản:</b> @Model.ProductDetail.Publisher?.Name</p>
                             <p><b>Thể loại:</b> @Model.ProductDetail.Category?.Name</p>
                         </div>
@@ -425,7 +433,7 @@
                                     <input asp-for="Quantity" type="number" min="1" class="qty-input-custom" />
                                 </div>
 
-                                @if (Model.ProductDetail.Quantity > 0)
+                                @if ((Model.InventorySummary?.AvailableQuantity ?? 0) > 0)
                                 {
                                     <button type="submit" class="btn-add-cart-custom">
                                         <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
@@ -471,9 +479,19 @@
                                     <img src="~/images/home/gallery1.jpg" alt="" />
                                     <h2>$56</h2>
                                     <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
+                                    @if ((Model.InventorySummary?.AvailableQuantity ?? 0) > 0)
+                                    {
+                                        <button type="submit" class="btn-add-cart-custom">
+                                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="stock-out-btn" disabled>
+                                            <i class="fa fa-shopping-cart"></i> Hết hàng
+                                        </button>
+                                    }
+
                                 </div>
                             </div>
                         </div>

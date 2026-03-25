@@ -1,0 +1,58 @@
+﻿@using Eshop.Models
+@{
+    var product = ViewBag.Product as ProductModel;
+    var stocks = ViewBag.Stocks as List<InventoryStockModel> ?? new();
+    var history = ViewBag.History as List<InventoryTransactionDetailModel> ?? new();
+}
+
+<h2>Chi tiết kho: @product?.Name</h2>
+
+<h4>Tồn theo kho</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Kho</th>
+            <th>Tồn thực tế</th>
+            <th>Giữ chỗ</th>
+            <th>Khả dụng</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in stocks)
+        {
+            <tr>
+                <td>@item.Warehouse.Name</td>   
+                <td>@item.OnHandQuantity</td>
+                <td>@item.ReservedQuantity</td>
+                <td>@item.AvailableQuantity</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Lịch sử kho</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Mã phiếu</th>
+            <th>Loại</th>
+            <th>SL thay đổi</th>
+            <th>Trước</th>
+            <th>Sau</th>
+            <th>Ngày</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in history)
+        {
+            <tr>
+                <td>@item.InventoryTransaction.TransactionCode</td>
+                <td>@item.InventoryTransaction.TransactionType</td>
+                <td>@item.Quantity</td>
+                <td>@item.BeforeQuantity</td>
+                <td>@item.AfterQuantity</td>
+                <td>@item.InventoryTransaction.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\Admin\Views\NewFolder\" />
     <Folder Include="Migrations\" />
     <Folder Include="Views\Order\" />
     <Folder Include="wwwroot\backend\css\" />

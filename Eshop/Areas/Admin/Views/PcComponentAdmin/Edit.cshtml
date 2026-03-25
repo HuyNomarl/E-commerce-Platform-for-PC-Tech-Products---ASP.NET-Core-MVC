@@ -75,9 +75,12 @@
                             </div>
 
                             <div class="col-12 col-md-4 form-col">
-                                <label asp-for="Product.Quantity" class="form-label">Số lượng</label>
-                                <input asp-for="Product.Quantity" class="form-control input-soft" placeholder="Nhập số lượng" />
-                                <span asp-validation-for="Product.Quantity" class="text-danger small d-block mt-1"></span>
+                                <label class="form-label">Tồn kho hiện tại</label>
+                                <div class="readonly-box">@Model.Product.Quantity</div>
+                                <div class="small helper-text mt-2">
+                                    Giá trị này được đồng bộ từ phân hệ Kho. Không chỉnh trực tiếp tại form linh kiện.
+                                </div>
+                                <input asp-for="Product.Quantity" type="hidden" />
                             </div>
 
                             <div class="col-12 col-md-4 form-col">
@@ -234,6 +237,18 @@
 </div>
 
 <style>
+
+    .readonly-box {
+        min-height: 44px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 10px 14px;
+        color: #374151;
+        display: flex;
+        align-items: center;
+    }
+
     .pc-component-edit-page .page-subtitle {
         opacity: .75;
     }

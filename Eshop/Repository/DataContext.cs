@@ -36,6 +36,12 @@ namespace Eshop.Repository
         public DbSet<PcBuildItemModel> PcBuildItems { get; set; }
         public DbSet<ProductImageModel> ProductImages { get; set; }
         public DbSet<ProductTechnicalAssetModel> ProductTechnicalAssets { get; set; }
+        public DbSet<WarehouseModel> Warehouses { get; set; }
+        public DbSet<InventoryStockModel> InventoryStocks { get; set; }
+        public DbSet<InventoryTransactionModel> InventoryTransactions { get; set; }
+        public DbSet<InventoryTransactionDetailModel> InventoryTransactionDetails { get; set; }
+        public DbSet<InventoryReservationModel> InventoryReservations { get; set; }
+        public DbSet<InventoryReservationDetailModel> InventoryReservationDetails { get; set; }
 
 
 
@@ -77,8 +83,8 @@ namespace Eshop.Repository
                    .HasKey(o => o.OrderId);
 
             builder.Entity<OrderDetails>()
-            .Property(x => x.Price)
-            .HasPrecision(18, 2);
+                .Property(x => x.Price)
+                .HasPrecision(18, 2);
 
             builder.Entity<MessageModel>()
                 .HasOne(m => m.Sender)
@@ -99,10 +105,10 @@ namespace Eshop.Repository
                 .HasIndex(m => m.CreatedAt);
 
             builder.Entity<CategoryModel>()
-        .HasOne(c => c.ParentCategory)
-        .WithMany(c => c.Children)
-        .HasForeignKey(c => c.ParentCategoryId)
-        .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(c => c.ParentCategory)
+                .WithMany(c => c.Children)
+                .HasForeignKey(c => c.ParentCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<ProductModel>()
                 .HasOne(p => p.Category)
@@ -164,10 +170,10 @@ namespace Eshop.Repository
 
             PcSpecificationSeed.Seed(builder);
             builder.Entity<ProductImageModel>()
-      .HasOne(x => x.Product)
-      .WithMany(x => x.ProductImages)
-      .HasForeignKey(x => x.ProductId)
-      .OnDelete(DeleteBehavior.Cascade);
+              .HasOne(x => x.Product)
+              .WithMany(x => x.ProductImages)
+              .HasForeignKey(x => x.ProductId)
+              .OnDelete(DeleteBehavior.Cascade);
 
             builder.Entity<ProductTechnicalAssetModel>()
                 .HasOne(x => x.Product)
@@ -175,9 +181,83 @@ namespace Eshop.Repository
                 .HasForeignKey<ProductTechnicalAssetModel>(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+
             builder.Entity<WishlistModel>()
-        .HasIndex(x => new { x.UserId, x.ProductId })
-        .IsUnique();
+                .HasIndex(x => new { x.UserId, x.ProductId })
+                .IsUnique();
+
+            builder.Entity<WarehouseModel>()
+                .HasIndex(x => x.Code)
+                .IsUnique();
+
+            builder.Entity<InventoryStockModel>()
+                .HasIndex(x => new { x.ProductId, x.WarehouseId })
+                .IsUnique();
+
+            builder.Entity<InventoryStockModel>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<InventoryStockModel>()
+                .HasOne(x => x.Warehouse)
+                .WithMany(x => x.InventoryStocks)
+                .HasForeignKey(x => x.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<InventoryTransactionModel>()
+                .HasOne(x => x.Warehouse)
+                .WithMany(x => x.InventoryTransactions)
+                .HasForeignKey(x => x.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<InventoryTransactionDetailModel>()
+                .HasOne(x => x.InventoryTransaction)
+                .WithMany(x => x.Details)
+                .HasForeignKey(x => x.InventoryTransactionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<InventoryTransactionDetailModel>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<InventoryTransactionModel>()
+                .HasIndex(x => x.TransactionCode)
+                .IsUnique();
+
+            builder.Entity<InventoryTransactionModel>()
+                .HasIndex(x => x.ReferenceCode);
+
+            builder.Entity<InventoryReservationModel>()
+                .HasIndex(x => x.ReservationCode)
+                .IsUnique();
+
+            builder.Entity<InventoryReservationModel>()
+                .HasIndex(x => new { x.SessionId, x.Status });
+
+            builder.Entity<InventoryReservationModel>()
+                .HasIndex(x => x.ExpiresAt);
+
+            builder.Entity<InventoryReservationDetailModel>()
+                .HasOne(x => x.InventoryReservation)
+                .WithMany(x => x.Details)
+                .HasForeignKey(x => x.InventoryReservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<InventoryReservationDetailModel>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<InventoryReservationDetailModel>()
+                .HasOne(x => x.Warehouse)
+                .WithMany()
+                .HasForeignKey(x => x.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
 
         }
 

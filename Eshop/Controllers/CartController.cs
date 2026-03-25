@@ -2,6 +2,7 @@
 using Eshop.Models.ViewModel;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Eshop.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,11 +14,19 @@ namespace Eshop.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly UserManager<AppUserModel> _userManager;
-        public CartController(DataContext dataContext, UserManager<AppUserModel> userManager)
+        private readonly IInventoryService _inventoryService;
+
+
+        public CartController(
+                 DataContext dataContext,
+                 UserManager<AppUserModel> userManager,
+                 IInventoryService inventoryService)
         {
             _dataContext = dataContext;
             _userManager = userManager;
+            _inventoryService = inventoryService;
         }
+
 
         public async Task<IActionResult> Index()
         {
@@ -112,6 +121,8 @@ namespace Eshop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(ProductDetailViewModel model)
         {
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: thêm sản phẩm.");
+
             if (model.SelectedOptions == null)
             {
                 model.SelectedOptions = new List<SelectedOptionViewModel>();
@@ -121,6 +132,7 @@ namespace Eshop.Controllers
                 .Include(p => p.OptionGroups)
                     .ThenInclude(g => g.OptionValues)
                 .FirstOrDefaultAsync(p => p.Id == model.ProductId);
+
 
             if (product == null)
             {
@@ -134,6 +146,15 @@ namespace Eshop.Controllers
             {
                 Quantity = model.Quantity > 0 ? model.Quantity : 1
             };
+
+            var availableStock = await GetAvailableStockAsync(product.Id);
+
+            if (newCartItem.Quantity > availableStock)
+            {
+                TempData["Error"] = $"Sản phẩm chỉ còn {availableStock} trong kho.";
+                return RedirectToAction("Details", "Product", new { id = product.Id });
+            }
+
 
             foreach (var selected in model.SelectedOptions)
             {
@@ -168,9 +189,9 @@ namespace Eshop.Controllers
             {
                 int newQuantity = existingItem.Quantity + newCartItem.Quantity;
 
-                if (newQuantity > product.Quantity)
+                if (newQuantity > availableStock)
                 {
-                    existingItem.Quantity = product.Quantity;
+                    existingItem.Quantity = availableStock;
                     TempData["Error"] = "Không thể thêm quá số lượng tồn kho.";
                 }
                 else
@@ -187,6 +208,8 @@ namespace Eshop.Controllers
 
         public async Task<IActionResult> Decrease(int id)
         {
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: giảm số lượng.");
+
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
             CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
@@ -221,6 +244,8 @@ namespace Eshop.Controllers
 
         public async Task<IActionResult> Increase(int id)
         {
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: tăng số lượng.");
+
             ProductModel? product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == id);
             if (product == null)
             {
@@ -232,13 +257,16 @@ namespace Eshop.Controllers
 
             CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
 
+
             if (cartItem == null)
             {
                 TempData["Error"] = "Sản phẩm không tồn tại trong giỏ hàng.";
                 return RedirectToAction("Index");
             }
 
-            if (cartItem.Quantity < product.Quantity)
+            var availableStock = await GetAvailableStockAsync(id);
+
+            if (cartItem.Quantity < availableStock)
             {
                 cartItem.Quantity += 1;
                 TempData["Success"] = "Cập nhật giỏ hàng thành công.";
@@ -254,6 +282,8 @@ namespace Eshop.Controllers
 
         public async Task<IActionResult> Remove(int id)
         {
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa sản phẩm.");
+
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
             cart.RemoveAll(x => x.ProductId == id);
@@ -273,6 +303,8 @@ namespace Eshop.Controllers
 
         public async Task<IActionResult> Clear()
         {
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa toàn bộ.");
+
             HttpContext.Session.Remove("Cart");
             TempData["Success"] = "Đã xóa toàn bộ giỏ hàng.";
             return RedirectToAction("Index");
@@ -446,5 +478,27 @@ namespace Eshop.Controllers
 
             return oldList.SequenceEqual(newList);
         }
+
+        private async Task<int> GetAvailableStockAsync(int productId)
+        {
+            return await _inventoryService.GetAvailableStockAsync(productId);
+        }
+        private async Task ReleaseActiveReservationIfAnyAsync(string reason)
+        {
+            var reservationCode = HttpContext.Session.GetString("ActiveReservationCode");
+
+            if (string.IsNullOrWhiteSpace(reservationCode))
+                return;
+
+            await _inventoryService.ReleaseReservationAsync(
+                reservationCode,
+                User.Identity?.Name,
+                reason);
+
+            HttpContext.Session.Remove("ActiveReservationCode");
+            HttpContext.Session.Remove("CheckoutInfo");
+        }
+
+
     }
 }

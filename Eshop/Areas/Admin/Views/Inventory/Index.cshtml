@@ -1,0 +1,47 @@
+﻿@model IEnumerable<dynamic>
+
+<h2>Tổng quan tồn kho</h2>
+
+<p class="mb-3">
+    <a asp-action="Receive" class="btn btn-success">Nhập kho</a>
+    <a asp-action="Adjust" class="btn btn-warning">Điều chỉnh</a>
+    <a asp-action="Transfer" class="btn btn-info">Chuyển kho</a>
+    <a asp-action="History" class="btn btn-secondary">Lịch sử kho</a>
+</p>
+
+<form asp-action="BootstrapLegacyStock" method="post" class="mb-3">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-dark">
+        Khởi tạo tồn kho từ Product.Quantity cũ
+    </button>
+</form>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>SP</th>
+            <th>Tồn thực tế</th>
+            <th>Giữ chỗ</th>
+            <th>Khả dụng</th>
+            <th>Cache Product.Quantity</th>
+            <th>Đã bán</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.TotalOnHand</td>
+                <td>@item.TotalReserved</td>
+                <td>@(item.TotalOnHand - item.TotalReserved)</td>
+                <td>@item.CachedQuantity</td>
+                <td>@item.Sold</td>
+                <td>
+                    <a asp-action="ProductStock" asp-route-productId="@item.Id" class="btn btn-info btn-sm">Chi tiết kho</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

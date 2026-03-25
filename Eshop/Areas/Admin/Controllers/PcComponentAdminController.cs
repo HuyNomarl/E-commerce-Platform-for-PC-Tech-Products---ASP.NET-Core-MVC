@@ -73,6 +73,8 @@ namespace Eshop.Areas.Admin.Controllers
             vm.ImageUploads ??= new List<IFormFile>();
             vm.WidgetImagesJson ??= string.Empty;
 
+            vm.Product.Quantity = 0;
+
             await LoadFormData(vm);
 
             if (vm.Product.ComponentType == null || vm.Product.ComponentType == PcComponentType.None)
@@ -105,7 +107,7 @@ namespace Eshop.Areas.Admin.Controllers
             _context.Products.Add(vm.Product);
             await _context.SaveChangesAsync();
 
-            // Lấy ảnh từ Cloudinary Widget giống ProductController
+            // Lấy ảnh từ Cloudinary Widget
             var widgetImagesInput = ParseWidgetImages(vm.WidgetImagesJson);
             var uploadedImages = MapWidgetImagesToEntities(vm.Product.Id, widgetImagesInput);
 
@@ -215,6 +217,15 @@ namespace Eshop.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            if (product.ComponentType != vm.Product.ComponentType)
+            {
+                var locked = await HasLockedInventoryHistoryAsync(id);
+                if (locked)
+                {
+                    ModelState.AddModelError("Product.ComponentType", "Không thể đổi loại linh kiện khi đã có tồn kho hoặc lịch sử bán hàng.");
+                }
+            }
+
             if (vm.Product.ComponentType == null || vm.Product.ComponentType == PcComponentType.None)
             {
                 ModelState.AddModelError("Product.ComponentType", "Yêu cầu chọn loại linh kiện.");
@@ -245,7 +256,6 @@ namespace Eshop.Areas.Admin.Controllers
             product.Name = vm.Product.Name;
             product.Description = vm.Product.Description;
             product.Price = vm.Product.Price;
-            product.Quantity = vm.Product.Quantity;
             product.CategoryId = vm.Product.CategoryId;
             product.PublisherId = vm.Product.PublisherId;
             product.ComponentType = vm.Product.ComponentType;
@@ -387,6 +397,13 @@ namespace Eshop.Areas.Admin.Controllers
             if (product == null)
             {
                 TempData["error"] = "Không tìm thấy linh kiện.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var deleteReason = await GetDeleteBlockReasonAsync(id);
+            if (!string.IsNullOrWhiteSpace(deleteReason))
+            {
+                TempData["error"] = deleteReason;
                 return RedirectToAction(nameof(Index));
             }
 
@@ -716,9 +733,9 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
         private List<ProductImageModel> MapWidgetImagesToEntities(
-    int productId,
-    IEnumerable<WidgetUploadedImageInputViewModel> widgetImages,
-    int startSortOrder = 0)
+                int productId,
+                IEnumerable<WidgetUploadedImageInputViewModel> widgetImages,
+                int startSortOrder = 0)
         {
             var result = new List<ProductImageModel>();
             var sortOrder = startSortOrder;
@@ -739,5 +756,54 @@ namespace Eshop.Areas.Admin.Controllers
 
             return result;
         }
+
+        private async Task<string?> GetDeleteBlockReasonAsync(int productId)
+        {
+            if (await _context.InventoryStocks.AnyAsync(x =>
+                x.ProductId == productId &&
+                (x.OnHandQuantity > 0 || x.ReservedQuantity > 0)))
+            {
+                return "Linh kiện đang còn tồn hoặc đang được giữ chỗ trong kho.";
+            }
+
+            if (await _context.InventoryReservationDetails.AnyAsync(x =>
+                x.ProductId == productId &&
+                x.InventoryReservation.Status == InventoryReservationStatus.Active))
+            {
+                return "Linh kiện đang nằm trong reservation hoạt động.";
+            }
+
+            if (await _context.InventoryTransactionDetails.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Linh kiện đã có lịch sử nhập/xuất kho nên không được xóa cứng.";
+            }
+
+            if (await _context.OrderDetails.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Linh kiện đã phát sinh đơn hàng nên không được xóa.";
+            }
+
+            if (await _context.PcBuildItems.AnyAsync(x => x.ProductId == productId))
+            {
+                return "Linh kiện đang được dùng trong build PC đã lưu.";
+            }
+
+            if (await _context.PrebuiltPcComponents.AnyAsync(x => x.ComponentProductId == productId || x.ProductId == productId))
+            {
+                return "Linh kiện đang được dùng trong PC dựng sẵn.";
+            }
+
+            return null;
+        }
+
+        private async Task<bool> HasLockedInventoryHistoryAsync(int productId)
+        {
+            return await _context.InventoryStocks.AnyAsync(x =>
+                       x.ProductId == productId &&
+                       (x.OnHandQuantity > 0 || x.ReservedQuantity > 0))
+                   || await _context.InventoryTransactionDetails.AnyAsync(x => x.ProductId == productId)
+                   || await _context.OrderDetails.AnyAsync(x => x.ProductId == productId);
+        }
+
     }
 }
