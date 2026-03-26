@@ -19,7 +19,53 @@
 
     <link rel="shortcut icon" href="~/images/ico/favicon.ico" />
 
-   
+    <style>
+        .tt-header-top .tt-auth-links {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .tt-header-top .tt-auth-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(191, 219, 254, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: #eff6ff !important;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .tt-header-top .tt-auth-link:hover,
+        .tt-header-top .tt-auth-link:focus {
+            background: rgba(255, 255, 255, 0.16);
+            color: #ffffff !important;
+            text-decoration: none;
+        }
+
+        .tt-header-top .tt-auth-link-primary {
+            background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.26);
+        }
+
+        .tt-header-top .tt-auth-link-logout {
+            background: rgba(127, 29, 29, 0.24);
+            border-color: rgba(254, 202, 202, 0.2);
+        }
+
+        .tt-header-top .tt-auth-link span,
+        .tt-header-top .tt-auth-link i,
+        .tt-header-top .tt-auth-separator {
+            color: inherit !important;
+        }
+    </style>
 </head>
 <body>
     <partial name="_SupportChatPartial" />
@@ -36,18 +82,30 @@
                         <a href="#"><i class="fa fa-download"></i><span>Phần mềm hay</span></a>
                     </div>
 
-                    <div class="tt-top-right">
+                    <div class="tt-top-right tt-auth-links">
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
-                            <a asp-controller="Account" asp-action="UpdateAccount" asp-route-tab="home">Tài khoản</a>
-                            <span>|</span>
-                            <a asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                            <a asp-controller="Account" asp-action="UpdateAccount" asp-route-tab="home" class="tt-auth-link">
+                                <i class="fa fa-user-circle-o"></i>
+                                <span>Tài khoản</span>
+                            </a>
+                            <span class="tt-auth-separator">|</span>
+                            <a asp-controller="Account" asp-action="Logout" class="tt-auth-link tt-auth-link-logout">
+                                <i class="fa fa-sign-out"></i>
+                                <span>Đăng xuất</span>
+                            </a>
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Register">Đăng ký</a>
-                            <span>|</span>
-                            <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                            <a asp-controller="Account" asp-action="Register" class="tt-auth-link">
+                                <i class="fa fa-user-plus"></i>
+                                <span>Đăng ký</span>
+                            </a>
+                            <span class="tt-auth-separator">|</span>
+                            <a asp-controller="Account" asp-action="Login" class="tt-auth-link tt-auth-link-primary">
+                                <i class="fa fa-sign-in"></i>
+                                <span>Đăng nhập</span>
+                            </a>
                         }
                     </div>
                 </div>
@@ -78,8 +136,8 @@
 
                         <div class="tt-quick-links">
                             <a href="#">PC Gaming</a>
-                            <a href="#">Linh kiện máy tính</a>
-                            <a href="#">Màn hình</a>
+                            <a asp-controller="Home" asp-action="Wishlist">Yêu thích</a>
+                            <a asp-controller="Home" asp-action="Compare">So sánh</a>
                         </div>
                     </div>
 

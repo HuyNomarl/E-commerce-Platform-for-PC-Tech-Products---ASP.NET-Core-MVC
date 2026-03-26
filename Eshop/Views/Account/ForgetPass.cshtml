@@ -1,32 +1,45 @@
-﻿@model AppUserModel
+@model AppUserModel
 
 @{
-    ViewData["Title"] = "Account Index";
+    ViewData["Title"] = "Quên mật khẩu";
 }
-<section id="">
-    <!--form-->
+
+<section id="form" class="account-auth">
     <div class="container">
         <div class="row">
-            <div class="col-sm-4 col-sm-offset-1">
-                <div class="login-form">
-                    <!--login form-->
-                    <h2>Forget Password</h2>
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card">
+                        <span class="account-auth-badge">Account Recovery</span>
+                        <h1 class="account-auth-title">Khôi phục mật khẩu</h1>
+                        <p class="account-auth-subtitle">Nhập email đã đăng ký, hệ thống sẽ gửi liên kết đặt lại mật khẩu để bạn truy cập lại tài khoản an toàn.</p>
 
-                    <form asp-action="SendMailForgotPass" asp-controller="Account">
-                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
 
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
+                        <form asp-action="SendMailForgotPass" asp-controller="Account" method="post" class="account-auth-form">
+                            @Html.AntiForgeryToken()
+
+                            <div class="form-group">
+                                <label asp-for="Email">Email</label>
+                                <input asp-for="Email" class="form-control" placeholder="Nhập email nhận liên kết khôi phục" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-default account-auth-submit">Gửi email khôi phục</button>
+                        </form>
+
+                        <div class="account-auth-links account-auth-links-single">
+                            <a asp-action="Login" asp-controller="Account">Quay lại đăng nhập</a>
                         </div>
-
-                        <button type="submit" class="btn btn-default">Tìm tài khoản</button>
-                    </form>
-
-                </div><!--/login form-->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</section><!--/form-->
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

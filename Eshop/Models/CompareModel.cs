@@ -7,10 +7,18 @@ namespace Eshop.Models
     {
         [Key]
         public int Id { get; set; }
+
+        [Required]
         public int ProductId { get; set; }
-        public string UserId { get; set; }
-        [ForeignKey("ProductId")]
-        public ProductModel Product { get; set; }
+
+        [Required]
+        [StringLength(450)]
+        public string UserId { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [ForeignKey(nameof(ProductId))]
+        public ProductModel Product { get; set; } = null!;
 
     }
 }

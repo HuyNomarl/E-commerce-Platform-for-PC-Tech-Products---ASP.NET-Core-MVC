@@ -1,46 +1,236 @@
-﻿@using Eshop.Views.ViewModels
-@model List<CompareItemVM>
+@using System
+@using System.Collections.Generic
+@using Eshop.Views.ViewModels
+@model ComparePageVM
 
-@{
-    ViewData["title"] = "List Compare";
+@functions {
+    public static string ResolveImage(string? image)
+    {
+        if (string.IsNullOrWhiteSpace(image)) return string.Empty;
+        if (image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            image.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return image;
+        }
+
+        return "/media/products/" + System.IO.Path.GetFileName(image);
+    }
 }
 
-<h3>List Compare</h3>
+@{
+    ViewData["Title"] = "Compare";
+    var items = Model.Items ?? new List<CompareItemVM>();
+    var columnCount = items.Count + 1;
+}
 
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th>Compare Id</th>
-            <th>Product Name</th>
-            <th>Product Description</th>
-            <th>Product Price</th>
-            <th>Product Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <th scope="row">@item.Compare.Id</th>
+<style>
+    .cp-shell{background:linear-gradient(180deg,#f8fbff 0%,#eef4ff 100%);border:1px solid #dbe7ff;border-radius:24px;padding:24px;box-shadow:0 20px 45px rgba(15,23,42,.08)}
+    .cp-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:22px}
+    .cp-head h2{margin:0 0 8px;font-size:30px;font-weight:800;color:#0f172a}
+    .cp-head p{margin:0;max-width:780px;color:#475569;line-height:1.7}
+    .cp-head-meta{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+    .cp-count,.cp-flag{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;font-weight:700;border:1px solid transparent}
+    .cp-count{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe}
+    .cp-flag{background:#ecfeff;color:#0f766e;border-color:#a5f3fc}
+    .cp-empty{text-align:center;padding:48px 24px;border:1px dashed #bfd0f7;border-radius:20px;color:#64748b;background:#fff}
+    .cp-empty i{font-size:44px;display:block;margin-bottom:12px;color:#2563eb}
+    .cp-note{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+    .cp-note span{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:999px;background:#fff;border:1px solid #dbe7ff;color:#334155;font-size:12px;font-weight:700}
+    .cp-note .cp-dot{width:10px;height:10px;border-radius:999px;background:#22c55e}
+    .cp-table-wrap{overflow-x:auto;border-radius:20px}
+    .cp-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0}
+    .cp-table th,.cp-table td{border:1px solid #dbe7ff;padding:16px;vertical-align:top;background:#fff}
+    .cp-table th:first-child,.cp-table td:first-child{position:sticky;left:0;z-index:2;background:#f8fbff;width:240px;min-width:240px}
+    .cp-table .cp-product-head th:first-child{z-index:4}
+    .cp-table .cp-product-head td{vertical-align:stretch}
+    .cp-product-card{display:flex;flex-direction:column;gap:12px;height:100%}
+    .cp-image{height:180px;background:radial-gradient(circle at top,#eff6ff 0%,#f8fafc 70%);border:1px solid #dbeafe;border-radius:18px;display:flex;align-items:center;justify-content:center;padding:16px}
+    .cp-image img{width:100%;height:100%;object-fit:contain}
+    .cp-product-card h3{margin:0;font-size:18px;line-height:1.55;color:#0f172a}
+    .cp-price{font-size:26px;font-weight:800;color:#dc2626}
+    .cp-stars{display:inline-flex;gap:2px;color:#f59e0b}
+    .cp-rating{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#334155}
+    .cp-meta,.cp-inline-meta{display:flex;flex-wrap:wrap;gap:8px}
+    .cp-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f8fafc;border:1px solid #dbeafe;color:#334155;font-size:12px;font-weight:700}
+    .cp-summary{margin:0;padding-left:18px;color:#475569;display:grid;gap:6px}
+    .cp-summary li{line-height:1.55}
+    .cp-actions{display:grid;gap:10px;margin-top:auto}
+    .cp-btn,.cp-actions a{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #cddcf8;border-radius:14px;padding:11px 14px;font-weight:700;background:#fff;color:#0f172a;text-decoration:none}
+    .cp-btn:hover,.cp-actions a:hover{text-decoration:none;background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+    .cp-btn-danger{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+    .cp-btn-danger:hover{background:#ffe4e6;border-color:#fda4af;color:#9f1239}
+    .cp-section th{background:#123b7a;color:#fff;padding:0;position:sticky;left:0;z-index:3}
+    .cp-section-box{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:16px 18px}
+    .cp-section-box h4{margin:0;font-size:16px;font-weight:800}
+    .cp-section-box p{margin:4px 0 0;color:rgba(255,255,255,.82);font-size:13px;line-height:1.6}
+    .cp-row-title{display:block;font-size:14px;font-weight:800;color:#0f172a;margin-bottom:6px}
+    .cp-row-hint{display:block;font-size:12px;line-height:1.6;color:#64748b;font-weight:500}
+    .cp-value-cell{position:relative}
+    .cp-value{font-size:15px;font-weight:700;color:#0f172a;line-height:1.6}
+    .cp-value-muted{color:#64748b;font-weight:600}
+    .cp-value-best{background:linear-gradient(180deg,#f0fdf4 0%,#dcfce7 100%) !important;border-color:#86efac !important}
+    .cp-best-tag{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 9px;border-radius:999px;background:#166534;color:#fff;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    @@media (max-width: 991px){
+        .cp-shell{padding:18px}
+        .cp-head{flex-direction:column}
+        .cp-head-meta{justify-content:flex-start}
+    }
+</style>
 
-                <td>@item.Product.Name</td>
-                <td>@item.Product.Description</td>
-                <td>@item.Product.Price</td>
+<div class="cp-shell">
+    <div class="cp-head">
+        <div>
+            <h2>@Model.ModeTitle</h2>
+            <p>@Model.ModeDescription</p>
+        </div>
+        <div class="cp-head-meta">
+            <div class="cp-count"><i class="fa fa-columns"></i> @items.Count/4 sản phẩm</div>
+            @if (Model.HasMixedComponentTypes)
+            {
+                <div class="cp-flag"><i class="fa fa-random"></i> So sánh đa nhóm</div>
+            }
+        </div>
+    </div>
 
-                <td>
-                    <img src="~/media/products/@item.Product.Image" width="100" height="80" />
-                </td>
+    @if (!items.Any())
+    {
+        <div class="cp-empty">
+            <i class="fa fa-balance-scale"></i>
+            Danh sách compare đang trống. Hãy thêm tối đa 4 sản phẩm để bắt đầu so sánh.
+        </div>
+    }
+    else
+    {
+        <div class="cp-note">
+            <span><span class="cp-dot"></span> Ô xanh là giá trị nổi bật nhất theo từng hàng so sánh</span>
+            <span><i class="fa fa-bar-chart"></i> Compare thông minh chỉ bật khi các sản phẩm cùng nhóm linh kiện</span>
+        </div>
 
-                <td>
-                    <a asp-action="DeleteCompare"
-                       asp-controller="Home"
-                       asp-route-id="@item.Compare.Id"
-                       class="btn btn-primary confirmDeletion">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <div class="cp-table-wrap">
+            <table class="cp-table">
+                <tbody>
+                    <tr class="cp-product-head">
+                        <th>Sản phẩm</th>
+                        @foreach (var item in items)
+                        {
+                            var image = ResolveImage(item.Product.Image);
+                            <td>
+                                <div class="cp-product-card">
+                                    <div class="cp-image">
+                                        @if (!string.IsNullOrWhiteSpace(image))
+                                        {
+                                            <img src="@image" alt="@item.Product.Name" />
+                                        }
+                                        else
+                                        {
+                                            <div class="cp-value-muted"><i class="fa fa-image"></i></div>
+                                        }
+                                    </div>
+
+                                    <h3>@item.Product.Name</h3>
+                                    <div class="cp-price">@item.Product.Price.ToString("#,##0 đ")</div>
+
+                                    <div class="cp-rating">
+                                        <span class="cp-stars">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="fa @(i <= Math.Round(item.AverageRating, MidpointRounding.AwayFromZero) ? "fa-star" : "fa-star-o")"></i>
+                                            }
+                                        </span>
+                                        <strong>@item.AverageRating.ToString("0.0")</strong>
+                                        <span class="cp-value-muted">(@item.ReviewCount review)</span>
+                                    </div>
+
+                                    <div class="cp-meta">
+                                        <span class="cp-pill"><i class="fa fa-sitemap"></i> @(item.Product.Category?.Name ?? "Chưa phân loại")</span>
+                                        <span class="cp-pill"><i class="fa fa-building-o"></i> @(item.Product.Publisher?.Name ?? "Chưa có hãng")</span>
+                                    </div>
+
+                                    <div class="cp-inline-meta">
+                                        <span class="cp-pill"><i class="fa fa-cubes"></i> @(item.AvailableQuantity > 0 ? $"Còn {item.AvailableQuantity}" : "Hết hàng")</span>
+                                        <span class="cp-pill"><i class="fa fa-clock-o"></i> @item.Compare.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                    </div>
+
+                                    @if (item.SummarySpecs.Any())
+                                    {
+                                        <ul class="cp-summary">
+                                            @foreach (var spec in item.SummarySpecs)
+                                            {
+                                                <li>@spec</li>
+                                            }
+                                        </ul>
+                                    }
+
+                                    <div class="cp-actions">
+                                        <a asp-controller="Product" asp-action="Details" asp-route-id="@item.Product.Id">
+                                            <i class="fa fa-eye"></i> Xem chi tiết
+                                        </a>
+
+                                        <form asp-controller="Cart" asp-action="Add" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="ProductId" value="@item.Product.Id" />
+                                            <input type="hidden" name="Quantity" value="1" />
+                                            <button type="submit" class="cp-btn" @(item.AvailableQuantity > 0 ? null : "disabled")>
+                                                <i class="fa fa-shopping-cart"></i> Thêm giỏ hàng
+                                            </button>
+                                        </form>
+
+                                        <form asp-action="DeleteCompare" asp-controller="Home" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Compare.Id" />
+                                            <button type="submit" class="cp-btn cp-btn-danger">
+                                                <i class="fa fa-trash"></i> Xóa khỏi compare
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+
+                    @foreach (var section in Model.Sections)
+                    {
+                        <tr class="cp-section">
+                            <th colspan="@columnCount">
+                                <div class="cp-section-box">
+                                    <div>
+                                        <h4>@(section.Title)</h4>
+                                        @if (!string.IsNullOrWhiteSpace(section.Description))
+                                        {
+                                            <p>@(section.Description)</p>
+                                        }
+                                    </div>
+                                </div>
+                            </th>
+                        </tr>
+
+                        @foreach (var row in section.Rows)
+                        {
+                            <tr>
+                                <th>
+                                    <span class="cp-row-title">@row.Label</span>
+                                    @if (!string.IsNullOrWhiteSpace(row.Hint))
+                                    {
+                                        <span class="cp-row-hint">@row.Hint</span>
+                                    }
+                                </th>
+
+                                @for (int i = 0; i < items.Count; i++)
+                                {
+                                    var cell = row.Cells[i];
+                                    <td class="cp-value-cell @(cell.IsBest ? "cp-value-best" : null)">
+                                        <div class="cp-value @(cell.Value == "-" ? "cp-value-muted" : null)">@cell.Value</div>
+                                        @if (cell.IsBest)
+                                        {
+                                            <span class="cp-best-tag"><i class="fa fa-check"></i> Nổi bật</span>
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

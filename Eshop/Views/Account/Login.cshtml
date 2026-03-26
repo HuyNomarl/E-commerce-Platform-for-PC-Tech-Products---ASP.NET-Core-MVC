@@ -1,41 +1,59 @@
-﻿@model LoginViewModel
+@model LoginViewModel
 
 @{
-    ViewData["Title"] = "Account Index";
+    ViewData["Title"] = "Đăng nhập";
 }
-<section id="">
-    <!--form-->
+
+<section id="form" class="account-auth">
     <div class="container">
         <div class="row">
-            <div class="col-sm-4 col-sm-offset-1">
-                <div class="login-form">
-                    <!--login form-->
-                    <h2>Login to your account</h2>
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card">
+                        <span class="account-auth-badge">Eshop Account</span>
+                        <h1 class="account-auth-title">Đăng nhập để tiếp tục mua sắm</h1>
+                        @* <p class="account-auth-subtitle">Theo dõi đơn hàng, wishlist, compare và lịch sử đánh giá sản phẩm ngay trên cùng một tài khoản.</p> *@
 
-                    <form asp-action="Login" asp-controller="Account" method="post">
-                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
 
-                        <div class="form-group">
-                            <label>UserName</label>
-                            <input asp-for="UserName" class="form-control" />
-                            <span asp-validation-for="UserName" class="text-danger"></span>
+                        <form asp-action="Login" asp-controller="Account" method="post" class="account-auth-form">
+                            @Html.AntiForgeryToken()
+                            <input asp-for="ReturnURL" type="hidden" />
+
+                            <div class="form-group">
+                                <label asp-for="UserName">Tên tài khoản</label>
+                                <input asp-for="UserName" class="form-control" placeholder="Nhập username của bạn" />
+                                <span asp-validation-for="UserName" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Password">Mật khẩu</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-default account-auth-submit">Đăng nhập</button>
+                        </form>
+
+                        <div class="account-auth-divider"><span>hoặc</span></div>
+
+                        <a asp-action="LoginByGoogle" asp-controller="Account" class="account-auth-secondary">
+                            <i class="fa fa-google"></i> Đăng nhập bằng Google
+                        </a>
+
+                        <div class="account-auth-links">
+                            <a asp-action="Create" asp-controller="Account">Tạo tài khoản mới</a>
+                            <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu?</a>
                         </div>
-
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input asp-for="Password" type="password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <button type="submit" class="btn btn-default">Login</button>
-                        <a asp-action="LoginByGoogle" asp-controller="Account">Đăng nhập bằng Google</a><br />
-                        <a asp-action="Create" asp-controller="Account">Tạo tài khoản mới!</a><br/>
-                        <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu?</a>
-                    </form>
-
-                </div><!--/login form-->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</section><!--/form-->
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

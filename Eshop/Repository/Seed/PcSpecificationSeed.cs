@@ -14,6 +14,7 @@ namespace Eshop.Repository.Seed
                 new SpecificationDefinitionModel { Id = 2, Code = "cpu_cores", Name = "Số nhân", DataType = SpecificationDataType.Number, ComponentType = PcComponentType.CPU, SortOrder = 2 },
                 new SpecificationDefinitionModel { Id = 3, Code = "cpu_threads", Name = "Số luồng", DataType = SpecificationDataType.Number, ComponentType = PcComponentType.CPU, SortOrder = 3 },
                 new SpecificationDefinitionModel { Id = 4, Code = "cpu_tdp_w", Name = "TDP", DataType = SpecificationDataType.Number, Unit = "W", ComponentType = PcComponentType.CPU, SortOrder = 4 },
+                new SpecificationDefinitionModel { Id = 36, Code = "cpu_benchmark_score", Name = "Điểm benchmark CPU", DataType = SpecificationDataType.Number, ComponentType = PcComponentType.CPU, SortOrder = 5 },
 
                 // Mainboard
                 new SpecificationDefinitionModel { Id = 5, Code = "mb_socket", Name = "Socket Mainboard", DataType = SpecificationDataType.Text, ComponentType = PcComponentType.Mainboard, IsRequired = true, SortOrder = 1 },
@@ -40,6 +41,7 @@ namespace Eshop.Repository.Seed
                 new SpecificationDefinitionModel { Id = 20, Code = "gpu_length_mm", Name = "Chiều dài VGA", DataType = SpecificationDataType.Number, Unit = "mm", ComponentType = PcComponentType.GPU, SortOrder = 3 },
                 new SpecificationDefinitionModel { Id = 21, Code = "gpu_tdp_w", Name = "Công suất VGA", DataType = SpecificationDataType.Number, Unit = "W", ComponentType = PcComponentType.GPU, SortOrder = 4 },
                 new SpecificationDefinitionModel { Id = 22, Code = "gpu_recommended_psu_w", Name = "PSU đề nghị", DataType = SpecificationDataType.Number, Unit = "W", ComponentType = PcComponentType.GPU, SortOrder = 5 },
+                new SpecificationDefinitionModel { Id = 37, Code = "gpu_benchmark_score", Name = "Điểm benchmark GPU", DataType = SpecificationDataType.Number, ComponentType = PcComponentType.GPU, SortOrder = 6 },
 
                 // PSU
                 new SpecificationDefinitionModel { Id = 23, Code = "psu_watt", Name = "Công suất PSU", DataType = SpecificationDataType.Number, Unit = "W", ComponentType = PcComponentType.PSU, IsRequired = true, SortOrder = 1 },

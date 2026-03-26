@@ -4,6 +4,7 @@ using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Eshop.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260326090917_updateCompare_Wishlit_Rating")]
+    partial class updateCompare_Wishlit_Rating
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1326,17 +1329,6 @@ namespace Eshop.Migrations
                         },
                         new
                         {
-                            Id = 36,
-                            Code = "cpu_benchmark_score",
-                            ComponentType = 1,
-                            DataType = 2,
-                            IsFilterable = true,
-                            IsRequired = false,
-                            Name = "Điểm benchmark CPU",
-                            SortOrder = 5
-                        },
-                        new
-                        {
                             Id = 5,
                             Code = "mb_socket",
                             ComponentType = 2,
@@ -1540,17 +1532,6 @@ namespace Eshop.Migrations
                             Name = "PSU đề nghị",
                             SortOrder = 5,
                             Unit = "W"
-                        },
-                        new
-                        {
-                            Id = 37,
-                            Code = "gpu_benchmark_score",
-                            ComponentType = 6,
-                            DataType = 2,
-                            IsFilterable = true,
-                            IsRequired = false,
-                            Name = "Điểm benchmark GPU",
-                            SortOrder = 6
                         },
                         new
                         {

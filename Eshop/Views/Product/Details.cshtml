@@ -1,694 +1,512 @@
-﻿@model Eshop.Models.ViewModels.ProductDetailViewModel
+@model Eshop.Models.ViewModels.ProductDetailViewModel
+
+@functions {
+    public static string ResolveStarClass(decimal value, int position)
+    {
+        if (value >= position) return "fa fa-star";
+        if (value >= position - 0.5m) return "fa fa-star-half-o";
+        return "fa fa-star-o";
+    }
+
+    public static string ResolveProductImage(string? image)
+    {
+        if (string.IsNullOrWhiteSpace(image)) return string.Empty;
+        if (image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            image.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return image;
+        }
+
+        return "/media/products/" + System.IO.Path.GetFileName(image);
+    }
+
+    public static string BuildInitial(string? name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpperInvariant();
+    }
+}
 
 @{
-    var optionGroups = Model.ProductDetail.OptionGroups?
+    var product = Model.ProductDetail!;
+    var optionGroups = product.OptionGroups?
         .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
         .ToList()
         ?? new List<Eshop.Models.ProductOptionGroupModel>();
-
-    var hasUpgradeOptions = optionGroups.Any();
-    var basePrice = Model.ProductDetail.Price;
+    var basePrice = product.Price;
+    var availableQuantity = Model.InventorySummary?.AvailableQuantity ?? 0;
+    var galleryItems = Model.GalleryItems ?? new List<Eshop.Models.ViewModels.ProductGalleryItemViewModel>();
+    var mainGalleryItem = galleryItems.FirstOrDefault(x => x.IsMain) ?? galleryItems.FirstOrDefault();
+    var reviewSummary = Model.ReviewSummary;
 }
 
 <style>
-    .product-detail-wrap {
-        background: #fff;
-        padding: 15px;
-    }
-
-    .product-gallery-main {
-        border: 1px solid #eee;
-        padding: 10px;
-        margin-bottom: 12px;
-        background: #fff;
-    }
-
-        .product-gallery-main img {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-        }
-
-    .thumb-list {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .thumb-item {
-        width: 92px;
-        height: 72px;
-        border: 1px solid #ddd;
-        padding: 4px;
-        cursor: pointer;
-        background: #fff;
-    }
-
-        .thumb-item.active,
-        .thumb-item:hover {
-            border-color: #fe980f;
-        }
-
-        .thumb-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .product-title-custom {
-        font-size: 30px;
-        font-weight: 700;
-        line-height: 1.3;
-        margin-bottom: 12px;
-        color: #222;
-    }
-
-    .price-box-custom {
-        background: #ff6a00;
-        color: #fff;
-        border-radius: 8px;
-        padding: 16px 20px;
-        margin-bottom: 15px;
-    }
-
-    .price-current {
-        font-size: 38px;
-        font-weight: 700;
-        line-height: 1;
-        margin-bottom: 6px;
-    }
-
-    .price-note {
-        font-size: 13px;
-        opacity: 0.95;
-    }
-
-    .product-meta-custom {
-        margin-bottom: 15px;
-        padding: 10px 0 5px 0;
-        border-bottom: 1px dashed #ddd;
-    }
-
-        .product-meta-custom p {
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-    .desc-box-custom,
-    .upgrade-box-custom {
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        margin-bottom: 18px;
-        background: #fff;
-    }
-
-    .section-head-custom {
-        padding: 12px 16px;
-        border-bottom: 1px solid #e5e5e5;
-        font-size: 22px;
-        font-weight: 700;
-        color: #d91c24;
-        text-transform: uppercase;
-    }
-
-    .section-body-custom {
-        padding: 14px 16px;
-    }
-
-    .product-desc-html ul {
-        padding-left: 18px;
-        margin-bottom: 0;
-    }
-
-    .product-desc-html li {
-        margin-bottom: 6px;
-    }
-
-    .upgrade-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        padding: 10px 0;
-        border-bottom: 1px dashed #ececec;
-    }
-
-        .upgrade-row:last-child {
-            border-bottom: none;
-        }
-
-    .upgrade-label {
-        width: 120px;
-        min-width: 120px;
-        font-size: 21px;
-        font-weight: 700;
-        color: #222;
-        padding-top: 8px;
-    }
-
-    .upgrade-options {
-        flex: 1;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .upgrade-option-input {
-        display: none;
-    }
-
-    .upgrade-option-label {
-        display: inline-block;
-        padding: 10px 16px;
-        border: 1px solid #cfcfcf;
-        border-radius: 7px;
-        background: #fff;
-        color: #444;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-size: 15px;
-        font-weight: 500;
-        position: relative;
-        min-width: 135px;
-        text-align: center;
-    }
-
-        .upgrade-option-label small {
-            display: block;
-            margin-top: 4px;
-            font-size: 12px;
-            color: #888;
-        }
-
-    .upgrade-option-input:checked + .upgrade-option-label {
-        border-color: #ff5a36;
-        color: #ff5a36;
-        background: #fff7f4;
-        box-shadow: 0 0 0 1px #ff5a36 inset;
-    }
-
-        .upgrade-option-input:checked + .upgrade-option-label::after {
-            content: "✓";
-            position: absolute;
-            right: 6px;
-            bottom: 3px;
-            font-size: 12px;
-            color: #fff;
-            background: #ff5a36;
-            width: 18px;
-            height: 18px;
-            text-align: center;
-            line-height: 18px;
-            border-radius: 3px 0 6px 0;
-        }
-
-    .cart-box-custom {
-        border: 1px solid #e5e5e5;
-        border-radius: 6px;
-        padding: 16px;
-        margin-bottom: 20px;
-    }
-
-    .qty-wrap-custom {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 15px;
-    }
-
-        .qty-wrap-custom label {
-            margin-bottom: 0;
-            font-weight: 700;
-            font-size: 17px;
-        }
-
-    .qty-input-custom {
-        width: 110px;
-        height: 42px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 6px 10px;
-    }
-
-    .final-price-box {
-        margin-bottom: 15px;
-        padding: 12px 14px;
-        background: #fff7ed;
-        border: 1px dashed #fe980f;
-        border-radius: 6px;
-    }
-
-    .final-price-label {
-        font-size: 14px;
-        color: #666;
-        margin-bottom: 3px;
-    }
-
-    .final-price-value {
-        font-size: 30px;
-        font-weight: 700;
-        color: #fe980f;
-    }
-
-    .btn-add-cart-custom {
-        background: #fe980f;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 12px 22px;
-        font-size: 16px;
-        font-weight: 700;
-    }
-
-        .btn-add-cart-custom:hover {
-            background: #e68900;
-            color: #fff;
-        }
-
-    .stock-out-btn {
-        background: #888;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 12px 22px;
-        font-size: 16px;
-        font-weight: 700;
-        cursor: not-allowed;
-    }
-
-    @@media (max-width: 991px) {
-        .upgrade-row {
-            flex-direction: column;
-        }
-
-        .upgrade-label {
-            width: 100%;
-            min-width: unset;
-            padding-top: 0;
-        }
-
-        .product-title-custom {
-            font-size: 24px;
-        }
-
-        .price-current {
-            font-size: 30px;
-        }
-    }
+    .pd-box{background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px;box-shadow:0 12px 30px rgba(15,23,42,.05)}
+    .pd-page{display:flex;flex-direction:column;gap:20px}
+    .pd-gallery{border:1px solid #eef2f7;border-radius:14px;background:#f8fafc;min-height:340px;display:flex;align-items:center;justify-content:center;padding:16px}
+    .pd-gallery img{width:100%;max-height:300px;object-fit:contain}
+    .pd-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px;margin-top:12px}
+    .pd-thumb{border:1px solid #dbe4ef;border-radius:12px;background:#fff;padding:6px;cursor:pointer}
+    .pd-thumb.active,.pd-thumb:hover{border-color:#fe980f}
+    .pd-thumb img{width:100%;height:62px;object-fit:contain}
+    .pd-title{margin:0 0 10px;font-size:30px;color:#0f172a;font-weight:700;line-height:1.3}
+    .pd-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+    .pd-pill{display:inline-flex;gap:6px;align-items:center;padding:7px 12px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#334155;font-weight:600}
+    .pd-stars{display:inline-flex;gap:2px;color:#f59e0b}
+    .pd-price{background:linear-gradient(135deg,#ff7a18,#ffb347);border-radius:16px;color:#fff;padding:18px;margin-bottom:14px}
+    .pd-price strong{display:block;font-size:36px;line-height:1;margin-bottom:8px}
+    .pd-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+    .pd-info-item{border:1px solid #e5edf5;border-radius:14px;padding:14px;background:#fbfdff}
+    .pd-info-item span{display:block;font-size:12px;text-transform:uppercase;color:#64748b;margin-bottom:6px}
+    .pd-info-item strong{font-size:16px;color:#0f172a}
+    .pd-actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+    .pd-btn{border:1px solid #dce6f0;background:#f8fafc;color:#1e293b;border-radius:12px;padding:11px 16px;font-weight:700}
+    .pd-btn:hover{background:#fff7ed;border-color:#fdba74;color:#c2410c}
+    .pd-btn-doc{display:inline-flex;align-items:center;gap:8px;background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;text-decoration:none}
+    .pd-btn-doc:hover{text-decoration:none;color:#1e40af;background:#dbeafe}
+    .pd-cart,.pd-review-form{border:1px solid #e5edf5;border-radius:16px;padding:16px;background:#fff}
+    .pd-estimate{padding:14px;border:1px dashed #fb923c;border-radius:14px;background:#fff7ed;margin-bottom:14px}
+    .pd-estimate span{display:block;color:#9a3412;font-size:13px;margin-bottom:5px}
+    .pd-estimate strong{font-size:30px;color:#ea580c}
+    .pd-qty{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+    .pd-qty label{min-width:80px;margin:0;font-weight:700}
+    .pd-qty input,.pd-review-form textarea,.pd-review-form input[type=file]{width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:10px 12px}
+    .pd-qty input{width:120px}
+    .pd-submit,.pd-review-submit{width:100%;border:none;border-radius:12px;padding:12px 16px;font-weight:700}
+    .pd-submit{background:#fe980f;color:#fff}
+    .pd-submit[disabled]{background:#94a3b8}
+    .pd-section-head{margin-bottom:12px}
+    .pd-section-head h3{margin:0 0 4px;font-size:24px;color:#0f172a;font-weight:700}
+    .pd-section-head p{margin:0;color:#64748b}
+    .pd-specs{width:100%;border-collapse:collapse}
+    .pd-specs tr+tr{border-top:1px solid #edf2f7}
+    .pd-specs th,.pd-specs td{padding:12px 8px;vertical-align:top}
+    .pd-specs th{width:34%;color:#475569}
+    .pd-upgrade{border:1px dashed #d7e1eb;border-radius:14px;padding:14px;margin-bottom:14px;background:#fcfdff}
+    .pd-upgrade h4{margin:0 0 10px;font-size:16px;font-weight:700}
+    .pd-upgrade-options{display:flex;flex-wrap:wrap;gap:10px}
+    .pd-upgrade-options input{display:none}
+    .pd-upgrade-options label{min-width:132px;border:1px solid #d2dce7;border-radius:12px;padding:10px 12px;background:#fff;cursor:pointer;font-weight:600}
+    .pd-upgrade-options label small{display:block;margin-top:4px;color:#64748b;font-size:12px}
+    .pd-upgrade-options input:checked+label{border-color:#fb923c;background:#fff7ed;color:#c2410c}
+    @@media(max-width:991px){.pd-info{grid-template-columns:1fr}}
 </style>
 
 <div class="row">
-    <div class="col-sm-3">
+    @* <div class="col-sm-3">
         @Html.Partial("_SidebarPartial")
-    </div>
-
-    <div class="col-sm-9 padding-right">
-        <div class="product-detail-wrap">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="product-gallery-main">
-                        <img id="mainProductImage"
-                             src="~/media/products/@Model.ProductDetail.Image"
-                             alt="@Model.ProductDetail.Name"
-                             class="img-responsive" />
-                    </div>
-
-                    <div class="thumb-list">
-                        <div class="thumb-item active" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
-                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
-                        </div>
-
-                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
-                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
-                        </div>
-
-                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
-                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
-                        </div>
-
-                        <div class="thumb-item" data-image="@Url.Content("~/media/products/" + Model.ProductDetail.Image)">
-                            <img src="~/media/products/@Model.ProductDetail.Image" alt="@Model.ProductDetail.Name" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-sm-6">
-                    <div class="product-information" style="padding-top:0;">
-                        <h2 class="product-title-custom">@Model.ProductDetail.Name</h2>
-
-                        <div class="price-box-custom">
-                            <div class="price-current" id="displayFinalPrice">@basePrice.ToString("#,##0 đ")</div>
-                            <div class="price-note">
-                                Giá gốc:
-                                <strong id="displayBasePrice">@basePrice.ToString("#,##0 đ")</strong>
-                                <span id="displayUpgradePrice" style="margin-left:12px;">
-                                    Nâng cấp: +0 đ
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="product-meta-custom">
-                            <p>
-                                <b>Tình trạng:</b>
-                                @(Model.InventorySummary != null && Model.InventorySummary.AvailableQuantity > 0 ? "Còn hàng" : "Hết hàng")
-                            </p>
-                            <p>
-                                <b>Số lượng khả dụng:</b>
-                                @(Model.InventorySummary?.AvailableQuantity ?? 0)
-                            </p>
-
-                            <p><b>Nhà xuất bản:</b> @Model.ProductDetail.Publisher?.Name</p>
-                            <p><b>Thể loại:</b> @Model.ProductDetail.Category?.Name</p>
-                        </div>
-
-                        <div class="desc-box-custom">
-                            <div class="section-head-custom">Mô tả sản phẩm</div>
-                            <div class="section-body-custom product-desc-html">
-                                @Html.Raw(Model.ProductDetail.Description)
-                            </div>
-                        </div>
-
-                        <form asp-action="Add" asp-controller="Cart" method="post" id="productAddToCartForm">
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden" asp-for="ProductId" value="@Model.ProductDetail.Id" />
-
-                            @if (hasUpgradeOptions)
+    </div> *@
+    <div class="col-sm-12 padding-right">
+        <div class="pd-page">
+            <div class="pd-box">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="pd-gallery">
+                            @if (mainGalleryItem != null)
                             {
-                                <div class="upgrade-box-custom">
-                                    <div class="section-head-custom">Upgrade</div>
-                                    <div class="section-body-custom">
-                                        @for (int i = 0; i < optionGroups.Count; i++)
+                                <img id="mainProductImage" src="@mainGalleryItem.Url" alt="@mainGalleryItem.AltText" />
+                            }
+                            else
+                            {
+                                <div class="text-muted text-center"><i class="fa fa-image"></i><br />Chưa có hình ảnh</div>
+                            }
+                        </div>
+
+                        @if (galleryItems.Count > 1)
+                        {
+                            <div class="pd-thumbs">
+                                @foreach (var item in galleryItems)
+                                {
+                                    <button type="button" class="pd-thumb @(item == mainGalleryItem ? "active" : "")" data-image="@item.Url" data-alt="@item.AltText">
+                                        <img src="@item.Url" alt="@item.AltText" />
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="pd-meta">
+                            @if (product.Category != null)
+                            {
+                                <span class="pd-pill"><i class="fa fa-tag"></i> @product.Category.Name</span>
+                            }
+                            @if (product.Publisher != null)
+                            {
+                                <span class="pd-pill"><i class="fa fa-building-o"></i> @product.Publisher.Name</span>
+                            }
+                        </div>
+
+                        <h1 class="pd-title">@product.Name</h1>
+
+                        <div class="pd-meta" style="margin-bottom:14px;">
+                            <span class="pd-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="@ResolveStarClass(reviewSummary.AverageStars, i)"></i>
+                                }
+                            </span>
+                            <strong>@reviewSummary.AverageStars.ToString("0.0")</strong>
+                            <span class="text-muted">@reviewSummary.TotalReviews đánh giá</span>
+                        </div>
+
+                        <div class="pd-price">
+                            <strong id="displayFinalPrice">@basePrice.ToString("#,##0 đ")</strong>
+                            <div>Giá gốc: <span id="displayBasePrice">@basePrice.ToString("#,##0 đ")</span></div>
+                            <div id="displayUpgradePrice">Nâng cấp: +0 đ</div>
+                        </div>
+
+                        <div class="pd-info">
+                            <div class="pd-info-item">
+                                <span>Tình trạng</span>
+                                <strong>@(availableQuantity > 0 ? "Còn hàng" : "Hết hàng")</strong>
+                            </div>
+                            <div class="pd-info-item">
+                                <span>Số lượng khả dụng</span>
+                                <strong>@availableQuantity</strong>
+                            </div>
+                            <div class="pd-info-item">
+                                <span>Loại sản phẩm</span>
+                                <strong>@product.ProductType</strong>
+                            </div>
+                            <div class="pd-info-item">
+                                <span>Review của bạn</span>
+                                <strong>@(Model.HasExistingReview ? "Đã có đánh giá" : Model.CanSubmitReview ? "Có thể đánh giá" : "Chưa đủ điều kiện")</strong>
+                            </div>
+                        </div>
+
+                        <div class="pd-actions">
+                            @if (!string.IsNullOrWhiteSpace(Model.TechnicalDocumentUrl))
+                            {
+                                <a class="pd-btn pd-btn-doc" href="@Model.TechnicalDocumentUrl" target="_blank" rel="noopener noreferrer">
+                                    <i class="fa fa-download"></i>
+                                    @(string.IsNullOrWhiteSpace(Model.TechnicalDocumentName) ? "Tài liệu kỹ thuật" : "Tải " + Model.TechnicalDocumentName)
+                                </a>
+                            }
+                            @if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <button type="button" class="pd-btn js-add-wishlist" data-product-id="@product.Id"><i class="fa fa-heart-o"></i> Wishlist</button>
+                                <button type="button" class="pd-btn js-add-compare" data-product-id="@product.Id"><i class="fa fa-balance-scale"></i> Compare</button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="pd-btn pd-btn-doc"><i class="fa fa-user"></i> Đăng nhập để lưu</a>
+                            }
+                        </div>
+
+                        <form asp-action="Add" asp-controller="Cart" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="ProductId" value="@product.Id" />
+
+                            @for (int i = 0; i < optionGroups.Count; i++)
+                            {
+                                var group = optionGroups[i];
+                                var activeOptions = group.OptionValues.Where(x => x.Status == 1).OrderBy(x => x.SortOrder).ToList();
+                                var defaultOption = activeOptions.FirstOrDefault(x => x.IsDefault) ?? activeOptions.FirstOrDefault();
+
+                                <div class="pd-upgrade">
+                                    <h4>@group.Name</h4>
+                                    <div class="pd-upgrade-options">
+                                        <input type="hidden" name="SelectedOptions[@i].GroupId" value="@group.Id" />
+                                        @foreach (var option in activeOptions)
                                         {
-                                            var group = optionGroups[i];
-                                            var activeOptions = group.OptionValues
-                                                .Where(x => x.Status == 1)
-                                                .OrderBy(x => x.SortOrder)
-                                                .ToList();
-
-                                            var defaultOption = activeOptions.FirstOrDefault(x => x.IsDefault) ?? activeOptions.FirstOrDefault();
-
-                                            <div class="upgrade-row">
-                                                <div class="upgrade-label">@group.Name</div>
-                                                <div class="upgrade-options">
-                                                    <input type="hidden" name="SelectedOptions[@i].GroupId" value="@group.Id" />
-
-                                                    @for (int j = 0; j < activeOptions.Count; j++)
-                                                    {
-                                                        var option = activeOptions[j];
-                                                        var optionId = $"group_{group.Id}_option_{option.Id}";
-                                                        var isChecked = defaultOption != null && defaultOption.Id == option.Id;
-
-                                                        <input type="radio"
-                                                               id="@optionId"
-                                                               class="upgrade-option-input option-price-input"
-                                                               name="SelectedOptions[@i].ValueId"
-                                                               value="@option.Id"
-                                                               data-price="@option.AdditionalPrice"
-                                                        @(isChecked ? "checked" : "") />
-
-                                                        <label for="@optionId" class="upgrade-option-label">
-                                                            @option.Value
-                                                            <small>
-                                                                @(option.AdditionalPrice > 0
-                                                                    ? "+" + option.AdditionalPrice.ToString("#,##0 đ")
-                                                                    : "+0 đ")
-                                                            </small>
-                                                        </label>
-                                                    }
-                                                </div>
-                                            </div>
+                                            var optionId = $"group_{group.Id}_option_{option.Id}";
+                                            var isChecked = defaultOption != null && defaultOption.Id == option.Id;
+                                            <input type="radio" id="@optionId" class="option-price-input" name="SelectedOptions[@i].ValueId" value="@option.Id" data-price="@option.AdditionalPrice" @(isChecked ? "checked" : null) />
+                                            <label for="@optionId">
+                                                @option.Value
+                                                <small>@(option.AdditionalPrice > 0 ? "+" + option.AdditionalPrice.ToString("#,##0 đ") : "+0 đ")</small>
+                                            </label>
                                         }
                                     </div>
                                 </div>
                             }
 
-                            <div class="cart-box-custom">
-                                <div class="final-price-box">
-                                    <div class="final-price-label">Giá tạm tính</div>
-                                    <div class="final-price-value" id="displayFinalPriceBottom">@basePrice.ToString("#,##0 đ")</div>
+                            <div class="pd-cart">
+                                <div class="pd-estimate">
+                                    <span>Giá tạm tính</span>
+                                    <strong id="displayFinalPriceBottom">@basePrice.ToString("#,##0 đ")</strong>
                                 </div>
-
-                                <div class="qty-wrap-custom">
-                                    <label for="Quantity">Số lượng:</label>
-                                    <input asp-for="Quantity" type="number" min="1" class="qty-input-custom" />
+                                <div class="pd-qty">
+                                    <label for="Quantity">Số lượng</label>
+                                    <input asp-for="Quantity" type="number" min="1" max="99" />
                                 </div>
-
-                                @if ((Model.InventorySummary?.AvailableQuantity ?? 0) > 0)
-                                {
-                                    <button type="submit" class="btn-add-cart-custom">
-                                        <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="stock-out-btn" disabled>
-                                        <i class="fa fa-shopping-cart"></i> Hết hàng
-                                    </button>
-                                }
+                                <button type="submit" class="pd-submit" @(availableQuantity > 0 ? null : "disabled")>
+                                    <i class="fa fa-shopping-cart"></i> @(availableQuantity > 0 ? "Thêm vào giỏ hàng" : "Hết hàng")
+                                </button>
                             </div>
                         </form>
-
-                        <a href="#">
-                            <img src="~/images/product-details/share.png" class="share img-responsive" alt="" />
-                        </a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="category-tab shop-details-tab">
-            <div class="col-sm-12">
-                <ul class="nav nav-tabs">
-                    <li class="active"><a href="#details" data-toggle="tab">Details</a></li>
-                    <li><a href="#companyprofile" data-toggle="tab">Company Profile</a></li>
-                    <li><a href="#tag" data-toggle="tab">Tag</a></li>
-                    <li><a href="#reviews" data-toggle="tab">Reviews</a></li>
-                </ul>
-            </div>
-
-            <div class="tab-content">
-                <div class="tab-pane fade active in" id="details">
-                    @Html.Raw(Model.ProductDetail.Description)
+            <section class="pd-box">
+                <div class="pd-section-head">
+                    <h3>Mô tả sản phẩm</h3>
+                    <p>Thông tin tổng quan và các điểm nổi bật của sản phẩm.</p>
                 </div>
+                <div>@Html.Raw(product.Description)</div>
+            </section>
 
-                <div class="tab-pane fade" id="companyprofile">
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery1.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    @if ((Model.InventorySummary?.AvailableQuantity ?? 0) > 0)
-                                    {
-                                        <button type="submit" class="btn-add-cart-custom">
-                                            <i class="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="stock-out-btn" disabled>
-                                            <i class="fa fa-shopping-cart"></i> Hết hàng
-                                        </button>
-                                    }
-
-                                </div>
-                            </div>
-                        </div>
+            @if (Model.Specifications.Any())
+            {
+                <section class="pd-box">
+                    <div class="pd-section-head">
+                        <h3>Thông số kỹ thuật</h3>
+                        <p>Hiển thị trực tiếp để người dùng dễ xem và so sánh.</p>
                     </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery3.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery2.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery4.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="tag">
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery1.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery2.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery3.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-3">
-                        <div class="product-image-wrapper">
-                            <div class="single-products">
-                                <div class="productinfo text-center">
-                                    <img src="~/images/home/gallery4.jpg" alt="" />
-                                    <h2>$56</h2>
-                                    <p>Easy Polo Black Edition</p>
-                                    <button type="button" class="btn btn-default add-to-cart">
-                                        <i class="fa fa-shopping-cart"></i>Add to cart
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="reviews">
-                    <div class="col-sm-12">
-                        <ul>
-                            <li><a href="#"><i class="fa fa-user"></i>EUGEN</a></li>
-                            <li><a href="#"><i class="fa fa-clock-o"></i>12:41 PM</a></li>
-                            <li><a href="#"><i class="fa fa-calendar-o"></i>31 DEC 2014</a></li>
-                        </ul>
-
-                        <p>
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                        </p>
-
-                        <p><b>Write Your Review</b></p>
-
-                        <form autocomplete="off" asp-action="CommentProduct" asp-controller="Product" method="post">
-                            @Html.AntiForgeryToken()
-
-                            <span>
-                                <input type="hidden" name="ProductId" value="@Model.ProductDetail.Id" />
-                                <input type="hidden" name="Star" value="4" />
-
-                                <input asp-for="Name" type="text" placeholder="Your Name" />
-                                <span asp-validation-for="Name" class="text-danger"></span>
-
-                                <input asp-for="Email" type="email" placeholder="Email Address" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </span>
-
-                            <textarea asp-for="Comment" placeholder="Your comment"></textarea>
-                            <span asp-validation-for="Comment" class="text-danger"></span>
-
-                            <button type="submit" class="btn btn-default pull-right">
-                                Submit
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="recommended_items">
-            <h2 class="title text-center">recommended items</h2>
-
-            <div id="recommended-item-carousel" class="carousel slide" data-ride="carousel">
-                <div class="carousel-inner">
-                    <div class="item active">
-                        @if (ViewBag.RelatedProducts != null)
-                        {
-                            @foreach (var relatedProduct in ViewBag.RelatedProducts as IEnumerable<Eshop.Models.ProductModel>)
+                    <table class="pd-specs">
+                        <tbody>
+                            @foreach (var spec in Model.Specifications)
                             {
-                                <div class="col-sm-4">
-                                    <div class="product-image-wrapper">
-                                        <div class="single-products">
-                                            <div class="productinfo text-center">
-                                                <a asp-action="Details" asp-controller="Product" asp-route-id="@relatedProduct.Id">
-                                                    <img src="~/media/products/@relatedProduct.Image" alt="@relatedProduct.Name" width="100%" />
-                                                    <h2>@relatedProduct.Price.ToString("#,##0 VND")</h2>
-                                                    <p>@relatedProduct.Name</p>
-                                                    <p>Thể loại: @relatedProduct.Category?.Name</p>
-                                                    <p>Nhà xuất bản: @relatedProduct.Publisher?.Name</p>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <tr>
+                                    <th>@spec.Name</th>
+                                    <td>@spec.Value</td>
+                                </tr>
                             }
+                        </tbody>
+                    </table>
+                </section>
+            }
+
+            <style>
+                .pd-review-summary{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:20px;margin-bottom:20px}
+                .pd-review-score{border:1px solid #edf2f7;border-radius:16px;padding:18px;background:#fff7ed}
+                .pd-review-score strong{display:block;font-size:46px;line-height:1;color:#9a3412;margin-bottom:10px}
+                .pd-breakdown-row{display:grid;grid-template-columns:56px 1fr 38px;gap:10px;align-items:center;margin-bottom:10px}
+                .pd-breakdown-bar{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}
+                .pd-breakdown-bar span{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#fb923c)}
+                .pd-review-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.95fr);gap:20px}
+                .pd-review-list{display:flex;flex-direction:column;gap:14px}
+                .pd-review-card{border:1px solid #edf2f7;border-radius:16px;padding:16px}
+                .pd-review-head{display:flex;gap:12px;margin-bottom:12px}
+                .pd-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f97316,#fb7185);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+                .pd-review-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:5px}
+                .pd-badge{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:999px;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-size:12px;font-weight:700}
+                .pd-review-date{font-size:13px;color:#64748b}
+                .pd-review-comment{margin:0;color:#334155;line-height:1.7}
+                .pd-review-media{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+                .pd-review-media-item{border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#f8fafc}
+                .pd-review-media-item img,.pd-review-media-item video{width:100%;height:120px;object-fit:cover;display:block}
+                .pd-review-media-item span{display:block;padding:8px 10px;font-size:12px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+                .pd-notice{border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;border-radius:14px;padding:14px;margin-bottom:14px;line-height:1.6}
+                .pd-notice.muted{border-color:#e2e8f0;background:#f8fafc;color:#475569}
+                .pd-review-user{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+                .pd-review-user div{border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px;padding:12px}
+                .pd-review-user span{display:block;font-size:12px;text-transform:uppercase;color:#64748b;margin-bottom:4px}
+                .pd-review-user strong{font-size:14px;color:#0f172a;word-break:break-word}
+                .pd-star-picker{direction:rtl;display:inline-flex;gap:4px;margin-bottom:14px}
+                .pd-star-picker input{display:none}
+                .pd-star-picker label{font-size:28px;color:#cbd5e1;cursor:pointer}
+                .pd-star-picker label:hover,.pd-star-picker label:hover~label,.pd-star-picker input:checked~label{color:#f59e0b}
+                .pd-review-submit{background:#0f172a;color:#fff}
+                .pd-review-helper{margin:10px 0 0;color:#64748b;font-size:13px}
+                .pd-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:12px 0}
+                .pd-preview-item{border:1px solid #e2e8f0;border-radius:12px;overflow:hidden}
+                .pd-preview-item img,.pd-preview-item video{width:100%;height:100px;object-fit:cover;display:block}
+                .pd-preview-item span{display:block;padding:8px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+                .pd-related{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+                .pd-related-card{display:block;border:1px solid #edf2f7;border-radius:16px;overflow:hidden;background:#fff}
+                .pd-related-card:hover{text-decoration:none;box-shadow:0 16px 28px rgba(15,23,42,.08)}
+                .pd-related-image{height:170px;background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:14px}
+                .pd-related-image img{width:100%;height:100%;object-fit:contain}
+                .pd-related-body{padding:14px}
+                .pd-related-body h4{margin:0 0 8px;font-size:16px;line-height:1.5;color:#0f172a;min-height:46px}
+                .pd-related-meta{font-size:13px;color:#64748b;margin-bottom:8px}
+                .pd-related-price{font-size:22px;font-weight:800;color:#dc2626}
+                @@media(max-width:991px){.pd-review-layout,.pd-review-summary,.pd-review-user{grid-template-columns:1fr}}
+            </style>
+
+            <section class="pd-box">
+                <div class="pd-section-head">
+                    <h3>Đánh giá khách hàng</h3>
+                    <p>Chỉ khách đã mua và nhận hàng mới có thể gửi review, mọi người đều có thể xem.</p>
+                </div>
+
+                <div class="pd-review-summary">
+                    <div class="pd-review-score">
+                        <strong>@reviewSummary.AverageStars.ToString("0.0")</strong>
+                        <div class="pd-stars" style="font-size:20px;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="@ResolveStarClass(reviewSummary.AverageStars, i)"></i>
+                            }
+                        </div>
+                        <div style="margin-top:10px;color:#64748b;">@reviewSummary.TotalReviews đánh giá hợp lệ</div>
+                    </div>
+
+                    <div>
+                        @for (int star = 5; star >= 1; star--)
+                        {
+                            var starCount = reviewSummary.CountByStars.ContainsKey(star) ? reviewSummary.CountByStars[star] : 0;
+                            var percent = reviewSummary.TotalReviews > 0 ? (int)Math.Round((decimal)starCount * 100 / reviewSummary.TotalReviews, MidpointRounding.AwayFromZero) : 0;
+                            <div class="pd-breakdown-row">
+                                <span>@star sao</span>
+                                <div class="pd-breakdown-bar"><span style="width:@percent%;"></span></div>
+                                <strong>@starCount</strong>
+                            </div>
                         }
                     </div>
                 </div>
 
-                <a class="left recommended-item-control" href="#recommended-item-carousel" data-slide="prev">
-                    <i class="fa fa-angle-left"></i>
-                </a>
-                <a class="right recommended-item-control" href="#recommended-item-carousel" data-slide="next">
-                    <i class="fa fa-angle-right"></i>
-                </a>
-            </div>
+                <div class="pd-review-layout">
+                    <div class="pd-review-list">
+                        @if (Model.Reviews.Any())
+                        {
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <article class="pd-review-card">
+                                    <div class="pd-review-head">
+                                        <div class="pd-avatar">@BuildInitial(review.Name)</div>
+                                        <div>
+                                            <div class="pd-review-top">
+                                                <strong>@(string.IsNullOrWhiteSpace(review.Name) ? "Khách hàng" : review.Name)</strong>
+                                                <span class="pd-badge"><i class="fa fa-check-circle"></i> Đã mua hàng</span>
+                                            </div>
+                                            <div class="pd-stars">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <i class="fa @(i <= review.Stars ? "fa-star" : "fa-star-o")"></i>
+                                                }
+                                            </div>
+                                            <div class="pd-review-date">@((review.UpdatedAt ?? review.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</div>
+                                        </div>
+                                    </div>
+
+                                    @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                    {
+                                        <p class="pd-review-comment">@review.Comment</p>
+                                    }
+
+                                    @if (review.MediaItems.Any())
+                                    {
+                                        <div class="pd-review-media">
+                                            @foreach (var media in review.MediaItems.OrderBy(x => x.SortOrder).ThenBy(x => x.Id))
+                                            {
+                                                <div class="pd-review-media-item">
+                                                    @if (string.Equals(media.ResourceType, "video", StringComparison.OrdinalIgnoreCase))
+                                                    {
+                                                        <video controls preload="metadata"><source src="@media.Url" /></video>
+                                                    }
+                                                    else
+                                                    {
+                                                        <img src="@media.Url" alt="Review media" />
+                                                    }
+                                                    <span>@(string.IsNullOrWhiteSpace(media.OriginalFileName) ? media.ResourceType : media.OriginalFileName)</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </article>
+                            }
+                        }
+                        else
+                        {
+                            <div class="pd-review-card text-center text-muted">Chưa có đánh giá nào cho sản phẩm này.</div>
+                        }
+                    </div>
+
+                    <div class="pd-review-form">
+                        <div class="pd-notice @(Model.CanSubmitReview ? null : "muted")">@Model.ReviewPermissionMessage</div>
+
+                        @if (Model.CanSubmitReview)
+                        {
+                            <h4 style="margin:0 0 8px;">@(Model.HasExistingReview ? "Cập nhật đánh giá của bạn" : "Viết đánh giá mới")</h4>
+                            <p class="text-muted" style="margin-bottom:14px;">
+                                Bạn có thể chấm sao, viết nhận xét và tải lên nhiều ảnh/video.
+                                @(Model.HasExistingReview ? "Media mới sẽ được bổ sung vào review hiện tại." : "")
+                            </p>
+
+                            <div class="pd-review-user">
+                                <div>
+                                    <span>Tài khoản</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(Model.CurrentUserDisplayName) ? "Chưa cập nhật" : Model.CurrentUserDisplayName)</strong>
+                                </div>
+                                <div>
+                                    <span>Email</span>
+                                    <strong>@(string.IsNullOrWhiteSpace(Model.CurrentUserEmail) ? "Chưa cập nhật" : Model.CurrentUserEmail)</strong>
+                                </div>
+                            </div>
+
+                            <form asp-action="CommentProduct" asp-controller="Product" method="post" enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="ReviewForm.ProductId" value="@product.Id" />
+
+                                <div class="pd-star-picker">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        var starId = $"reviewStar_{i}";
+                                        <input asp-for="ReviewForm.Stars" id="@starId" type="radio" value="@i" checked="@(Model.ReviewForm.Stars == i)" />
+                                        <label for="@starId" title="@i sao"><i class="fa fa-star"></i></label>
+                                    }
+                                </div>
+
+                                <textarea asp-for="ReviewForm.Comment" rows="6" placeholder="Chia sẻ trải nghiệm thực tế của bạn về sản phẩm..."></textarea>
+                                <span asp-validation-for="ReviewForm.Comment" class="text-danger"></span>
+
+                                <input asp-for="ReviewForm.MediaFiles" id="reviewMediaInput" type="file" multiple accept="image/*,video/*" />
+                                <p class="pd-review-helper">Tối đa 8 file cho mỗi đánh giá. Ảnh tối đa 5MB, video tối đa 50MB.</p>
+
+                                <div id="reviewMediaPreview" class="pd-preview"></div>
+
+                                <button type="submit" class="pd-review-submit">
+                                    @(Model.HasExistingReview ? "Lưu cập nhật đánh giá" : "Gửi đánh giá")
+                                </button>
+                            </form>
+                        }
+                        else if (!(User.Identity?.IsAuthenticated ?? false))
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="pd-btn pd-btn-doc" style="width:100%;justify-content:center;">
+                                <i class="fa fa-sign-in"></i> Đăng nhập để đánh giá
+                            </a>
+                        }
+                    </div>
+                </div>
+            </section>
+
+            @if (Model.RelatedProducts.Any())
+            {
+                <section class="pd-box">
+                    <div class="pd-section-head">
+                        <h3>Sản phẩm liên quan</h3>
+                        <p>Một vài lựa chọn cùng nhóm để bạn xem thêm.</p>
+                    </div>
+                    <div class="pd-related">
+                        @foreach (var relatedProduct in Model.RelatedProducts)
+                        {
+                            var relatedImage = ResolveProductImage(relatedProduct.Image);
+                            <a asp-action="Details" asp-controller="Product" asp-route-id="@relatedProduct.Id" class="pd-related-card">
+                                <div class="pd-related-image">
+                                    @if (!string.IsNullOrWhiteSpace(relatedImage))
+                                    {
+                                        <img src="@relatedImage" alt="@relatedProduct.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="text-muted"><i class="fa fa-image"></i></div>
+                                    }
+                                </div>
+                                <div class="pd-related-body">
+                                    <h4>@relatedProduct.Name</h4>
+                                    <div class="pd-related-meta">
+                                        @(relatedProduct.Category?.Name ?? "Danh mục khác")
+                                        @if (relatedProduct.Publisher != null)
+                                        {
+                                            <text> • @relatedProduct.Publisher.Name</text>
+                                        }
+                                    </div>
+                                    <div class="pd-related-price">@relatedProduct.Price.ToString("#,##0 đ")</div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </section>
+            }
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
             const basePrice = @basePrice;
@@ -703,42 +521,93 @@
 
             function calculateSelectedUpgradePrice() {
                 let totalUpgrade = 0;
-
                 optionInputs.forEach(function (input) {
-                    if (input.checked) {
-                        totalUpgrade += parseFloat(input.dataset.price || '0');
-                    }
+                    if (input.checked) totalUpgrade += parseFloat(input.dataset.price || '0');
                 });
-
                 const finalPrice = basePrice + totalUpgrade;
-
                 if (finalPriceTop) finalPriceTop.textContent = formatVnd(finalPrice);
                 if (finalPriceBottom) finalPriceBottom.textContent = formatVnd(finalPrice);
-                if (upgradePriceText) upgradePriceText.textContent = 'Nâng cấp: +' + formatVnd(totalUpgrade).replace(' đ', ' đ');
+                if (upgradePriceText) upgradePriceText.textContent = 'Nâng cấp: +' + formatVnd(totalUpgrade);
             }
 
             optionInputs.forEach(function (input) {
                 input.addEventListener('change', calculateSelectedUpgradePrice);
             });
-
             calculateSelectedUpgradePrice();
 
-            const thumbItems = document.querySelectorAll('.thumb-item');
+            const thumbItems = document.querySelectorAll('.pd-thumb');
             const mainImage = document.getElementById('mainProductImage');
-
             thumbItems.forEach(function (item) {
                 item.addEventListener('click', function () {
-                    const image = this.getAttribute('data-image');
-                    if (mainImage && image) {
-                        mainImage.src = image;
+                    if (mainImage) {
+                        mainImage.src = this.getAttribute('data-image');
+                        mainImage.alt = this.getAttribute('data-alt') || '';
                     }
-
-                    thumbItems.forEach(function (x) {
-                        x.classList.remove('active');
-                    });
-
+                    thumbItems.forEach(function (x) { x.classList.remove('active'); });
                     this.classList.add('active');
                 });
+            });
+
+            const mediaInput = document.getElementById('reviewMediaInput');
+            const mediaPreview = document.getElementById('reviewMediaPreview');
+            if (mediaInput && mediaPreview) {
+                mediaInput.addEventListener('change', function () {
+                    mediaPreview.innerHTML = '';
+                    Array.from(this.files || []).forEach(function (file) {
+                        const item = document.createElement('div');
+                        item.className = 'pd-preview-item';
+                        const url = URL.createObjectURL(file);
+                        if ((file.type || '').startsWith('video/')) {
+                            const video = document.createElement('video');
+                            video.controls = true;
+                            video.src = url;
+                            item.appendChild(video);
+                        } else {
+                            const img = document.createElement('img');
+                            img.src = url;
+                            img.alt = file.name;
+                            item.appendChild(img);
+                        }
+                        const caption = document.createElement('span');
+                        caption.textContent = file.name;
+                        item.appendChild(caption);
+                        mediaPreview.appendChild(item);
+                    });
+                });
+            }
+
+            function showFeedback(icon, title, text) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon, title, text });
+                } else {
+                    alert(text);
+                }
+            }
+
+            function postAction(url, productId) {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : '';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: { productId: productId, __RequestVerificationToken: token },
+                    success: function (response) {
+                        showFeedback('success', 'Thành công', response.message || 'Thao tác thành công.');
+                    },
+                    error: function (xhr) {
+                        const message = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : (xhr.responseText || 'Không thể thực hiện thao tác này.');
+                        showFeedback('error', 'Có lỗi xảy ra', message);
+                    }
+                });
+            }
+
+            $('.js-add-wishlist').on('click', function () {
+                postAction('@Url.Action("AddWishlist", "Home")', $(this).data('product-id'));
+            });
+            $('.js-add-compare').on('click', function () {
+                postAction('@Url.Action("AddCompare", "Home")', $(this).data('product-id'));
             });
         })();
     </script>

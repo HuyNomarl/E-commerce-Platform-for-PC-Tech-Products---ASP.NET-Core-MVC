@@ -19,6 +19,7 @@ namespace Eshop.Repository
         public DbSet<OrderModel> Orders { get; set; }
         public DbSet<OrderDetails> OrderDetails { get; set; }
         public DbSet<RatingModel> RatingModels { get; set; }
+        public DbSet<RatingMediaModel> RatingMedia { get; set; }
         public DbSet<SliderModel> Sliders { get; set; }
         public DbSet<ContactModel> Contact { get; set; }
         public DbSet<CompareModel> Compares { get; set; }
@@ -183,8 +184,25 @@ namespace Eshop.Repository
                 .HasForeignKey<ProductTechnicalAssetModel>(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.Entity<RatingModel>()
+                .HasIndex(x => new { x.UserId, x.ProductId })
+                .IsUnique();
+
+            builder.Entity<RatingMediaModel>()
+                .HasOne(x => x.Rating)
+                .WithMany(x => x.MediaItems)
+                .HasForeignKey(x => x.RatingId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<RatingMediaModel>()
+                .HasIndex(x => new { x.RatingId, x.SortOrder });
+
 
             builder.Entity<WishlistModel>()
+                .HasIndex(x => new { x.UserId, x.ProductId })
+                .IsUnique();
+
+            builder.Entity<CompareModel>()
                 .HasIndex(x => new { x.UserId, x.ProductId })
                 .IsUnique();
 

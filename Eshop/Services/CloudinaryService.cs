@@ -44,6 +44,36 @@ namespace Eshop.Services
             };
         }
 
+        public async Task<CloudinaryUploadResultViewModel> UploadVideoAsync(IFormFile file, string folder)
+        {
+            if (file == null || file.Length == 0)
+                throw new Exception("File video không hợp lệ.");
+
+            await using var stream = file.OpenReadStream();
+
+            var uploadParams = new VideoUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                Folder = folder,
+                UseFilename = true,
+                UniqueFilename = true,
+                Overwrite = false
+            };
+
+            var result = await _cloudinary.UploadAsync(uploadParams);
+
+            if (result.Error != null)
+                throw new Exception(result.Error.Message);
+
+            return new CloudinaryUploadResultViewModel
+            {
+                PublicId = result.PublicId,
+                Url = result.SecureUrl?.ToString() ?? string.Empty,
+                ResourceType = result.ResourceType,
+                OriginalFileName = file.FileName
+            };
+        }
+
         public async Task<CloudinaryUploadResultViewModel> UploadRawFileAsync(IFormFile file, string folder)
         {
             if (file == null || file.Length == 0)

@@ -29,8 +29,11 @@ namespace Eshop.Models
         public int Stars { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
 
         [ForeignKey(nameof(ProductId))]
         public ProductModel Product { get; set; } = null!;
+
+        public ICollection<RatingMediaModel> MediaItems { get; set; } = new List<RatingMediaModel>();
     }
 }

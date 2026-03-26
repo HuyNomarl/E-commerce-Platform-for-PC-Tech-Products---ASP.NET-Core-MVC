@@ -440,18 +440,19 @@
                         productId: productId,
                         __RequestVerificationToken: token
                     },
-                    success: function () {
+                    success: function (response) {
                         Swal.fire({
                             icon: "success",
                             title: "Thành công",
-                            text: "Đã thêm vào yêu thích!"
+                            text: response && response.message ? response.message : "Đã thêm vào yêu thích!"
                         });
                     },
                     error: function (xhr) {
+                        var response = xhr.responseJSON;
                         Swal.fire({
                             icon: "error",
                             title: "Oops...",
-                            text: xhr.responseText || ("Lỗi (" + xhr.status + ")")
+                            text: (response && response.message) || xhr.responseText || ("Lỗi (" + xhr.status + ")")
                         });
                     }
                 });
@@ -468,18 +469,19 @@
                         productId: productId,
                         __RequestVerificationToken: token
                     },
-                    success: function () {
+                    success: function (response) {
                         Swal.fire({
                             icon: "success",
                             title: "Thành công",
-                            text: "Đã thêm vào so sánh!"
+                            text: response && response.message ? response.message : "Đã thêm vào so sánh!"
                         });
                     },
                     error: function (xhr) {
+                        var response = xhr.responseJSON;
                         Swal.fire({
                             icon: "error",
                             title: "Oops...",
-                            text: xhr.responseText || ("Lỗi (" + xhr.status + ")")
+                            text: (response && response.message) || xhr.responseText || ("Lỗi (" + xhr.status + ")")
                         });
                     }
                 });

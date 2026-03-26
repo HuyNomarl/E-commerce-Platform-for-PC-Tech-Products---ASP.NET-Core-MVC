@@ -1427,82 +1427,245 @@ h2.title {
 
 #form {
   display: block;
-  margin-bottom: 185px;
-  margin-top: 185px;
+  margin-bottom: 110px;
+  margin-top: 90px;
   overflow: hidden;
 }
 
-.login-form {
-
+.account-auth {
+  position: relative;
 }
 
-.signup-form {
-
+.account-auth-shell {
+  position: relative;
+  padding: 16px 0;
 }
 
-.login-form h2, .signup-form h2 {
-  color: #696763;
-  font-family: 'Roboto', sans-serif;
-  font-size: 20px;
-  font-weight: 300;
-  margin-bottom: 30px;
+.account-auth-card {
+  position: relative;
+  padding: 38px 34px 34px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.28), transparent 34%),
+    radial-gradient(circle at top left, rgba(14, 165, 233, 0.18), transparent 28%),
+    linear-gradient(160deg, #061c44 0%, #0b2f6b 52%, #124290 100%);
+  border: 1px solid rgba(148, 197, 255, 0.24);
+  box-shadow: 0 26px 60px rgba(2, 6, 23, 0.24);
+  color: #e2e8f0;
+  overflow: hidden;
 }
 
-
-.login-form form input, .signup-form form input {
-  background: #F0F0E9;
-  border: medium none;
-  color: #696763;
-  display: block;
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  height: 40px;
-  margin-bottom: 10px;
-  outline: medium none;
-  padding-left: 10px;
-  width: 100%;
+.account-auth-card:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 35%);
+  pointer-events: none;
 }
 
-.login-form form span{
-  line-height: 25px;
+.account-auth-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(191, 219, 254, 0.12);
+  border: 1px solid rgba(191, 219, 254, 0.22);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
 }
 
-.login-form form span input {
-  width: 15px;
-  float: left;
-  height: 15px;
-  margin-right: 5px;
+.account-auth-title {
+  position: relative;
+  margin: 18px 0 12px;
+  color: #f8fafc;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.25;
 }
 
-.login-form form button {
-  margin-top: 23px;
+.account-auth-subtitle {
+  position: relative;
+  margin-bottom: 24px;
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.8;
 }
 
-.login-form form button, .signup-form form button {
-  background: #FE980F;
-  border: medium none;
-  border-radius: 0;
-  color: #FFFFFF;
-  display: block;
-  font-family: 'Roboto', sans-serif;
-  padding: 6px 25px;
+.account-auth-validation {
+  position: relative;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(127, 29, 29, 0.45);
+  border: 1px solid rgba(248, 113, 113, 0.28);
 }
 
-.login-form label{
-
+.account-auth-form {
+  position: relative;
+  display: grid;
+  gap: 14px;
 }
 
-
-.login-form label input {
-  border: medium none;
-  display: inline-block;
-  height: 0;
+.account-auth-form .form-group {
   margin-bottom: 0;
-  outline: medium none;
-  padding-left: 0;
 }
 
+.account-auth-form label {
+  display: block;
+  margin-bottom: 8px;
+  color: #dbeafe;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.account-auth-form .form-control,
+.login-form form input,
+.signup-form form input {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.22);
+  background: rgba(7, 21, 47, 0.72);
+  color: #f8fafc;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.account-auth-form .form-control::placeholder {
+  color: #94a3b8;
+}
+
+.account-auth-form .form-control:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.14);
+}
+
+.account-auth-submit,
+.login-form form button,
+.signup-form form button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 52%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+}
+
+.account-auth-submit:hover,
+.account-auth-submit:focus,
+.login-form form button:hover,
+.signup-form form button:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 52%, #1e40af 100%);
+}
+
+.account-auth-divider {
+  position: relative;
+  margin: 22px 0 18px;
+  text-align: center;
+}
+
+.account-auth-divider:before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(191, 219, 254, 0.18);
+}
+
+.account-auth-divider span {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding: 0 14px;
+  background: #0a295f;
+  color: #93c5fd;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.account-auth-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(191, 219, 254, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #eff6ff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.account-auth-secondary:hover,
+.account-auth-secondary:focus {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.account-auth-links {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.account-auth-links-single {
+  justify-content: center;
+}
+
+.account-auth-links a {
+  color: #bfdbfe;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.account-auth-links a:hover,
+.account-auth-links a:focus {
+  color: #fff;
+}
+
+.account-auth .text-danger {
+  color: #fecaca;
+  font-size: 12px;
+}
+
+.account-auth .field-validation-error,
+.account-auth .validation-summary-errors {
+  display: block;
+  margin-top: 6px;
+}
+
+.account-auth .field-validation-valid,
+.account-auth .validation-summary-valid {
+  display: none;
+}
+
+.account-auth .form-control[readonly] {
+  background: rgba(15, 23, 42, 0.92);
+  color: #cbd5e1;
+}
 
 .or{
 	background: #FE980F;
@@ -1515,6 +1678,26 @@ h2.title {
 	margin-top: 75px;
 	text-align: center;
 	width: 50px;
+}
+
+@media (max-width: 767px) {
+  #form {
+    margin-top: 48px;
+    margin-bottom: 60px;
+  }
+
+  .account-auth-card {
+    padding: 28px 22px 24px;
+    border-radius: 22px;
+  }
+
+  .account-auth-title {
+    font-size: 28px;
+  }
+
+  .account-auth-links {
+    flex-direction: column;
+  }
 }
 
 

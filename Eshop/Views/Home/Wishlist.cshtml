@@ -1,46 +1,190 @@
-﻿@using Eshop.Views.ViewModels
+@using Eshop.Views.ViewModels
 @model List<WishlistItemVM>
 
-@{
-    ViewData["title"] = "List Compare";
+@functions {
+    public static string ResolveImage(string? image)
+    {
+        if (string.IsNullOrWhiteSpace(image)) return string.Empty;
+        if (image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+            image.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return image;
+        }
+
+        return "/media/products/" + System.IO.Path.GetFileName(image);
+    }
 }
 
-<h3>List Compare</h3>
+@{
+    ViewData["Title"] = "Wishlist";
+}
 
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th>Compare Id</th>
-            <th>Product Name</th>
-            <th>Product Description</th>
-            <th>Product Price</th>
-            <th>Product Image</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <th scope="row">@item.Wishlist.Id</th>
+<style>
+    .wl-shell{background:#fff;border:1px solid #ececec;border-radius:16px;padding:22px;box-shadow:0 12px 30px rgba(15,23,42,.05)}
+    .wl-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:20px}
+    .wl-head h2{margin:0 0 6px;font-size:28px;font-weight:700;color:#0f172a}
+    .wl-head p{margin:0;color:#64748b}
+    .wl-count{padding:10px 14px;border-radius:999px;background:#fff7ed;color:#c2410c;font-weight:700;border:1px solid #fdba74}
+    .wl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .wl-card{border:1px solid #e5edf5;border-radius:16px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+    .wl-image{height:210px;background:#f8fafc;display:flex;align-items:center;justify-content:center;padding:16px}
+    .wl-image img{width:100%;height:100%;object-fit:contain}
+    .wl-body{padding:16px;display:flex;flex-direction:column;gap:10px;flex:1}
+    .wl-body h3{margin:0;font-size:17px;line-height:1.5;color:#0f172a;min-height:52px}
+    .wl-price{font-size:24px;font-weight:800;color:#dc2626}
+    .wl-meta{display:flex;flex-wrap:wrap;gap:8px}
+    .wl-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;color:#334155;font-size:12px;font-weight:700}
+    .wl-stars{display:inline-flex;gap:2px;color:#f59e0b}
+    .wl-specs{margin:0;padding-left:18px;color:#475569}
+    .wl-specs li{margin-bottom:6px}
+    .wl-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .wl-btn,.wl-actions a{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #dbe4ef;border-radius:12px;padding:10px 12px;font-weight:700;background:#fff;color:#0f172a;text-decoration:none}
+    .wl-btn:hover,.wl-actions a:hover{background:#fff7ed;border-color:#fdba74;color:#c2410c;text-decoration:none}
+    .wl-btn-danger{background:#fff1f2;color:#be123c;border-color:#fecdd3}
+    .wl-empty{text-align:center;padding:40px 20px;border:1px dashed #cbd5e1;border-radius:16px;color:#64748b}
+    .wl-empty i{font-size:44px;display:block;margin-bottom:10px}
+</style>
 
-                <td>@item.Product.Name</td>
-                <td>@item.Product.Description</td>
-                <td>@item.Product.Price</td>
+<div class="wl-shell">
+    <div class="wl-head">
+        <div>
+            <h2>Wishlist của bạn</h2>
+            <p>Lưu lại các sản phẩm muốn theo dõi và mua sau.</p>
+        </div>
+        <div class="wl-count">@Model.Count sản phẩm</div>
+    </div>
 
-                <td>
-                    <img src="~/media/products/@item.Product.Image" width="100" height="80" />
-                </td>
+    @if (!Model.Any())
+    {
+        <div class="wl-empty">
+            <i class="fa fa-heart-o"></i>
+            Wishlist đang trống. Hãy thêm vài sản phẩm bạn quan tâm.
+        </div>
+    }
+    else
+    {
+        <div style="display:none;">@Html.AntiForgeryToken()</div>
+        <div class="wl-grid">
+            @foreach (var item in Model)
+            {
+                var image = ResolveImage(item.Product.Image);
+                <article class="wl-card">
+                    <div class="wl-image">
+                        @if (!string.IsNullOrWhiteSpace(image))
+                        {
+                            <img src="@image" alt="@item.Product.Name" />
+                        }
+                        else
+                        {
+                            <div class="text-muted"><i class="fa fa-image"></i></div>
+                        }
+                    </div>
 
-                <td>
-                    <a asp-action="DeleteWishlist"
-                       asp-controller="Home"
-                       asp-route-id="@item.Wishlist.Id"
-                       class="btn btn-primary confirmDeletion">
-                        Delete
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+                    <div class="wl-body">
+                        <h3>@item.Product.Name</h3>
+                        <div class="wl-price">@item.Product.Price.ToString("#,##0 đ")</div>
+
+                        <div class="wl-meta">
+                            <span class="wl-pill"><i class="fa fa-cubes"></i> @(item.AvailableQuantity > 0 ? $"Còn {item.AvailableQuantity}" : "Hết hàng")</span>
+                            <span class="wl-pill"><i class="fa fa-clock-o"></i> @item.Wishlist.CreatedAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+
+                        <div class="wl-meta">
+                            @if (item.Product.Category != null)
+                            {
+                                <span class="wl-pill"><i class="fa fa-tag"></i> @item.Product.Category.Name</span>
+                            }
+                            @if (item.Product.Publisher != null)
+                            {
+                                <span class="wl-pill"><i class="fa fa-building-o"></i> @item.Product.Publisher.Name</span>
+                            }
+                        </div>
+
+                        <div class="wl-meta">
+                            <span class="wl-stars">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="fa @(i <= Math.Round(item.AverageRating, MidpointRounding.AwayFromZero) ? "fa-star" : "fa-star-o")"></i>
+                                }
+                            </span>
+                            <strong>@item.AverageRating.ToString("0.0")</strong>
+                            <span class="text-muted">(@item.ReviewCount review)</span>
+                        </div>
+
+                        @if (item.SummarySpecs.Any())
+                        {
+                            <ul class="wl-specs">
+                                @foreach (var spec in item.SummarySpecs)
+                                {
+                                    <li>@spec</li>
+                                }
+                            </ul>
+                        }
+
+                        <div class="wl-actions">
+                            <a asp-controller="Product" asp-action="Details" asp-route-id="@item.Product.Id">
+                                <i class="fa fa-eye"></i> Xem chi tiết
+                            </a>
+
+                            <form asp-controller="Cart" asp-action="Add" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ProductId" value="@item.Product.Id" />
+                                <input type="hidden" name="Quantity" value="1" />
+                                <button type="submit" class="wl-btn" @(item.AvailableQuantity > 0 ? null : "disabled")>
+                                    <i class="fa fa-shopping-cart"></i> Thêm giỏ hàng
+                                </button>
+                            </form>
+
+                            <button type="button" class="wl-btn js-add-compare" data-product-id="@item.Product.Id">
+                                <i class="fa fa-balance-scale"></i> Thêm compare
+                            </button>
+
+                            <form asp-action="DeleteWishlist" asp-controller="Home" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@item.Wishlist.Id" />
+                                <button type="submit" class="wl-btn wl-btn-danger">
+                                    <i class="fa fa-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            function showFeedback(icon, title, text) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({ icon, title, text });
+                } else {
+                    alert(text);
+                }
+            }
+
+            $('.js-add-compare').on('click', function () {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                $.ajax({
+                    url: '@Url.Action("AddCompare", "Home")',
+                    type: 'POST',
+                    data: {
+                        productId: $(this).data('product-id'),
+                        __RequestVerificationToken: token ? token.value : ''
+                    },
+                    success: function (response) {
+                        showFeedback('success', 'Thành công', response.message || 'Đã thêm vào compare.');
+                    },
+                    error: function (xhr) {
+                        const message = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : (xhr.responseText || 'Không thể thêm vào compare.');
+                        showFeedback('error', 'Có lỗi xảy ra', message);
+                    }
+                });
+            });
+        })();
+    </script>
+}

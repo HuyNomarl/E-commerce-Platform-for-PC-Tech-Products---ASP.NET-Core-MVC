@@ -1,49 +1,61 @@
-﻿@model UserModel
+@model UserModel
 
 @{
-    ViewData["Title"] = "Register Account";
+    ViewData["Title"] = "Đăng ký";
 }
-<section id="form">
+
+<section id="form" class="account-auth">
     <div class="container">
         <div class="row">
-            <div class="col-sm-8 col-sm-offset-1">
-                <div class="signup-form">
-                    <h2>New User Signup!</h2>
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="col-sm-8 col-sm-offset-2">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card">
+                        <span class="account-auth-badge">Welcome to Eshop</span>
+                        <h1 class="account-auth-title">Tạo tài khoản mới</h1>
+                        @* <p class="account-auth-subtitle">Một tài khoản giúp bạn lưu wishlist, so sánh linh kiện, đánh giá sản phẩm đã mua và theo dõi trạng thái đơn hàng thuận tiện hơn.</p> *@
 
-                    <form asp-action="Create" asp-controller="Account" method="post">
-                        <div class="form-group">
-                            <label>UserName</label>
-                            <input asp-for="UserName" class="form-control" />
-                            <span asp-validation-for="UserName" class="text-danger"></span>
+                        <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
+
+                        <form asp-action="Create" asp-controller="Account" method="post" class="account-auth-form">
+                            @Html.AntiForgeryToken()
+
+                            <div class="form-group">
+                                <label asp-for="UserName">Tên tài khoản</label>
+                                <input asp-for="UserName" class="form-control" placeholder="Ví dụ: nguyenvana" />
+                                <span asp-validation-for="UserName" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Email">Email</label>
+                                <input asp-for="Email" class="form-control" placeholder="name@example.com" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Address">Địa chỉ</label>
+                                <input asp-for="Address" class="form-control" placeholder="Nhập địa chỉ giao hàng thường dùng" />
+                                <span asp-validation-for="Address" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Password">Mật khẩu</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Tạo mật khẩu mạnh" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="ConfirmPassword">Xác nhận mật khẩu</label>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-default account-auth-submit">Tạo tài khoản</button>
+                        </form>
+
+                        <div class="account-auth-links account-auth-links-single">
+                            <a asp-action="Login" asp-controller="Account">Đã có tài khoản? Đăng nhập ngay</a>
                         </div>
-
-                        <div class="form-group">
-                            <label>Email</label>
-                            <input asp-for="Email" class="form-control" />
-                            <span asp-validation-for="Email" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Address</label>
-                            <input asp-for="Address" class="form-control" />
-                            <span asp-validation-for="Address" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Password</label>
-                            <input asp-for="Password" type="password" class="form-control" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Confirm Password</label>
-                            <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                        </div>
-
-                        <button type="submit" class="btn btn-default">Create</button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
