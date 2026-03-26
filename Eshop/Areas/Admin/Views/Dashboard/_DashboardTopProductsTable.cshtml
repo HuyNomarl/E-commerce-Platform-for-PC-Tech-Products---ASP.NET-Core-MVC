@@ -1,0 +1,45 @@
+﻿@model List<Eshop.Models.ViewModels.DashboardTopProductViewModel>
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Top sản phẩm bán chạy</h4>
+            <p>Sản phẩm mang lại doanh thu tốt nhất</p>
+        </div>
+    </div>
+
+    <div class="dash-table-wrap custom-scroll">
+        <table class="table dash-table">
+            <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th>Danh mục</th>
+                    <th>Đã bán</th>
+                    <th>Doanh thu</th>
+                    <th>Tồn khả dụng</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-semibold">@item.ProductName</td>
+                            <td>@item.CategoryName</td>
+                            <td>@item.QuantitySold</td>
+                            <td class="text-strong">@item.Revenue.ToString("N0") đ</td>
+                            <td>@item.AvailableStock</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Chưa có dữ liệu sản phẩm.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

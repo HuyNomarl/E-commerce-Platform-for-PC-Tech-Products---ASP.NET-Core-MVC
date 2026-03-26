@@ -1,0 +1,55 @@
+﻿@model Eshop.Models.ViewModels.AdminDashboardViewModel
+
+<div class="dash-kpis">
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Doanh thu hôm nay</div>
+        <div class="dash-kpi__value">@Model.RevenueToday.ToString("N0") đ</div>
+        <div class="dash-kpi__meta">Đã loại trừ đơn bị hủy</div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Doanh thu @Model.RangeDays ngày</div>
+        <div class="dash-kpi__value">@Model.RevenueInRange.ToString("N0") đ</div>
+        <div class="dash-kpi__meta">
+            @Model.RevenueGrowthPercent.ToString("+#,##0.0;-#,##0.0;0")% so với kỳ trước
+        </div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Đơn hàng @Model.RangeDays ngày</div>
+        <div class="dash-kpi__value">@Model.OrdersInRange</div>
+        <div class="dash-kpi__meta">
+            @Model.OrderGrowthPercent.ToString("+#,##0.0;-#,##0.0;0")% so với kỳ trước
+        </div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Giá trị đơn trung bình</div>
+        <div class="dash-kpi__value">@Model.AverageOrderValue.ToString("N0") đ</div>
+        <div class="dash-kpi__meta">Tính trên đơn chưa hủy</div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Tỷ lệ hủy đơn</div>
+        <div class="dash-kpi__value">@Model.CancellationRate.ToString("N1")%</div>
+        <div class="dash-kpi__meta">Trong @Model.RangeDays ngày gần nhất</div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Tỷ lệ hoàn tất</div>
+        <div class="dash-kpi__value">@Model.FulfillmentRate.ToString("N1")%</div>
+        <div class="dash-kpi__meta">Đơn đã giao hoặc hoàn thành</div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Khách mua hàng hoạt động</div>
+        <div class="dash-kpi__value">@Model.ActiveCustomersInRange</div>
+        <div class="dash-kpi__meta">Trên tổng @Model.TotalCustomers khách hàng</div>
+    </div>
+
+    <div class="dash-kpi">
+        <div class="dash-kpi__label">Đánh giá trung bình</div>
+        <div class="dash-kpi__value">@Model.AverageRating.ToString("N1")/5</div>
+        <div class="dash-kpi__meta">@Model.RepeatCustomers khách đã mua lặp lại</div>
+    </div>
+</div>

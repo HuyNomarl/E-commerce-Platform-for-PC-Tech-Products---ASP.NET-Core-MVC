@@ -113,6 +113,7 @@
                                         <th>Mã đơn</th>
                                         <th>Ngày tạo</th>
                                         <th>Trạng thái</th>
+                                        <th>Thanh toán</th>
                                         <th>Tổng tiền</th>
                                         <th>Thao tác</th>
                                     </tr>
@@ -124,20 +125,11 @@
                                             <td>@order.OrderCode</td>
                                             <td>@order.CreatedTime.ToString("dd/MM/yyyy HH:mm")</td>
                                             <td>
-                                                @{
-                                                    string statusText = order.Status switch
-                                                    {
-                                                        1 => "Chờ xác nhận",
-                                                        2 => "Đã xác nhận",
-                                                        3 => "Đang giao",
-                                                        4 => "Hoàn thành",
-                                                        5 => "Thất bại",
-                                                        6 => "Đã hủy",
-                                                        _ => "Không xác định"
-                                                    };
-                                                }
-                                                @statusText
+                                                <span class="badge @OrderDisplayHelper.GetBootstrapBadgeClass(order.Status)">
+                                                    @OrderDisplayHelper.GetStatusLabel(order.Status)
+                                                </span>
                                             </td>
+                                            <td>@OrderDisplayHelper.GetPaymentMethodLabel(order.PaymentMethod)</td>
                                             <td>@order.TotalAmount.ToString("#,##0") đ</td>
                                             <td>
                                                 <a asp-controller="Account"
@@ -147,16 +139,20 @@
                                                     Chi tiết
                                                 </a>
 
-                                                @if (order.Status == 1)
+                                                @if (order.CanCancel)
                                                 {
                                                     <form asp-controller="Account"
                                                           asp-action="CancelOrder"
                                                           method="post"
-                                                          style="display:inline-block;">
+                                                          style="display:inline-block;"
+                                                          data-swal-confirm
+                                                          data-swal-title="Hủy đơn hàng?"
+                                                          data-swal-text="Sau khi hủy đơn sẽ không thể hoàn tác."
+                                                          data-swal-confirm-text="Có, hủy đơn"
+                                                          data-swal-cancel-text="Không">
                                                         @Html.AntiForgeryToken()
                                                         <input type="hidden" name="orderCode" value="@order.OrderCode" />
-                                                        <button type="submit" class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này?')">
+                                                        <button type="submit" class="btn btn-danger btn-sm">
                                                             Hủy đơn
                                                         </button>
                                                     </form>

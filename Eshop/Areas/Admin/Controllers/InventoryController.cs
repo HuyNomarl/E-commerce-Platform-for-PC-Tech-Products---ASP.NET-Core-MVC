@@ -78,15 +78,49 @@ namespace Eshop.Areas.Admin.Controllers
 
             try
             {
-                await _inventoryService.ReceiveAsync(vm, User.FindFirstValue(ClaimTypes.NameIdentifier));
-                TempData["success"] = "Nhập kho thành công.";
-                return RedirectToAction(nameof(Index));
+                var receiptId = await _inventoryService.CreateReceiptAsync(vm, User.FindFirstValue(ClaimTypes.NameIdentifier));
+                TempData["success"] = $"Đã tạo phiếu nhập #{receiptId}, chờ duyệt.";
+                return RedirectToAction(nameof(Receive));
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError("", ex.Message);
                 return View(vm);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveReceipt(int id)
+        {
+            try
+            {
+                await _inventoryService.ApproveReceiptAsync(id, User.FindFirstValue(ClaimTypes.NameIdentifier));
+                TempData["success"] = "Duyệt phiếu nhập thành công.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Receive));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReceipt(int id)
+        {
+            try
+            {
+                await _inventoryService.CancelReceiptAsync(id, User.FindFirstValue(ClaimTypes.NameIdentifier), "Phiếu nhập bị hủy.");
+                TempData["success"] = "Đã hủy phiếu nhập.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Receive));
         }
 
         [HttpGet]
@@ -160,7 +194,9 @@ namespace Eshop.Areas.Admin.Controllers
 
             if (!string.IsNullOrWhiteSpace(referenceCode))
             {
-                query = query.Where(x => x.ReferenceCode != null && x.ReferenceCode.Contains(referenceCode));
+                query = query.Where(x =>
+                    (x.ReferenceCode != null && x.ReferenceCode.Contains(referenceCode)) ||
+                    (x.Note != null && x.Note.Contains(referenceCode)));
             }
 
             var items = await query.Take(100).ToListAsync();
@@ -203,10 +239,71 @@ namespace Eshop.Areas.Admin.Controllers
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
                 .ToListAsync();
 
+            vm.Publishers = await _context.Publishers
+                .OrderBy(x => x.Name)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.Id.ToString(),
+                    Text = x.Name
+                })
+                .ToListAsync();
+
             vm.Products = await _context.Products
                 .OrderBy(x => x.Name)
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
                 .ToListAsync();
+
+            vm.ProductOptions = await _context.Products
+                .OrderBy(x => x.Name)
+                .Select(x => new AdminInventoryReceiveProductOptionViewModel
+                {
+                    ProductId = x.Id,
+                    ProductName = x.Name,
+                    PublisherId = x.PublisherId
+                })
+                .ToListAsync();
+
+            var recentReceipts = await _context.InventoryReceipts
+                .Include(x => x.Warehouse)
+                .Include(x => x.Publisher)
+                .Include(x => x.Details)
+                    .ThenInclude(d => d.Product)
+                .OrderByDescending(x => x.Id)
+                .Take(30)
+                .ToListAsync();
+
+            vm.RecentReceipts = recentReceipts
+                .Select(x => new AdminInventoryReceiptSummaryViewModel
+                {
+                    Id = x.Id,
+                    ReceiptCode = x.ReceiptCode,
+                    WarehouseName = x.Warehouse.Name,
+                    PublisherName = x.Publisher.Name,
+                    ReferenceCode = x.ReferenceCode,
+                    Note = x.Note,
+                    Status = x.Status,
+                    CreatedAt = x.CreatedAt,
+                    ApprovedAt = x.ApprovedAt,
+                    CancelledAt = x.CancelledAt,
+                    Items = x.Details
+                        .OrderBy(d => d.Product.Name)
+                        .Select(d => new AdminInventoryReceiptItemSummaryViewModel
+                        {
+                            ProductName = d.Product.Name,
+                            Quantity = d.Quantity,
+                            UnitCost = d.UnitCost
+                        })
+                        .ToList()
+                })
+                .ToList();
+
+            if (vm.Items == null || vm.Items.Count == 0)
+            {
+                vm.Items = new List<AdminInventoryReceiveItemViewModel>
+                {
+                    new()
+                };
+            }
         }
 
         private async Task LoadCommonData(AdminInventoryAdjustViewModel vm)

@@ -1,8 +1,104 @@
-﻿@model IEnumerable<Eshop.Models.PublisherModel>
+@model Eshop.Models.ViewModels.AdminDashboardViewModel
+@using Eshop.Models.ViewModels
+
 @{
-    ViewData["title"] = "Brand Index";
+    ViewData["Title"] = "Dashboard";
+
+    var revenueTrend = (Model.RevenueTrend ?? new List<DashboardTrendPointViewModel>()).ToList();
+    revenueTrend = revenueTrend.AsEnumerable().Reverse().ToList();
+
+    var statusBreakdown = (Model.StatusBreakdown ?? new List<DashboardBreakdownItemViewModel>())
+        .OrderByDescending(x => x.Count)
+        .ThenByDescending(x => x.Amount)
+        .ToList();
+
+    var paymentBreakdown = (Model.PaymentBreakdown ?? new List<DashboardBreakdownItemViewModel>())
+        .OrderByDescending(x => x.Count)
+        .ThenByDescending(x => x.Amount)
+        .ToList();
+
+    var topProducts = (Model.TopProducts ?? new List<DashboardTopProductViewModel>())
+        .OrderByDescending(x => x.Revenue)
+        .ThenByDescending(x => x.QuantitySold)
+        .ToList();
+
+    var topCategories = (Model.TopCategories ?? new List<DashboardCategoryPerformanceViewModel>())
+        .OrderByDescending(x => x.Revenue)
+        .ToList();
+
+    var topCustomers = (Model.TopCustomers ?? new List<DashboardCustomerViewModel>())
+        .OrderByDescending(x => x.Revenue)
+        .ThenByDescending(x => x.OrderCount)
+        .ToList();
+
+    var recentOrders = (Model.RecentOrders ?? new List<DashboardRecentOrderViewModel>())
+        .OrderByDescending(x => x.CreatedTime)
+        .ToList();
+
+    var lowStockItems = (Model.LowStockItems ?? new List<DashboardStockAlertViewModel>())
+        .OrderBy(x => x.AvailableQuantity)
+        .ThenByDescending(x => x.ReservedQuantity)
+        .ToList();
+
+    var warehouseStocks = (Model.WarehouseStocks ?? new List<DashboardWarehouseStockViewModel>())
+        .OrderByDescending(x => x.AvailableQuantity)
+        .ToList();
 }
 
-<h3>Dashboard Index View</h3>
+<link rel="stylesheet" href="~/css/admin-dashboard.css" />
 
+<div class="dash">
+    <div class="dash-toolbar">
+        <div class="dash-toolbar__left">
+            <div class="dash-caption">Phân tích vận hành và kinh doanh</div>
+            <div class="dash-updated">Cập nhật: @Model.GeneratedAt.ToString("dd/MM/yyyy HH:mm")</div>
+        </div>
 
+        <div class="dash-range">
+            <a asp-action="Index" asp-route-days="7" class="dash-range__btn @(Model.RangeDays == 7 ? "active" : "")">7 ngày</a>
+            <a asp-action="Index" asp-route-days="30" class="dash-range__btn @(Model.RangeDays == 30 ? "active" : "")">30 ngày</a>
+            <a asp-action="Index" asp-route-days="90" class="dash-range__btn @(Model.RangeDays == 90 ? "active" : "")">90 ngày</a>
+        </div>
+    </div>
+
+    @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardKpis.cshtml", Model)
+
+    <div class="dash-grid dash-grid--2">
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardRevenuePanel.cshtml", revenueTrend)
+
+        <div class="dash-stack">
+            @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardStatusPanel.cshtml", Tuple.Create(statusBreakdown, Model))
+            @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardPaymentPanel.cshtml", paymentBreakdown)
+        </div>
+    </div>
+
+    <div class="dash-section">
+        <div class="dash-section__title">Vận hành kho và hệ thống</div>
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardOpsCards.cshtml", Model)
+    </div>
+
+    <div class="dash-grid dash-grid--2">
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardTopProductsTable.cshtml", topProducts)
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardCategoriesTable.cshtml", topCategories)
+    </div>
+
+    <div class="dash-grid dash-grid--2">
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardCustomersTable.cshtml", topCustomers)
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardWarehouseTable.cshtml", warehouseStocks)
+    </div>
+
+    <div class="dash-grid dash-grid--2">
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardLowStockPanel.cshtml", lowStockItems)
+        @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardPlatformSummary.cshtml", Model)
+    </div>
+
+    @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardRecentOrdersTable.cshtml", recentOrders)
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.dashboardRevenueLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.Label).Reverse().ToList()));
+    window.dashboardRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.Revenue).Reverse().ToList()));
+    window.dashboardOrderData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.OrderCount).Reverse().ToList()));
+</script>
+<script src="~/js/admin-dashboard.js"></script>

@@ -439,14 +439,14 @@
                                 <a class="qty-btn"
                                    asp-action="Decrease"
                                    asp-controller="Cart"
-                                   asp-route-id="@item.ProductId">-</a>
+                                   asp-route-lineKey="@item.LineKey">-</a>
 
                                 <input class="qty-input" type="text" value="@item.Quantity" readonly />
 
                                 <a class="qty-btn"
                                    asp-action="Increase"
                                    asp-controller="Cart"
-                                   asp-route-id="@item.ProductId">+</a>
+                                   asp-route-lineKey="@item.LineKey">+</a>
                             </div>
                         </div>
 
@@ -458,7 +458,7 @@
                             <a class="remove-btn"
                                    asp-action="Remove"
                                    asp-controller="Cart"
-                                   asp-route-id="@item.ProductId"
+                                   asp-route-lineKey="@item.LineKey"
                                    title="Xóa">
                                 <i class="fa fa-trash"></i>
                             </a>

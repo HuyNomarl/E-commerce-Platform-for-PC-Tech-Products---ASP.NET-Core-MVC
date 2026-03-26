@@ -4,6 +4,17 @@ namespace Eshop.Services
 {
     public class OrderStateService : IOrderStateService
     {
+        private static readonly IReadOnlyDictionary<OrderStatus, IReadOnlyList<OrderStatus>> TransitionMap =
+            new Dictionary<OrderStatus, IReadOnlyList<OrderStatus>>
+            {
+                [OrderStatus.Pending] = new[] { OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Cancelled },
+                [OrderStatus.Processing] = new[] { OrderStatus.Processing, OrderStatus.Shipped, OrderStatus.Cancelled },
+                [OrderStatus.Shipped] = new[] { OrderStatus.Shipped, OrderStatus.Delivered },
+                [OrderStatus.Delivered] = new[] { OrderStatus.Delivered, OrderStatus.Completed },
+                [OrderStatus.Completed] = new[] { OrderStatus.Completed },
+                [OrderStatus.Cancelled] = new[] { OrderStatus.Cancelled }
+            };
+
         public (bool IsValid, string Message) ValidateTransition(OrderStatus oldStatus, OrderStatus newStatus)
         {
             if (oldStatus == newStatus)
@@ -29,6 +40,16 @@ namespace Eshop.Services
 
                 _ => (false, $"Không được chuyển trạng thái từ {oldStatus} sang {newStatus}.")
             };
+        }
+
+        public IReadOnlyList<OrderStatus> GetAvailableStatuses(OrderStatus currentStatus)
+        {
+            if (TransitionMap.TryGetValue(currentStatus, out var nextStatuses))
+            {
+                return nextStatuses;
+            }
+
+            return new[] { currentStatus };
         }
 
         public bool CanCustomerCancel(OrderStatus status)

@@ -107,10 +107,17 @@ namespace Eshop.Controllers.Api
             if (request.Items == null || !request.Items.Any())
                 return BadRequest(new { message = "Chưa có linh kiện nào trong cấu hình." });
 
+            await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi từ PC Builder.");
+
             var checkResult = await _compatibilityService.CheckAsync(new PcBuildCheckRequest
             {
                 Items = request.Items
             });
+
+            var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var requestedQtyByProduct = request.Items
+                .GroupBy(x => x.ProductId)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
 
             var productIds = request.Items.Select(x => x.ProductId).Distinct().ToList();
 
@@ -118,15 +125,23 @@ namespace Eshop.Controllers.Api
                 .Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id);
 
-            foreach (var item in request.Items)
+            foreach (var row in requestedQtyByProduct)
             {
-                if (!products.TryGetValue(item.ProductId, out var product))
-                    return BadRequest(new { message = $"Không tìm thấy sản phẩm ID = {item.ProductId}" });
+                if (!products.TryGetValue(row.Key, out var product))
+                    return BadRequest(new { message = $"Không tìm thấy sản phẩm ID = {row.Key}" });
 
-                var availableStock = await _inventoryService.GetAvailableStockAsync(item.ProductId);
+                var availableStock = await _inventoryService.GetAvailableStockAsync(row.Key);
+                var quantityAlreadyInCart = cart
+                    .Where(x => x.ProductId == row.Key)
+                    .Sum(x => x.Quantity);
 
-                if (availableStock < item.Quantity)
-                    return BadRequest(new { message = $"Sản phẩm \"{product.Name}\" chỉ còn {availableStock} trong kho." });
+                if (availableStock < quantityAlreadyInCart + row.Value)
+                {
+                    return BadRequest(new
+                    {
+                        message = $"Sản phẩm \"{product.Name}\" chỉ còn {availableStock} trong kho, không đủ cho tổng số lượng hiện có trong giỏ và cấu hình mới."
+                    });
+                }
             }
 
 
@@ -155,7 +170,6 @@ namespace Eshop.Controllers.Api
 
             await _context.SaveChangesAsync();
 
-            var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
             var buildGroupKey = Guid.NewGuid().ToString("N");
 
             foreach (var item in request.Items)
@@ -493,6 +507,22 @@ namespace Eshop.Controllers.Api
                     detail = ex.InnerException?.Message
                 });
             }
+        }
+
+        private async Task ReleaseActiveReservationIfAnyAsync(string reason)
+        {
+            var reservationCode = HttpContext.Session.GetString("ActiveReservationCode");
+
+            if (string.IsNullOrWhiteSpace(reservationCode))
+                return;
+
+            await _inventoryService.ReleaseReservationAsync(
+                reservationCode,
+                User.Identity?.Name,
+                reason);
+
+            HttpContext.Session.Remove("ActiveReservationCode");
+            HttpContext.Session.Remove("CheckoutInfo");
         }
     }
 }

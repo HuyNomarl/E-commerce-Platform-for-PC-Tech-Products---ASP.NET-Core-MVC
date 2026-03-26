@@ -1,0 +1,101 @@
+﻿@model Tuple<
+List<Eshop.Models.ViewModels.DashboardBreakdownItemViewModel>,
+    List<Eshop.Models.ViewModels.DashboardBreakdownItemViewModel>,
+    Eshop.Models.ViewModels.AdminDashboardViewModel >
+
+@{
+    var statusBreakdown = Model.Item1;
+    var paymentBreakdown = Model.Item2;
+    var dashboard = Model.Item3;
+}
+
+<div class="dash-stack">
+    <div class="dash-card">
+        <div class="dash-card__head">
+            <div>
+                <h4>Vận hành đơn hàng</h4>
+                <p>Trạng thái xử lý hiện tại</p>
+            </div>
+        </div>
+
+        <div class="dash-mini-grid">
+            <div class="dash-mini">
+                <span>Chờ xác nhận</span>
+                <strong>@dashboard.PendingOrders</strong>
+            </div>
+            <div class="dash-mini">
+                <span>Đang xử lý</span>
+                <strong>@dashboard.ProcessingOrders</strong>
+            </div>
+            <div class="dash-mini">
+                <span>Đang giao</span>
+                <strong>@dashboard.ShippingOrders</strong>
+            </div>
+        </div>
+
+        <div class="dash-breakdowns custom-scroll">
+            @if (statusBreakdown.Any())
+            {
+                foreach (var item in statusBreakdown)
+                {
+                    <div class="dash-breakdown">
+                        <div class="dash-breakdown__head">
+                            <span class="dash-chip @item.AccentClass">@item.Label</span>
+                            <strong>@item.Count đơn</strong>
+                        </div>
+
+                        <div class="dash-progress">
+                            <div class="dash-progress__fill dash-progress__fill--dark" style="width:@item.Percent%;"></div>
+                        </div>
+
+                        <div class="dash-breakdown__meta">
+                            <span>@item.Description</span>
+                            <span>@item.Amount.ToString("N0") đ</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="dash-empty">Chưa có dữ liệu trạng thái đơn hàng.</div>
+            }
+        </div>
+    </div>
+
+    <div class="dash-card">
+        <div class="dash-card__head">
+            <div>
+                <h4>Phương thức thanh toán</h4>
+                <p>Tỷ trọng giao dịch theo kênh thanh toán</p>
+            </div>
+        </div>
+
+        <div class="dash-breakdowns custom-scroll">
+            @if (paymentBreakdown.Any())
+            {
+                foreach (var item in paymentBreakdown)
+                {
+                    <div class="dash-breakdown">
+                        <div class="dash-breakdown__head">
+                            <span class="dash-chip @item.AccentClass">@item.Label</span>
+                            <strong>@item.Count đơn</strong>
+                        </div>
+
+                        <div class="dash-progress">
+                            <div class="dash-progress__fill dash-progress__fill--green" style="width:@item.Percent%;"></div>
+                        </div>
+
+                        <div class="dash-breakdown__meta">
+                            <span>@item.Description</span>
+                            <span>@item.Amount.ToString("N0") đ</span>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="dash-empty">Chưa có dữ liệu thanh toán.</div>
+            }
+        </div>
+    </div>
+</div>

@@ -1616,12 +1616,24 @@
         async function saveBuild() {
             const items = collectPayloadItems();
             if (items.length === 0) {
-                alert("Bạn chưa chọn linh kiện nào.");
+                await showAppAlert("Bạn chưa chọn linh kiện nào.", "warning");
                 return;
             }
 
-            const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
-            if (buildName === null) return;
+            const promptResult = await showAppPrompt({
+                title: "Lưu cấu hình",
+                text: "Nhập tên cấu hình bạn muốn lưu.",
+                inputValue: "PC Gaming mới",
+                inputPlaceholder: "Ví dụ: PC Gaming mới",
+                confirmButtonText: "Lưu",
+                cancelButtonText: "Hủy",
+                required: true,
+                requiredMessage: "Vui lòng nhập tên cấu hình."
+            });
+
+            if (!promptResult.isConfirmed) return;
+
+            const buildName = (promptResult.value || "").trim();
 
             const res = await fetch("/api/pc-builder/save", {
                 method: "POST",
@@ -1632,11 +1644,11 @@
             const data = await res.json();
 
             if (!res.ok) {
-                alert(data.message || "Lưu cấu hình thất bại.");
+                await showAppAlert(data.message || "Lưu cấu hình thất bại.", "error");
                 return;
             }
 
-            alert(`Lưu thành công. Mã build: ${data.buildCode}`);
+            await showAppAlert(`Lưu thành công. Mã build: ${data.buildCode}`, "success");
         }
 
         function appendChatMessage(role, text) {
@@ -1703,12 +1715,24 @@
             const items = collectPayloadItems();
 
             if (items.length === 0) {
-                alert("Bạn chưa chọn linh kiện nào.");
+                await showAppAlert("Bạn chưa chọn linh kiện nào.", "warning");
                 return;
             }
 
-            const buildName = prompt("Nhập tên cấu hình:", "PC Gaming mới");
-            if (buildName === null) return;
+            const promptResult = await showAppPrompt({
+                title: "Thêm cấu hình vào giỏ hàng",
+                text: "Nhập tên cấu hình để lưu cùng giỏ hàng.",
+                inputValue: "PC Gaming mới",
+                inputPlaceholder: "Ví dụ: PC Gaming mới",
+                confirmButtonText: "Tiếp tục",
+                cancelButtonText: "Hủy",
+                required: true,
+                requiredMessage: "Vui lòng nhập tên cấu hình."
+            });
+
+            if (!promptResult.isConfirmed) return;
+
+            const buildName = (promptResult.value || "").trim();
 
             const res = await fetch("/api/pc-builder/add-to-cart", {
                 method: "POST",
@@ -1719,11 +1743,11 @@
             const data = await res.json();
 
             if (!res.ok) {
-                alert(data.message || "Không thể thêm cấu hình vào giỏ hàng.");
+                await showAppAlert(data.message || "Không thể thêm cấu hình vào giỏ hàng.", "error");
                 return;
             }
 
-            alert(data.message || "Đã thêm cấu hình vào giỏ hàng.");
+            await showAppAlert(data.message || "Đã thêm cấu hình vào giỏ hàng.", "success");
             window.location.href = "/Cart/Index";
         }
 

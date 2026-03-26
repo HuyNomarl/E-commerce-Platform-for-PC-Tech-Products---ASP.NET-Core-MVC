@@ -1,0 +1,36 @@
+﻿@model Eshop.Models.ViewModels.AdminDashboardViewModel
+
+<div class="dash-ops">
+    <div class="dash-ops__card">
+        <span>Tổng kho hoạt động</span>
+        <strong>@Model.TotalWarehouses</strong>
+    </div>
+    <div class="dash-ops__card">
+        <span>Phiếu nhập chờ duyệt</span>
+        <strong>@Model.PendingReceipts</strong>
+    </div>
+    <div class="dash-ops__card">
+        <span>Reservation đang giữ</span>
+        <strong>@Model.ActiveReservations</strong>
+    </div>
+    <div class="dash-ops__card">
+        <span>Tin nhắn chưa đọc</span>
+        <strong>@Model.UnreadMessages</strong>
+    </div>
+    <div class="dash-ops__card">
+        <span>Tồn khả dụng</span>
+        <strong>@Model.AvailableInventoryUnits</strong>
+    </div>
+    <div class="dash-ops__card">
+        <span>Tồn đang giữ</span>
+        <strong>@Model.ReservedInventoryUnits</strong>
+    </div>
+    <div class="dash-ops__card dash-ops__card--warn">
+        <span>Sắp hết hàng</span>
+        <strong>@Model.LowStockProducts</strong>
+    </div>
+    <div class="dash-ops__card dash-ops__card--danger">
+        <span>Hết hàng</span>
+        <strong>@Model.OutOfStockProducts</strong>
+    </div>
+</div>

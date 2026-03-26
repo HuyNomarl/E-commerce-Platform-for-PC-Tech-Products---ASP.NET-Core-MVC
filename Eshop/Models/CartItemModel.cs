@@ -1,25 +1,28 @@
-﻿namespace Eshop.Models
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Eshop.Models
 {
     public class CartItemModel
     {
         public long ProductId { get; set; }
-        public string ProductName { get; set; }
+        public string ProductName { get; set; } = string.Empty;
         public int Quantity { get; set; }
 
-        // Giá base sản phẩm
+        // Gia base san pham
         public decimal BasePrice { get; set; }
 
-        // Tổng tiền cộng thêm từ option
+        // Tong tien cong them tu option
         public decimal OptionPrice { get; set; }
 
-        // Giá cuối của 1 sản phẩm = base + option
+        // Gia cuoi cua 1 san pham = base + option
         public decimal Price => BasePrice + OptionPrice;
 
         public decimal Total => Quantity * Price;
 
-        public string Image { get; set; }
+        public string? Image { get; set; }
 
-        public List<CartItemOptionModel> SelectedOptions { get; set; } = new List<CartItemOptionModel>();
+        public List<CartItemOptionModel> SelectedOptions { get; set; } = new();
 
         public CartItemModel() { }
 
@@ -29,6 +32,8 @@
         public bool IsPcBuildItem { get; set; } = false;
         public string? ComponentType { get; set; }
 
+        public string LineKey => GenerateLineKey(ProductId, BuildGroupKey, PcBuildId, ComponentType, SelectedOptions);
+
         public CartItemModel(ProductModel product)
         {
             ProductId = product.Id;
@@ -37,6 +42,23 @@
             OptionPrice = 0;
             Quantity = 1;
             Image = product.Image;
+        }
+
+        public static string GenerateLineKey(
+            long productId,
+            string? buildGroupKey,
+            int? pcBuildId,
+            string? componentType,
+            IEnumerable<CartItemOptionModel>? selectedOptions)
+        {
+            var optionKey = string.Join("|", (selectedOptions ?? Enumerable.Empty<CartItemOptionModel>())
+                .OrderBy(x => x.OptionGroupId)
+                .ThenBy(x => x.OptionValueId)
+                .Select(x => $"{x.OptionGroupId}:{x.OptionValueId}"));
+
+            var rawKey = $"{productId}|{buildGroupKey}|{pcBuildId}|{componentType}|{optionKey}";
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawKey));
+            return Convert.ToHexString(bytes).ToLowerInvariant();
         }
     }
 }

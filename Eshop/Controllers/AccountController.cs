@@ -257,7 +257,7 @@ namespace Eshop.Controllers
 
             if (vm.ActiveTab == "orders")
             {
-                vm.Orders = await GetUserOrdersAsync(currentUser.Email!);
+                vm.Orders = await GetUserOrdersAsync(currentUser.Id);
             }
 
             return View(vm);
@@ -324,7 +324,7 @@ namespace Eshop.Controllers
             }
 
             var order = await _dataContext.Orders
-                .FirstOrDefaultAsync(o => o.OrderCode == orderCode && o.UserName == currentUser.Email);
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode && o.UserId == currentUser.Id);
 
             if (order == null)
             {
@@ -342,14 +342,26 @@ namespace Eshop.Controllers
                 UserName = order.UserName,
                 CreatedTime = order.CreatedTime,
                 Status = order.Status,
+                FullName = order.FullName,
+                Phone = order.Phone,
+                Email = order.Email,
+                Address = order.Address,
+                Note = order.Note,
+                PaymentMethod = order.PaymentMethod,
+                SubTotal = order.SubTotal,
+                DiscountAmount = order.DiscountAmount,
                 ShippingCost = order.ShippingCost,
+                TotalAmount = order.TotalAmount,
+                CanCancel = _orderStateService.CanCustomerCancel((OrderStatus)order.Status),
                 OrderDetails = orderDetails.Select(x => new UserOrderItemViewModel
                 {
                     ProductName = !string.IsNullOrWhiteSpace(x.ProductName)
                         ? x.ProductName
                         : (x.Product != null ? x.Product.Name : string.Empty),
                     Price = x.Price,
-                    Quantity = x.Quantity
+                    Quantity = x.Quantity,
+                    BuildName = x.BuildName,
+                    ComponentType = x.ComponentType
                 }).ToList()
             };
 
@@ -374,7 +386,7 @@ namespace Eshop.Controllers
             }
 
             var order = await _dataContext.Orders
-                .FirstOrDefaultAsync(o => o.OrderCode == orderCode && o.UserName == currentUser.Email);
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode && o.UserId == currentUser.Id);
 
             if (order == null)
             {
@@ -392,8 +404,12 @@ namespace Eshop.Controllers
 
             try
             {
-                await _inventoryService.ReturnOrderAsync(orderCode, currentUser.Id, "Khách hàng hủy đơn.");
-                order.Status = 6;
+                await _inventoryService.RevertOrderInventoryAsync(
+                    orderCode,
+                    order.ReservationCode,
+                    currentUser.Id,
+                    "Khách hàng hủy đơn.");
+                order.Status = (int)OrderStatus.Cancelled;
 
                 await _dataContext.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -422,7 +438,7 @@ namespace Eshop.Controllers
             }
 
             var orders = await _dataContext.Orders
-                .Where(o => o.UserName == currentUser.Email)
+                .Where(o => o.UserId == currentUser.Id)
                 .OrderByDescending(o => o.CreatedTime)
                 .ToListAsync();
 
@@ -433,7 +449,9 @@ namespace Eshop.Controllers
                 CreatedTime = o.CreatedTime,
                 Status = o.Status,
                 ShippingCost = o.ShippingCost,
-                TotalAmount = o.TotalAmount
+                TotalAmount = o.TotalAmount,
+                PaymentMethod = o.PaymentMethod,
+                CanCancel = _orderStateService.CanCustomerCancel((OrderStatus)o.Status)
             }).ToList();
 
             return View(result);
@@ -573,10 +591,10 @@ namespace Eshop.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        private async Task<List<OrderHistoryViewModel>> GetUserOrdersAsync(string email)
+        private async Task<List<OrderHistoryViewModel>> GetUserOrdersAsync(string userId)
         {
             var orders = await _dataContext.Orders
-                .Where(o => o.UserName == email)
+                .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.CreatedTime)
                 .ToListAsync();
 
@@ -587,7 +605,9 @@ namespace Eshop.Controllers
                 CreatedTime = o.CreatedTime,
                 Status = o.Status,
                 ShippingCost = o.ShippingCost,
-                TotalAmount = o.TotalAmount
+                TotalAmount = o.TotalAmount,
+                PaymentMethod = o.PaymentMethod,
+                CanCancel = _orderStateService.CanCustomerCancel((OrderStatus)o.Status)
             }).ToList();
         }
     }

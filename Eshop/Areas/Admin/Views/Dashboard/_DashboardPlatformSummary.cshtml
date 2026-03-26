@@ -1,0 +1,29 @@
+﻿@model Eshop.Models.ViewModels.AdminDashboardViewModel
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Chỉ số nền tảng</h4>
+            <p>Quy mô dữ liệu hệ thống</p>
+        </div>
+    </div>
+
+    <div class="dash-ops dash-ops--compact">
+        <div class="dash-ops__card">
+            <span>Tổng sản phẩm</span>
+            <strong>@Model.TotalProducts</strong>
+        </div>
+        <div class="dash-ops__card">
+            <span>Tổng danh mục</span>
+            <strong>@Model.TotalCategories</strong>
+        </div>
+        <div class="dash-ops__card">
+            <span>Tổng thương hiệu</span>
+            <strong>@Model.TotalPublishers</strong>
+        </div>
+        <div class="dash-ops__card">
+            <span>Tổng khách hàng</span>
+            <strong>@Model.TotalCustomers</strong>
+        </div>
+    </div>
+</div>

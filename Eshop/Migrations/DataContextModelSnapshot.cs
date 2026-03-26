@@ -230,6 +230,100 @@ namespace Eshop.Migrations
                     b.ToTable("Coupons");
                 });
 
+            modelBuilder.Entity("Eshop.Models.InventoryReceiptDetailModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("InventoryReceiptId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("UnitCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryReceiptId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("InventoryReceiptDetails");
+                });
+
+            modelBuilder.Entity("Eshop.Models.InventoryReceiptModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelledByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PublisherId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReceiptCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WarehouseId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PublisherId");
+
+                    b.HasIndex("ReceiptCode")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("InventoryReceipts");
+                });
+
             modelBuilder.Entity("Eshop.Models.InventoryReservationDetailModel", b =>
                 {
                     b.Property<int>("Id")
@@ -1760,6 +1854,44 @@ namespace Eshop.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Eshop.Models.InventoryReceiptDetailModel", b =>
+                {
+                    b.HasOne("Eshop.Models.InventoryReceiptModel", "InventoryReceipt")
+                        .WithMany("Details")
+                        .HasForeignKey("InventoryReceiptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.ProductModel", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InventoryReceipt");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Eshop.Models.InventoryReceiptModel", b =>
+                {
+                    b.HasOne("Eshop.Models.PublisherModel", "Publisher")
+                        .WithMany()
+                        .HasForeignKey("PublisherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.WarehouseModel", "Warehouse")
+                        .WithMany()
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Publisher");
+
+                    b.Navigation("Warehouse");
+                });
+
             modelBuilder.Entity("Eshop.Models.InventoryReservationDetailModel", b =>
                 {
                     b.HasOne("Eshop.Models.InventoryReservationModel", "InventoryReservation")
@@ -2079,6 +2211,11 @@ namespace Eshop.Migrations
                     b.Navigation("Children");
 
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Eshop.Models.InventoryReceiptModel", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReservationModel", b =>

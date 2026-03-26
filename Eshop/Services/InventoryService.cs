@@ -23,32 +23,90 @@ namespace Eshop.Services
                 .SumAsync(x => (int?)x.OnHandQuantity - x.ReservedQuantity) ?? 0;
         }
 
-        public async Task ReceiveAsync(AdminInventoryReceiveViewModel vm, string? userId)
+        public async Task<int> CreateReceiptAsync(AdminInventoryReceiveViewModel vm, string? userId)
         {
-            var warehouse = await RequireActiveWarehouseAsync(vm.WarehouseId);
+            await RequireActiveWarehouseAsync(vm.WarehouseId);
+
+            var publisher = await _context.Publishers.FirstOrDefaultAsync(x => x.Id == vm.PublisherId);
+            if (publisher == null)
+                throw new InvalidOperationException("Brand không tồn tại.");
+
             var items = NormalizeReceiveItems(vm.Items);
 
             if (!items.Any())
                 throw new InvalidOperationException("Bạn phải nhập ít nhất 1 sản phẩm hợp lệ.");
 
             var productIds = items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await _context.Products.Where(x => productIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id);
+            var products = await _context.Products
+                .Where(x => productIds.Contains(x.Id))
+                .Select(x => new { x.Id, x.Name, x.PublisherId })
+                .ToListAsync();
 
             if (products.Count != productIds.Count)
                 throw new InvalidOperationException("Có sản phẩm không tồn tại.");
 
-            var transaction = await CreateTransactionAsync(
-                InventoryTransactionType.Receive,
-                warehouse.Id,
-                vm.ReferenceCode,
-                vm.Note,
-                userId,
-                "NK");
+            var invalidProducts = products
+                .Where(x => x.PublisherId != vm.PublisherId)
+                .Select(x => x.Name)
+                .ToList();
+
+            if (invalidProducts.Any())
+                throw new InvalidOperationException($"Các sản phẩm không thuộc brand đã chọn: {string.Join(", ", invalidProducts)}.");
+
+            var receipt = new InventoryReceiptModel
+            {
+                ReceiptCode = $"PN{DateTime.Now:yyyyMMddHHmmssfff}",
+                WarehouseId = vm.WarehouseId,
+                PublisherId = vm.PublisherId,
+                ReferenceCode = string.IsNullOrWhiteSpace(vm.ReferenceCode) ? null : vm.ReferenceCode.Trim(),
+                Note = string.IsNullOrWhiteSpace(vm.Note) ? null : vm.Note.Trim(),
+                Status = InventoryReceiptStatus.Pending,
+                CreatedByUserId = userId
+            };
 
             foreach (var item in items)
             {
-                var stock = await GetOrCreateStockAsync(item.ProductId, warehouse.Id);
+                receipt.Details.Add(new InventoryReceiptDetailModel
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitCost = item.UnitCost
+                });
+            }
 
+            _context.InventoryReceipts.Add(receipt);
+            await _context.SaveChangesAsync();
+
+            return receipt.Id;
+        }
+
+        public async Task ApproveReceiptAsync(int receiptId, string? userId)
+        {
+            var receipt = await _context.InventoryReceipts
+                .Include(x => x.Publisher)
+                .Include(x => x.Details)
+                .FirstOrDefaultAsync(x => x.Id == receiptId);
+
+            if (receipt == null)
+                throw new InvalidOperationException("Không tìm thấy phiếu nhập.");
+
+            if (receipt.Status != InventoryReceiptStatus.Pending)
+                throw new InvalidOperationException("Chỉ có thể duyệt phiếu nhập đang chờ duyệt.");
+
+            var warehouse = await RequireActiveWarehouseAsync(receipt.WarehouseId);
+            var productIds = receipt.Details.Select(x => x.ProductId).Distinct().ToList();
+
+            var transaction = await CreateTransactionAsync(
+                InventoryTransactionType.Receive,
+                warehouse.Id,
+                receipt.ReceiptCode,
+                BuildReceiptTransactionNote(receipt),
+                userId,
+                "NK");
+
+            foreach (var item in receipt.Details)
+            {
+                var stock = await GetOrCreateStockAsync(item.ProductId, warehouse.Id);
                 var beforeQty = stock.OnHandQuantity;
                 stock.OnHandQuantity += item.Quantity;
 
@@ -63,8 +121,36 @@ namespace Eshop.Services
                 });
             }
 
+            receipt.Status = InventoryReceiptStatus.Approved;
+            receipt.ApprovedAt = DateTime.Now;
+            receipt.ApprovedByUserId = userId;
+
             await _context.SaveChangesAsync();
             await SyncProductsCacheAsync(productIds);
+        }
+
+        public async Task CancelReceiptAsync(int receiptId, string? userId, string? note = null)
+        {
+            var receipt = await _context.InventoryReceipts.FirstOrDefaultAsync(x => x.Id == receiptId);
+
+            if (receipt == null)
+                throw new InvalidOperationException("Không tìm thấy phiếu nhập.");
+
+            if (receipt.Status != InventoryReceiptStatus.Pending)
+                throw new InvalidOperationException("Chỉ có thể hủy phiếu nhập đang chờ duyệt.");
+
+            receipt.Status = InventoryReceiptStatus.Cancelled;
+            receipt.CancelledAt = DateTime.Now;
+            receipt.CancelledByUserId = userId;
+
+            if (!string.IsNullOrWhiteSpace(note))
+            {
+                receipt.Note = string.IsNullOrWhiteSpace(receipt.Note)
+                    ? note.Trim()
+                    : $"{receipt.Note} | {note.Trim()}";
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task AdjustAsync(AdminInventoryAdjustViewModel vm, string? userId)
@@ -600,6 +686,35 @@ namespace Eshop.Services
             await SyncProductsCacheAsync(affectedProductIds.ToList());
         }
 
+        public async Task RevertOrderInventoryAsync(string orderCode, string? reservationCode, string? userId, string? note = null)
+        {
+            if (!string.IsNullOrWhiteSpace(reservationCode))
+            {
+                var reservation = await _context.InventoryReservations
+                    .FirstOrDefaultAsync(x => x.ReservationCode == reservationCode);
+
+                if (reservation?.Status == InventoryReservationStatus.Active)
+                {
+                    await ReleaseReservationAsync(reservationCode, userId, note);
+                    return;
+                }
+            }
+
+            var hasIssueTransaction = await _context.InventoryTransactions
+                .AnyAsync(x => x.ReferenceCode == orderCode && x.TransactionType == InventoryTransactionType.Issue);
+
+            if (!hasIssueTransaction)
+                return;
+
+            var returnedAlready = await _context.InventoryTransactions
+                .AnyAsync(x => x.ReferenceCode == orderCode && x.TransactionType == InventoryTransactionType.Return);
+
+            if (returnedAlready)
+                return;
+
+            await ReturnOrderAsync(orderCode, userId, note);
+        }
+
         private async Task<WarehouseModel> EnsureDefaultWarehouseAsync()
         {
             var defaultWarehouse = await _context.Warehouses
@@ -676,6 +791,26 @@ namespace Eshop.Services
             await _context.SaveChangesAsync();
 
             return transaction;
+        }
+
+        private static string BuildReceiptTransactionNote(InventoryReceiptModel receipt)
+        {
+            var parts = new List<string>
+            {
+                $"Duyệt phiếu nhập {receipt.ReceiptCode}"
+            };
+
+            if (!string.IsNullOrWhiteSpace(receipt.ReferenceCode))
+                parts.Add($"Mã tham chiếu: {receipt.ReferenceCode.Trim()}");
+
+            if (receipt.Publisher != null && !string.IsNullOrWhiteSpace(receipt.Publisher.Name))
+                parts.Add($"Brand: {receipt.Publisher.Name.Trim()}");
+
+            if (!string.IsNullOrWhiteSpace(receipt.Note))
+                parts.Add(receipt.Note.Trim());
+
+            var note = string.Join(" | ", parts);
+            return note.Length <= 1000 ? note : note[..1000];
         }
 
         private List<AdminInventoryReceiveItemViewModel> NormalizeReceiveItems(List<AdminInventoryReceiveItemViewModel> items)

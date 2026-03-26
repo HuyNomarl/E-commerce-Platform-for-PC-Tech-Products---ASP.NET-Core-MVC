@@ -46,25 +46,6 @@
         </div>
     </div>
 
-    <!-- Alert -->
-    @if (TempData["success"] != null)
-    {
-        <div class="col-12">
-            <div class="alert alert-success custom-alert mb-0">
-                @TempData["success"]
-            </div>
-        </div>
-    }
-
-    @if (TempData["error"] != null)
-    {
-        <div class="col-12">
-            <div class="alert alert-danger custom-alert mb-0">
-                @TempData["error"]
-            </div>
-        </div>
-    }
-
     <!-- Toolbar -->
     <div class="col-12">
         <div class="card-soft toolbar-card">
@@ -259,7 +240,11 @@
                                                   asp-route-id="@item.Id"
                                                   method="post"
                                                   class="d-inline-block m-0"
-                                                  onsubmit="return confirm('Bạn có chắc muốn xóa linh kiện này không?');">
+                                                  data-swal-confirm
+                                                  data-swal-title="Xóa linh kiện?"
+                                                  data-swal-text="Linh kiện đã xóa sẽ không thể khôi phục."
+                                                  data-swal-confirm-text="Xóa"
+                                                  data-swal-cancel-text="Hủy">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit"
                                                         class="icon-btn icon-delete"

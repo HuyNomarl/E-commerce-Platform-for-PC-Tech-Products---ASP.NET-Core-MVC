@@ -404,7 +404,6 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\runtimes\win-x86\native\Microsoft.Data.S
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\scopedcss\Areas\Admin\Views\Shared\_Layout.cshtml.rz.scp.css
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\thdx8p3kin-{0}-6f3uguqcn9-6f3uguqcn9.gz
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\j3mjsqf6ha-{0}-6f3uguqcn9-6f3uguqcn9.gz
-E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\nhkxwv7c05-{0}-2qf1wd7m0u-2qf1wd7m0u.gz
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\ekff2qwy8t-{0}-qtq4xdn8qs-qtq4xdn8qs.gz
@@ -460,3 +459,7 @@ E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.Console.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.Debug.dll
 E:\Web C#\Eshop\Eshop\bin\Debug\net10.0\Serilog.Sinks.File.dll
 E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\i56qza1pqi-{0}-jkggr21kcn-jkggr21kcn.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\nhkxwv7c05-{0}-u3f6hprftc-u3f6hprftc.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\96y92wvb2c-{0}-7ypphy6dru-7ypphy6dru.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\9zsllncefi-{0}-tzs3xrriwk-tzs3xrriwk.gz
+E:\Web C#\Eshop\Eshop\obj\Debug\net10.0\compressed\rxgdcxm6od-{0}-su8id6rlsw-su8id6rlsw.gz

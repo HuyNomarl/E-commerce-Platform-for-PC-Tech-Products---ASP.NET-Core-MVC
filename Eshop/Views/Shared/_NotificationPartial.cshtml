@@ -1,13 +1,41 @@
-﻿@if(TempData["success"] != null)
-{
-    <div class="alert alert-success notification">
-        @TempData["success"]
-    </div>
-})
+@using System.Text.Json
+@{
+    var notifications = new List<object>();
+    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-@if(TempData["error"] != null)
+    void AddNotification(string type, object? rawMessage, string title)
+    {
+        var message = rawMessage?.ToString();
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        var key = $"{type}:{message}";
+        if (!seen.Add(key))
+        {
+            return;
+        }
+
+        notifications.Add(new
+        {
+            type,
+            title,
+            message
+        });
+    }
+
+    AddNotification("success", TempData["success"], "Thành công");
+    AddNotification("success", TempData["Success"], "Thành công");
+    AddNotification("success", TempData["SuccessMessage"], "Thành công");
+    AddNotification("error", TempData["error"], "Có lỗi xảy ra");
+    AddNotification("error", TempData["Error"], "Có lỗi xảy ra");
+    AddNotification("error", TempData["ErrorMessage"], "Có lỗi xảy ra");
+}
+
+@if (notifications.Any())
 {
-    <div class="alert alert-danger notification">
-        @TempData["error"]
-    </div>
-})
+    <script id="app-notifications" type="application/json">
+        @Html.Raw(JsonSerializer.Serialize(notifications))
+    </script>
+}

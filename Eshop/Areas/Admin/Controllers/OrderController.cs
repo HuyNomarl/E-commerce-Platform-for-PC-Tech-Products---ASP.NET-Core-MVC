@@ -1,4 +1,5 @@
 ﻿using Eshop.Models;
+using Eshop.Helpers;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
@@ -53,10 +54,13 @@ namespace Eshop.Areas.Admin.Controllers
                 .Where(od => od.OrderId == order.OrderId)
                 .ToListAsync();
 
+            var currentStatus = OrderDisplayHelper.ToOrderStatus(order.Status);
+
             var vm = new OrderDetailViewModel
             {
                 OrderCode = order.OrderCode,
                 UserName = order.UserName,
+                CreatedTime = order.CreatedTime,
                 FullName = order.FullName,
                 Phone = order.Phone,
                 Email = order.Email,
@@ -65,17 +69,18 @@ namespace Eshop.Areas.Admin.Controllers
                 District = order.District,
                 Ward = order.Ward,
                 Note = order.Note,
+                PaymentMethod = order.PaymentMethod,
+                SubTotal = order.SubTotal,
+                DiscountAmount = order.DiscountAmount,
+                ShippingCost = order.ShippingCost,
+                TotalAmount = order.TotalAmount,
                 Status = order.Status,
                 OrderDetails = details,
-                StatusList = new List<SelectListItem>
-                {
-                    new("Pending", "1"),
-                    new("Processing", "2"),
-                    new("Shipped", "3"),
-                    new("Delivered", "4"),
-                    new("Completed", "5"),
-                    new("Cancelled", "6"),
-                }
+                StatusList = _orderStateService.GetAvailableStatuses(currentStatus)
+                    .Select(statusValue => new SelectListItem(
+                        OrderDisplayHelper.GetStatusLabel(statusValue),
+                        ((int)statusValue).ToString()))
+                    .ToList()
             };
 
             return View(vm);
@@ -111,7 +116,11 @@ namespace Eshop.Areas.Admin.Controllers
 
                 if (newStatus == OrderStatus.Cancelled && oldStatus != OrderStatus.Cancelled)
                 {
-                    await _inventoryService.ReturnOrderAsync(orderCode, User.Identity?.Name, "Admin hủy đơn.");
+                    await _inventoryService.RevertOrderInventoryAsync(
+                        orderCode,
+                        order.ReservationCode,
+                        User.Identity?.Name,
+                        "Admin hủy đơn.");
                 }
 
 
@@ -120,7 +129,12 @@ namespace Eshop.Areas.Admin.Controllers
                 await _dataContext.SaveChangesAsync();
                 await tx.CommitAsync();
 
-                return Json(new { success = true });
+                return Json(new
+                {
+                    success = true,
+                    statusLabel = OrderDisplayHelper.GetStatusLabel(newStatus),
+                    statusBadgeClass = OrderDisplayHelper.GetBootstrapBadgeClass(newStatus)
+                });
             }
             catch (Exception ex)
             {

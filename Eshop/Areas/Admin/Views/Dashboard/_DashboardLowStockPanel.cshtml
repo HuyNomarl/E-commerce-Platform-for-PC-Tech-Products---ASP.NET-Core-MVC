@@ -1,0 +1,34 @@
+﻿@model List<Eshop.Models.ViewModels.DashboardStockAlertViewModel>
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Cảnh báo tồn kho thấp</h4>
+            <p>Sản phẩm cần ưu tiên nhập thêm</p>
+        </div>
+    </div>
+
+    <div class="dash-alerts custom-scroll">
+        @if (Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="dash-alert">
+                    <div>
+                        <div class="dash-alert__title">@item.ProductName</div>
+                        <div class="dash-alert__sub">@item.WarehouseSummary</div>
+                    </div>
+
+                    <div class="dash-alert__right">
+                        <span class="dash-pill dash-pill--danger">@item.AvailableQuantity khả dụng</span>
+                        <span class="dash-pill">Giữ chỗ: @item.ReservedQuantity</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="dash-empty">Không có sản phẩm nào đang ở mức tồn thấp.</div>
+        }
+    </div>
+</div>

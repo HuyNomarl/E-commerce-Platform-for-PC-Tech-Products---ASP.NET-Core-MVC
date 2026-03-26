@@ -31,7 +31,7 @@ namespace Eshop.Services.Momo
                     RequestId = model.OrderId,
                     ResultCode = 0,
                     Message = "Mock Momo thành công",
-                    PayUrl = $"/Payment/PaymentCallback?orderId={model.OrderId}&amount={model.Amount}&orderInfo={Uri.EscapeDataString(model.OrderInfomation)}"
+                    PayUrl = $"/Payment/PaymentCallback?orderId={model.OrderId}&amount={model.Amount}&orderInfo={Uri.EscapeDataString(model.OrderInfomation)}&resultCode=0&message={Uri.EscapeDataString("Success")}"
                 };
             }
 
@@ -97,7 +97,9 @@ namespace Eshop.Services.Momo
             {
                 Amount = collection["amount"].ToString(),
                 OrderId = collection["orderId"].ToString(),
-                OrderInfo = collection["orderInfo"].ToString()
+                OrderInfo = collection["orderInfo"].ToString(),
+                ResultCode = collection["resultCode"].ToString(),
+                Message = collection["message"].ToString()
             };
         }
 

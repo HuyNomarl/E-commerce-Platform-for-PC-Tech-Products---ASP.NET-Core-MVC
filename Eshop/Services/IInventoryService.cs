@@ -7,13 +7,17 @@ namespace Eshop.Services
     {
         Task<int> GetAvailableStockAsync(int productId);
 
-        Task ReceiveAsync(AdminInventoryReceiveViewModel vm, string? userId);
+        Task<int> CreateReceiptAsync(AdminInventoryReceiveViewModel vm, string? userId);
+        Task ApproveReceiptAsync(int receiptId, string? userId);
+        Task CancelReceiptAsync(int receiptId, string? userId, string? note = null);
+
         Task AdjustAsync(AdminInventoryAdjustViewModel vm, string? userId);
         Task TransferAsync(AdminInventoryTransferViewModel vm, string? userId);
         Task BootstrapLegacyStockAsync(string? userId);
 
         Task IssueOrderAsync(string orderCode, Dictionary<int, int> requestedQtyByProduct, string? userId);
         Task ReturnOrderAsync(string orderCode, string? userId, string? note = null);
+        Task RevertOrderInventoryAsync(string orderCode, string? reservationCode, string? userId, string? note = null);
 
         Task CleanupExpiredReservationsAsync(string? userId = null);
         Task<string> ReserveCartAsync(HttpContext httpContext, ClaimsPrincipal user, string paymentMethod, int expireMinutes = 20);

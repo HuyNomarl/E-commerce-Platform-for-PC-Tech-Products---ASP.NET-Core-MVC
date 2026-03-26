@@ -1,8 +1,8 @@
-﻿@model Eshop.Models.ViewModels.OrderDetailViewModel
+@model Eshop.Models.ViewModels.OrderDetailViewModel
 
 @{
-    ViewData["title"] = "Order Detail";
-    decimal subtotal = 0;
+    ViewData["title"] = "Chi tiết đơn hàng";
+    var canChangeStatus = Model.StatusList.Count > 1;
 }
 
 <div class="row g-3 order-detail-page">
@@ -10,7 +10,7 @@
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
                 <h4 class="mb-1">Chi tiết đơn hàng</h4>
-                <div class="small page-subtitle">Xem sản phẩm trong đơn và cập nhật trạng thái xử lý</div>
+                <div class="small page-subtitle">Theo dõi khách hàng, thanh toán, tổng tiền và quy trình xử lý đơn</div>
             </div>
 
             <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-outline-secondary">
@@ -25,6 +25,29 @@
                 <div class="info-item">
                     <div class="info-label">Mã đơn</div>
                     <div class="info-value code-pill">@Model.OrderCode</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Ngày đặt</div>
+                    <div class="info-value">@Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Trạng thái hiện tại</div>
+                    <div class="info-value">
+                        <span class="status-pill @OrderDisplayHelper.GetSoftBadgeClass(Model.Status)">
+                            @OrderDisplayHelper.GetStatusLabel(Model.Status)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Phương thức thanh toán</div>
+                    <div class="info-value">
+                        <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(Model.PaymentMethod)">
+                            @OrderDisplayHelper.GetPaymentMethodLabel(Model.PaymentMethod)
+                        </span>
+                    </div>
                 </div>
 
                 <div class="info-item">
@@ -52,21 +75,6 @@
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Address) ? "-" : Model.Address)</div>
                 </div>
 
-                <div class="info-item">
-                    <div class="info-label">Tỉnh/Thành</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Province) ? "-" : Model.Province)</div>
-                </div>
-
-                <div class="info-item">
-                    <div class="info-label">Quận/Huyện</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.District) ? "-" : Model.District)</div>
-                </div>
-
-                <div class="info-item">
-                    <div class="info-label">Phường/Xã</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Ward) ? "-" : Model.Ward)</div>
-                </div>
-
                 <div class="info-item full-row">
                     <div class="info-label">Ghi chú</div>
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Không có ghi chú" : Model.Note)</div>
@@ -80,7 +88,7 @@
             <div class="table-toolbar">
                 <div>
                     <div class="section-title mb-0">Sản phẩm trong đơn</div>
-                    <div class="section-subtitle">Theo dõi giá, số lượng và tổng tiền của từng dòng sản phẩm</div>
+                    <div class="section-subtitle">Kiểm tra snapshot sản phẩm, số lượng và các khoản thanh toán của đơn hàng</div>
                 </div>
             </div>
 
@@ -101,22 +109,30 @@
                         <tbody>
                             @if (Model.OrderDetails.Any())
                             {
-                                subtotal = Model.OrderDetails.Sum(x => x.Price * x.Quantity);
-
                                 foreach (var item in Model.OrderDetails)
                                 {
                                     <tr>
                                         <td>
-                                            <div class="cell-main">@item.Product?.Name</div>
+                                            <div class="cell-main">@item.ProductName</div>
+                                            @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
+                                            {
+                                                <div class="cell-sub">
+                                                    @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
+                                                    @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
+                                                    {
+                                                        <span> - @item.ComponentType</span>
+                                                    }
+                                                </div>
+                                            }
                                         </td>
                                         <td class="text-right">
-                                            <span class="money-text">@item.Price.ToString("N0")</span>
+                                            <span class="money-text">@item.Price.ToString("N0") đ</span>
                                         </td>
                                         <td class="text-center">
                                             <span class="qty-pill">@item.Quantity</span>
                                         </td>
                                         <td class="text-right">
-                                            <span class="money-text">@((item.Price * item.Quantity).ToString("N0"))</span>
+                                            <span class="money-text">@((item.Price * item.Quantity).ToString("N0")) đ</span>
                                         </td>
                                     </tr>
                                 }
@@ -136,19 +152,41 @@
 
                         <tfoot>
                             <tr>
-                                <th colspan="3" class="text-right">Tổng tiền:</th>
-                                <th class="text-right">
-                                    <span class="total-text">@subtotal.ToString("N0")</span>
-                                </th>
+                                <th colspan="3" class="text-right">Tạm tính:</th>
+                                <th class="text-right"><span class="total-text">@Model.SubTotal.ToString("N0") đ</span></th>
                             </tr>
                             <tr>
-                                <th colspan="3" class="text-right">Trạng thái:</th>
+                                <th colspan="3" class="text-right">Giảm giá:</th>
+                                <th class="text-right">-@Model.DiscountAmount.ToString("N0") đ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-right">Phí vận chuyển:</th>
+                                <th class="text-right">@Model.ShippingCost.ToString("N0") đ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-right">Tổng thanh toán:</th>
+                                <th class="text-right"><span class="total-text text-danger">@Model.TotalAmount.ToString("N0") đ</span></th>
+                            </tr>
+                            <tr>
+                                <th colspan="3" class="text-right">Cập nhật trạng thái:</th>
                                 <th>
-                                    <select asp-for="Status"
-                                            asp-items="Model.StatusList"
-                                            id="orderStatus"
-                                            class="form-control input-soft status-select">
-                                    </select>
+                                    @if (canChangeStatus)
+                                    {
+                                        <select asp-for="Status"
+                                                asp-items="Model.StatusList"
+                                                id="orderStatus"
+                                                class="form-control input-soft status-select">
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select asp-for="Status"
+                                                asp-items="Model.StatusList"
+                                                id="orderStatus"
+                                                class="form-control input-soft status-select"
+                                                disabled>
+                                        </select>
+                                    }
                                 </th>
                             </tr>
                         </tfoot>
@@ -216,6 +254,17 @@
         font-weight: 700;
     }
 
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
     .table-card {
         overflow: hidden;
     }
@@ -246,29 +295,35 @@
         margin-bottom: 0;
     }
 
-        .detail-table thead th {
-            background: #f8fafc;
-            color: #374151;
-            font-weight: 700;
-            border-bottom: 1px solid #e5e7eb !important;
-            vertical-align: middle !important;
-            padding: 14px 12px !important;
-        }
+    .detail-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 700;
+        border-bottom: 1px solid #e5e7eb !important;
+        vertical-align: middle !important;
+        padding: 14px 12px !important;
+    }
 
-        .detail-table tbody td,
-        .detail-table tfoot th {
-            vertical-align: middle !important;
-            padding: 14px 12px !important;
-            border-top: 1px solid #eef2f7 !important;
-        }
+    .detail-table tbody td,
+    .detail-table tfoot th {
+        vertical-align: middle !important;
+        padding: 14px 12px !important;
+        border-top: 1px solid #eef2f7 !important;
+    }
 
-        .detail-table tbody tr:hover {
-            background: #fafafa;
-        }
+    .detail-table tbody tr:hover {
+        background: #fafafa;
+    }
 
     .cell-main {
         font-weight: 700;
         color: #111827;
+    }
+
+    .cell-sub {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
     }
 
     .money-text {
@@ -303,13 +358,13 @@
         background: #fff;
     }
 
-        .input-soft:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
-        }
+    .input-soft:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+    }
 
     .status-select {
-        min-width: 180px;
+        min-width: 220px;
     }
 
     .btn-outline-secondary {
@@ -331,6 +386,46 @@
         display: block;
     }
 
+    .payment-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .payment-badge-cod {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+    }
+
+    .payment-badge-vnpay {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .payment-badge-momo {
+        background: #fdf2f8;
+        color: #be185d;
+        border-color: #fbcfe8;
+    }
+
+    .payment-badge-bank {
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+    }
+
+    .payment-badge-default {
+        background: #f3f4f6;
+        color: #374151;
+        border-color: #d1d5db;
+    }
+
     @@media (max-width: 767px) {
         .info-card {
             padding: 16px 18px;
@@ -348,10 +443,25 @@
 
 @section Scripts {
     <script>
-        $(document).on('change', '#orderStatus', function () {
+        $(document).on('change', '#orderStatus', async function () {
             const orderCode = $('#orderCode').val();
             const status = $(this).val();
+            const selectedText = $('#orderStatus option:selected').text();
             const token = $('input[name="__RequestVerificationToken"]').val();
+            const previousValue = '@Model.Status';
+            const previousText = '@OrderDisplayHelper.GetStatusLabel(Model.Status)';
+
+            const confirmResult = await showAppConfirm({
+                title: 'Cập nhật trạng thái đơn hàng?',
+                text: `Đơn sẽ chuyển từ "${previousText}" sang "${selectedText}".`,
+                confirmButtonText: 'Cập nhật',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (!confirmResult.isConfirmed) {
+                $(this).val(previousValue);
+                return;
+            }
 
             $.ajax({
                 url: '@Url.Action("UpdateOrder", "Order", new { area = "Admin" })',
@@ -361,15 +471,19 @@
                     orderCode: orderCode,
                     status: status
                 },
-                success: function (res) {
+                success: async function (res) {
                     if (res.success) {
+                        await showAppAlert(`Đã cập nhật trạng thái sang "${res.statusLabel}".`, 'success');
                         location.reload();
                     } else {
-                        alert(res.message);
+                        await showAppAlert(res.message || 'Không thể cập nhật trạng thái.', 'error');
+                        $('#orderStatus').val(previousValue);
                     }
                 },
-                error: function () {
-                    alert("Update failed!");
+                error: async function (xhr) {
+                    const message = xhr.responseJSON?.message || 'Cập nhật trạng thái thất bại.';
+                    await showAppAlert(message, 'error');
+                    $('#orderStatus').val(previousValue);
                 }
             });
         });

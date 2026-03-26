@@ -419,12 +419,12 @@
 
                                         <section class="admin-content">
                                             <div class="card-soft content-card">
-                                                <div class="page-head">
+                                                @* <div class="page-head">
                                                     <div>
                                                         <h3>@(ViewData["Title"] ?? "Dashboard")</h3>
                                                         <div class="small">Khu vực quản trị và thao tác dữ liệu hệ thống</div>
                                                     </div>
-                                                </div>
+                                                </div> *@
 
                                                 @Html.Partial("_NotificationPartial")
 
@@ -446,6 +446,8 @@
                             </footer>
                         </div>
 
+
+
                         <script src="~/js/jquery.js"></script>
                         <script src="~/js/bootstrap.min.js"></script>
                         <script src="~/js/jquery.scrollUp.min.js"></script>
@@ -465,47 +467,23 @@
 
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
                         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
+                        <script src="~/js/swal-helpers.js"></script>
 
                         <script>
                             $(function () {
-                                const successMessage = @Html.Raw(JsonSerializer.Serialize(TempData["SuccessMessage"]));
-                                if (successMessage) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Success',
-                                        text: successMessage,
-                                        timer: 2500,
-                                        showConfirmButton: false
-                                    });
-                                }
-
-                                const errorMessage = @Html.Raw(JsonSerializer.Serialize(TempData["ErrorMessage"]));
-                                if (errorMessage) {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Error',
-                                        text: errorMessage,
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                }
-
                                 $(document).on('submit', 'form.js-confirm-save', function (e) {
                                     e.preventDefault();
 
                                     const form = this;
 
-                                    Swal.fire({
-                                        title: "Do you want to save the changes?",
-                                        showDenyButton: true,
-                                        showCancelButton: true,
-                                        confirmButtonText: "Save",
-                                        denyButtonText: "Don't save"
+                                    showAppConfirm({
+                                        title: "Lưu thay đổi?",
+                                        text: "Bạn có muốn lưu nội dung vừa chỉnh sửa không?",
+                                        confirmButtonText: "Lưu",
+                                        cancelButtonText: "Hủy"
                                     }).then((result) => {
                                         if (result.isConfirmed) {
                                             form.submit();
-                                        } else if (result.isDenied) {
-                                            Swal.fire("Changes are not saved", "", "info");
                                         }
                                     });
                                 });

@@ -42,6 +42,8 @@ namespace Eshop.Repository
         public DbSet<InventoryTransactionDetailModel> InventoryTransactionDetails { get; set; }
         public DbSet<InventoryReservationModel> InventoryReservations { get; set; }
         public DbSet<InventoryReservationDetailModel> InventoryReservationDetails { get; set; }
+        public DbSet<InventoryReceiptModel> InventoryReceipts { get; set; }
+        public DbSet<InventoryReceiptDetailModel> InventoryReceiptDetails { get; set; }
 
 
 
@@ -229,6 +231,37 @@ namespace Eshop.Repository
 
             builder.Entity<InventoryTransactionModel>()
                 .HasIndex(x => x.ReferenceCode);
+
+            builder.Entity<InventoryReceiptModel>()
+                .HasIndex(x => x.ReceiptCode)
+                .IsUnique();
+
+            builder.Entity<InventoryReceiptModel>()
+                .HasIndex(x => x.Status);
+
+            builder.Entity<InventoryReceiptModel>()
+                .HasOne(x => x.Warehouse)
+                .WithMany()
+                .HasForeignKey(x => x.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<InventoryReceiptModel>()
+                .HasOne(x => x.Publisher)
+                .WithMany()
+                .HasForeignKey(x => x.PublisherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<InventoryReceiptDetailModel>()
+                .HasOne(x => x.InventoryReceipt)
+                .WithMany(x => x.Details)
+                .HasForeignKey(x => x.InventoryReceiptId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<InventoryReceiptDetailModel>()
+                .HasOne(x => x.Product)
+                .WithMany()
+                .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<InventoryReservationModel>()
                 .HasIndex(x => x.ReservationCode)

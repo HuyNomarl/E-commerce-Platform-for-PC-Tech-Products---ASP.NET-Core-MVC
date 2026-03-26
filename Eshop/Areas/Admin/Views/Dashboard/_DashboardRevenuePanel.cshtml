@@ -1,0 +1,41 @@
+﻿@model List<Eshop.Models.ViewModels.DashboardTrendPointViewModel>
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Xu hướng doanh thu</h4>
+            <p>Ngày mới nhất hiển thị trước</p>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="dash-chart">
+            <canvas id="revenueTrendChart"></canvas>
+        </div>
+
+        <div class="dash-list custom-scroll">
+            @foreach (var item in Model)
+            {
+                <div class="dash-trend">
+                    <div class="dash-trend__date">@item.Label</div>
+
+                    <div class="dash-trend__main">
+                        <div class="dash-trend__top">
+                            <span class="dash-trend__money">@item.Revenue.ToString("N0") đ</span>
+                            <span class="dash-trend__orders">@item.OrderCount đơn</span>
+                        </div>
+
+                        <div class="dash-progress">
+                            <div class="dash-progress__fill dash-progress__fill--blue" style="width:@item.RevenuePercentOfMax%;"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="dash-empty">Chưa có dữ liệu xu hướng doanh thu.</div>
+    }
+</div>

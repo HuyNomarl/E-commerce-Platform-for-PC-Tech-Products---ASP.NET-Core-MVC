@@ -49,10 +49,12 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
+            string? reservationCode = null;
+
             try
             {
                 checkoutModel.PaymentMethod = "VNPAY";
-                var reservationCode = await _inventoryService.ReserveCartAsync(HttpContext, User, "VNPAY");
+                reservationCode = await _inventoryService.ReserveCartAsync(HttpContext, User, "VNPAY");
 
                 HttpContext.Session.SetJson("CheckoutInfo", checkoutModel);
                 HttpContext.Session.SetString("ActiveReservationCode", reservationCode);
@@ -62,6 +64,13 @@ namespace Eshop.Controllers
             }
             catch (Exception ex)
             {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                {
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Tạo URL VNPAY thất bại.");
+                    HttpContext.Session.Remove("CheckoutInfo");
+                    HttpContext.Session.Remove("ActiveReservationCode");
+                }
+
                 TempData["error"] = ex.Message;
                 return RedirectToAction("Index", "Cart");
             }
@@ -129,24 +138,128 @@ namespace Eshop.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> CreatePaymentMomo(OrderInfoModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePaymentMomo(OrderInfoModel model, CheckoutInputViewModel checkoutModel)
         {
-            var response = await _momoService.CreatePaymentAsync(model);
-
-            if (response == null || string.IsNullOrWhiteSpace(response.PayUrl))
+            if (model == null || model.Amount <= 0)
             {
-                TempData["error"] = $"MoMo không trả về payUrl. Message: {response?.Message}, ResultCode: {response?.ResultCode}";
+                TempData["error"] = "Dữ liệu thanh toán MoMo không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
-            return Redirect(response.PayUrl);
+            if (string.IsNullOrWhiteSpace(checkoutModel.FullName) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Phone) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Email) ||
+                string.IsNullOrWhiteSpace(checkoutModel.Address) ||
+                string.IsNullOrWhiteSpace(checkoutModel.tinh) ||
+                string.IsNullOrWhiteSpace(checkoutModel.phuong))
+            {
+                TempData["error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            string? reservationCode = null;
+
+            try
+            {
+                checkoutModel.PaymentMethod = "MOMO";
+                model.FullName = checkoutModel.FullName;
+                model.OrderInfomation = string.IsNullOrWhiteSpace(model.OrderInfomation)
+                    ? $"Thanh toán đơn hàng qua MOMO cho {checkoutModel.FullName}"
+                    : model.OrderInfomation;
+
+                reservationCode = await _inventoryService.ReserveCartAsync(HttpContext, User, "MOMO");
+
+                HttpContext.Session.SetJson("CheckoutInfo", checkoutModel);
+                HttpContext.Session.SetString("ActiveReservationCode", reservationCode);
+
+                var response = await _momoService.CreatePaymentAsync(model);
+
+                if (response == null || string.IsNullOrWhiteSpace(response.PayUrl))
+                {
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "MoMo không trả về payUrl.");
+                    HttpContext.Session.Remove("CheckoutInfo");
+                    HttpContext.Session.Remove("ActiveReservationCode");
+                    TempData["error"] = $"MoMo không trả về payUrl. Message: {response?.Message}, ResultCode: {response?.ResultCode}";
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                return Redirect(response.PayUrl);
+            }
+            catch (Exception ex)
+            {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                {
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Tạo URL MOMO thất bại.");
+                    HttpContext.Session.Remove("CheckoutInfo");
+                    HttpContext.Session.Remove("ActiveReservationCode");
+                }
+
+                TempData["error"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
+            }
         }
 
         [HttpGet]
-        public IActionResult PaymentCallback()
+        public async Task<IActionResult> PaymentCallback()
         {
             var response = _momoService.PaymentExecuteAsync(HttpContext.Request.Query);
-            return View(response);
+            var reservationCode = HttpContext.Session.GetString("ActiveReservationCode");
+
+            if (response == null)
+            {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "MOMO không trả về phản hồi.");
+
+                TempData["error"] = "Không nhận được phản hồi từ MoMo.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            if (!response.Success)
+            {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                    await _inventoryService.ReleaseReservationAsync(
+                        reservationCode,
+                        User.Identity?.Name,
+                        $"MOMO fail: {response.ResultCode} {response.Message}");
+
+                HttpContext.Session.Remove("CheckoutInfo");
+                HttpContext.Session.Remove("ActiveReservationCode");
+
+                TempData["error"] = $"Thanh toán MoMo thất bại. Mã lỗi: {response.ResultCode}";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            var checkoutInfo = HttpContext.Session.GetJson<CheckoutInputViewModel>("CheckoutInfo");
+            if (checkoutInfo == null || string.IsNullOrWhiteSpace(reservationCode))
+            {
+                TempData["error"] = "Không tìm thấy thông tin checkout hoặc reservation.";
+                return RedirectToAction("Index", "Cart");
+            }
+
+            try
+            {
+                var orderCode = await _orderService.CreateOrderFromReservationAsync(HttpContext, User, checkoutInfo, reservationCode);
+
+                if (string.IsNullOrEmpty(orderCode))
+                {
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Tạo đơn sau MOMO thất bại.");
+                    TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                HttpContext.Session.Remove("CheckoutInfo");
+                HttpContext.Session.Remove("ActiveReservationCode");
+
+                TempData["success"] = $"Thanh toán MOMO thành công. Mã đơn: {orderCode}";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                await _inventoryService.ReleaseReservationAsync(reservationCode, User.Identity?.Name, "Rollback sau lỗi tạo đơn MOMO.");
+                TempData["error"] = ex.Message;
+                return RedirectToAction("Index", "Cart");
+            }
         }
 
         [HttpPost]

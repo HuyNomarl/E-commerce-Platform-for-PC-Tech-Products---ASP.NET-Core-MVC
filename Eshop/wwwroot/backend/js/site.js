@@ -1,17 +1,9 @@
-﻿$(function () {
-
-    if ($("a.confirmDeletion").length) {
-        $("a.confirmDeletion").click(() => {
-            if (!confirm("Confirm deletion")) return false;
-        });
-    }
-
+$(function () {
     if ($("div.alert.notification").length) {
         setTimeout(() => {
             $("div.alert.notification").fadeOut();
         }, 2000);
     }
-
 });
 
 function readURL(input) {

@@ -1,0 +1,38 @@
+﻿@model List<Eshop.Models.ViewModels.DashboardBreakdownItemViewModel>
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Phương thức thanh toán</h4>
+            <p>Tỷ trọng giao dịch theo kênh thanh toán</p>
+        </div>
+    </div>
+
+    <div class="dash-breakdowns custom-scroll">
+        @if (Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="dash-breakdown">
+                    <div class="dash-breakdown__head">
+                        <span class="dash-chip @item.AccentClass">@item.Label</span>
+                        <strong>@item.Count đơn</strong>
+                    </div>
+
+                    <div class="dash-progress">
+                        <div class="dash-progress__fill dash-progress__fill--green" style="width:@item.Percent%;"></div>
+                    </div>
+
+                    <div class="dash-breakdown__meta">
+                        <span>@item.Description</span>
+                        <span>@item.Amount.ToString("N0") đ</span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="dash-empty">Chưa có dữ liệu thanh toán.</div>
+        }
+    </div>
+</div>

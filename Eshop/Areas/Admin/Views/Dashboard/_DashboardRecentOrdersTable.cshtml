@@ -1,0 +1,56 @@
+﻿@model List<Eshop.Models.ViewModels.DashboardRecentOrderViewModel>
+@using Eshop.Helpers
+
+<div class="dash-card">
+    <div class="dash-card__head">
+        <div>
+            <h4>Đơn hàng gần đây</h4>
+            <p>Danh sách đơn mới nhất để theo dõi nhanh</p>
+        </div>
+    </div>
+
+    <div class="dash-table-wrap dash-table-wrap--lg custom-scroll">
+        <table class="table dash-table">
+            <thead>
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Trạng thái</th>
+                    <th>Thanh toán</th>
+                    <th>Tổng tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-semibold">@item.OrderCode</td>
+                            <td>@item.CustomerName</td>
+                            <td>@item.CreatedTime.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge @OrderDisplayHelper.GetBootstrapBadgeClass(item.Status)">
+                                    @OrderDisplayHelper.GetStatusLabel(item.Status)
+                                </span>
+                            </td>
+                            <td>
+                                <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(item.PaymentMethodCode)">
+                                    @item.PaymentMethod
+                                </span>
+                            </td>
+                            <td class="text-strong text-danger">@item.TotalAmount.ToString("N0") đ</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Chưa có đơn hàng nào.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -176,22 +176,34 @@ namespace Eshop.Controllers
                 newCartItem.OptionPrice += value.AdditionalPrice;
             }
 
-            var existingItem = cart.FirstOrDefault(x =>
-                x.ProductId == newCartItem.ProductId &&
-                IsSameOptions(x.SelectedOptions, newCartItem.SelectedOptions));
+            var existingItem = cart.FirstOrDefault(x => IsSameCartLine(x, newCartItem));
+            var quantityInOtherLines = cart
+                .Where(x => x.ProductId == newCartItem.ProductId && !IsSameCartLine(x, newCartItem))
+                .Sum(x => x.Quantity);
 
             if (existingItem == null)
             {
+                if (quantityInOtherLines + newCartItem.Quantity > availableStock)
+                {
+                    TempData["Error"] = $"Tổng số lượng sản phẩm này trong giỏ đã chạm mức tồn kho ({availableStock}).";
+                    return RedirectToAction("Details", "Product", new { id = product.Id });
+                }
+
                 cart.Add(newCartItem);
                 TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng.";
             }
             else
             {
                 int newQuantity = existingItem.Quantity + newCartItem.Quantity;
+                int maxAllowedForCurrentLine = Math.Max(0, availableStock - quantityInOtherLines);
 
-                if (newQuantity > availableStock)
+                if (newQuantity > maxAllowedForCurrentLine)
                 {
-                    existingItem.Quantity = availableStock;
+                    existingItem.Quantity = maxAllowedForCurrentLine;
+                    if (existingItem.Quantity <= 0)
+                    {
+                        cart.Remove(existingItem);
+                    }
                     TempData["Error"] = "Không thể thêm quá số lượng tồn kho.";
                 }
                 else
@@ -206,13 +218,13 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Decrease(int id)
+        public async Task<IActionResult> Decrease(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: giảm số lượng.");
 
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
+            CartItemModel? cartItem = FindCartItem(cart, lineKey);
 
             if (cartItem == null)
             {
@@ -242,21 +254,12 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Increase(int id)
+        public async Task<IActionResult> Increase(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: tăng số lượng.");
 
-            ProductModel? product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == id);
-            if (product == null)
-            {
-                TempData["Error"] = "Sản phẩm không tồn tại.";
-                return RedirectToAction("Index");
-            }
-
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-
-            CartItemModel? cartItem = cart.FirstOrDefault(x => x.ProductId == id);
-
+            CartItemModel? cartItem = FindCartItem(cart, lineKey);
 
             if (cartItem == null)
             {
@@ -264,9 +267,19 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
-            var availableStock = await GetAvailableStockAsync(id);
+            ProductModel? product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == cartItem.ProductId);
+            if (product == null)
+            {
+                TempData["Error"] = "Sản phẩm không tồn tại.";
+                return RedirectToAction("Index");
+            }
 
-            if (cartItem.Quantity < availableStock)
+            var availableStock = await GetAvailableStockAsync(product.Id);
+            var quantityInOtherLines = cart
+                .Where(x => x.ProductId == cartItem.ProductId && x.LineKey != cartItem.LineKey)
+                .Sum(x => x.Quantity);
+
+            if (quantityInOtherLines + cartItem.Quantity < availableStock)
             {
                 cartItem.Quantity += 1;
                 TempData["Success"] = "Cập nhật giỏ hàng thành công.";
@@ -280,13 +293,17 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Remove(int id)
+        public async Task<IActionResult> Remove(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa sản phẩm.");
 
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
 
-            cart.RemoveAll(x => x.ProductId == id);
+            var cartItem = FindCartItem(cart, lineKey);
+            if (cartItem != null)
+            {
+                cart.Remove(cartItem);
+            }
 
             if (cart.Count == 0)
             {
@@ -462,7 +479,7 @@ namespace Eshop.Controllers
             return discountAmount;
         }
 
-        private bool IsSameOptions(List<CartItemOptionModel> oldOptions, List<CartItemOptionModel> newOptions)
+        private static bool IsSameOptions(List<CartItemOptionModel> oldOptions, List<CartItemOptionModel> newOptions)
         {
             if (oldOptions.Count != newOptions.Count) return false;
 
@@ -477,6 +494,23 @@ namespace Eshop.Controllers
                 .Select(x => $"{x.OptionGroupId}-{x.OptionValueId}");
 
             return oldList.SequenceEqual(newList);
+        }
+
+        private static bool IsSameCartLine(CartItemModel left, CartItemModel right)
+        {
+            return left.ProductId == right.ProductId
+                && string.Equals(left.BuildGroupKey, right.BuildGroupKey, StringComparison.Ordinal)
+                && left.PcBuildId == right.PcBuildId
+                && string.Equals(left.ComponentType, right.ComponentType, StringComparison.OrdinalIgnoreCase)
+                && IsSameOptions(left.SelectedOptions, right.SelectedOptions);
+        }
+
+        private static CartItemModel? FindCartItem(List<CartItemModel> cart, string? lineKey)
+        {
+            if (string.IsNullOrWhiteSpace(lineKey))
+                return null;
+
+            return cart.FirstOrDefault(x => x.LineKey == lineKey);
         }
 
         private async Task<int> GetAvailableStockAsync(int productId)

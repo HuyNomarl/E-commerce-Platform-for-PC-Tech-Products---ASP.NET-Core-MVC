@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Eshop.Models.ViewModels.OrderHistoryViewModel>
+@model IEnumerable<Eshop.Models.ViewModels.OrderHistoryViewModel>
 
 @{
     ViewData["Title"] = "Lịch sử đơn hàng";
@@ -8,7 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="mb-1">Lịch sử đơn hàng</h3>
-            <p class="text-muted mb-0">Danh sách các đơn hàng bạn đã đặt</p>
+            <p class="text-muted mb-0">Theo dõi trạng thái, thanh toán và tổng tiền của các đơn đã đặt</p>
         </div>
     </div>
 
@@ -20,6 +20,7 @@
                         <th>Mã đơn hàng</th>
                         <th>Ngày đặt</th>
                         <th>Trạng thái</th>
+                        <th>Thanh toán</th>
                         <th>Phí vận chuyển</th>
                         <th>Tổng tiền</th>
                         <th style="width: 220px;">Thao tác</th>
@@ -34,30 +35,14 @@
                                 <td class="fw-semibold">@item.OrderCode</td>
                                 <td>@item.CreatedTime.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>
-                                    @switch (item.Status)
-                                    {
-                                        case 1:
-                                            <span class="badge bg-warning text-dark">Chờ xác nhận</span>
-                                            break;
-                                        case 2:
-                                            <span class="badge bg-info text-dark">Đang xử lý</span>
-                                            break;
-                                        case 3:
-                                            <span class="badge bg-primary">Đang giao</span>
-                                            break;
-                                        case 4:
-                                            <span class="badge bg-success">Đã giao</span>
-                                            break;
-                                        case 5:
-                                            <span class="badge bg-success">Hoàn thành</span>
-                                            break;
-                                        case 6:
-                                            <span class="badge bg-danger">Đã hủy</span>
-                                            break;
-                                        default:
-                                            <span class="badge bg-secondary">Mới</span>
-                                            break;
-                                    }
+                                    <span class="badge @OrderDisplayHelper.GetBootstrapBadgeClass(item.Status)">
+                                        @OrderDisplayHelper.GetStatusLabel(item.Status)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(item.PaymentMethod)">
+                                        @OrderDisplayHelper.GetPaymentMethodLabel(item.PaymentMethod)
+                                    </span>
                                 </td>
                                 <td>@item.ShippingCost.ToString("N0") đ</td>
                                 <td class="fw-semibold text-danger">@item.TotalAmount.ToString("N0") đ</td>
@@ -69,19 +54,28 @@
                                         Xem chi tiết
                                     </a>
 
-                                    @if (item.Status == 1)
+                                    @if (item.CanCancel)
                                     {
-                                        <button type="button"
-                                                class="btn btn-sm btn-danger btn-cancel-order"
-                                                data-ordercode="@item.OrderCode">
-                                            Hủy đơn
-                                        </button>
+                                        <form id="cancel-@item.OrderCode"
+                                              method="post"
+                                              asp-controller="Account"
+                                              asp-action="CancelOrder"
+                                              class="d-inline-block"
+                                              data-swal-confirm
+                                              data-swal-title="Hủy đơn hàng?"
+                                              data-swal-text="Sau khi hủy đơn sẽ không thể hoàn tác."
+                                              data-swal-confirm-text="Có, hủy đơn"
+                                              data-swal-cancel-text="Không">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="orderCode" value="@item.OrderCode" />
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                Hủy đơn
+                                            </button>
+                                        </form>
                                     }
                                     else
                                     {
-                                        <button type="button"
-                                                class="btn btn-sm btn-secondary"
-                                                disabled>
+                                        <button type="button" class="btn btn-sm btn-secondary" disabled>
                                             Không thể hủy
                                         </button>
                                     }
@@ -92,7 +86,7 @@
                     else
                     {
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 Bạn chưa có đơn hàng nào.
                             </td>
                         </tr>
@@ -103,59 +97,52 @@
     </div>
 </div>
 
-<form id="cancelOrderForm" method="post" asp-controller="Account" asp-action="CancelOrder">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="orderCode" id="cancelOrderCode" />
-</form>
+<style>
+    .payment-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .payment-badge-cod {
+        background: #ecfdf5;
+        color: #047857;
+        border-color: #a7f3d0;
+    }
+
+    .payment-badge-vnpay {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .payment-badge-momo {
+        background: #fdf2f8;
+        color: #be185d;
+        border-color: #fbcfe8;
+    }
+
+    .payment-badge-bank {
+        background: #eef2ff;
+        color: #4338ca;
+        border-color: #c7d2fe;
+    }
+
+    .payment-badge-default {
+        background: #f3f4f6;
+        color: #374151;
+        border-color: #d1d5db;
+    }
+</style>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <script>
-        $(document).on('click', '.btn-cancel-order', function () {
-            const orderCode = $(this).data('ordercode');
-
-            Swal.fire({
-                title: 'Bạn có chắc muốn hủy đơn hàng?',
-                text: 'Sau khi hủy sẽ không thể hoàn tác.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Có, hủy đơn',
-                cancelButtonText: 'Không',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $('#cancelOrderCode').val(orderCode);
-                    $('#cancelOrderForm').submit();
-                }
-            });
-        });
-    </script>
-
-    @if (TempData["success"] != null)
-    {
-        <script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Thành công',
-                text: '@Html.Raw(TempData["success"])'
-            });
-        </script>
-    }
-
-    @if (TempData["error"] != null)
-    {
-        <script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Lỗi',
-                text: '@Html.Raw(TempData["error"])'
-            });
-        </script>
-    }
-
-    <script>
-        new DataTable('#orderHistoryTable');
+        if (typeof DataTable !== 'undefined') {
+            new DataTable('#orderHistoryTable');
+        }
     </script>
 }
