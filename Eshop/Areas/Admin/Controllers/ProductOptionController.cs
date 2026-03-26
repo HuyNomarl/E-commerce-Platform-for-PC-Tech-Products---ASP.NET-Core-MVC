@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.CatalogManagement)]
     public class ProductOptionController : Controller
     {
         private readonly DataContext _dataContext;

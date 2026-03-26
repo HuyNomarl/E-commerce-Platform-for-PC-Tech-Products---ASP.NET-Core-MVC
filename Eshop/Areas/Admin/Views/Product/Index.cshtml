@@ -191,15 +191,18 @@
                                 <td>
                                     <div class="qty-cell">
                                         <span class="qty-badge">@item.Quantity</span>
-                                        <div class="mt-1">
-                                            <a asp-area="Admin"
-                                                   asp-controller="Inventory"
-                                                   asp-action="ProductStock"
-                                                   asp-route-productId="@item.Id"
-                                                   class="mini-link">
-                                                Quản lý kho
-                                            </a>
-                                        </div>
+                                        @if (User.CanAccessWarehouse())
+                                        {
+                                            <div class="mt-1">
+                                                <a asp-area="Admin"
+                                                       asp-controller="Inventory"
+                                                       asp-action="ProductStock"
+                                                       asp-route-productId="@item.Id"
+                                                       class="mini-link">
+                                                    Quản lý kho
+                                                </a>
+                                            </div>
+                                        }
                                     </div>
                                 </td>
 

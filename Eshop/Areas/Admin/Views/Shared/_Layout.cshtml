@@ -37,7 +37,13 @@
     var adminSubtitle = !string.IsNullOrWhiteSpace(adminEmail) && adminEmail != adminDisplayName
         ? adminEmail
         : "Tài khoản đang hoạt động";
-    var adminRoleLabel = User.IsInRole("Admin") ? "Quản trị viên" : "Tài khoản nội bộ";
+    var adminRoleLabel = User.GetRoleDisplayLabel();
+    var canManageAdmin = User.IsInRole(RoleNames.Admin);
+    var canManageCatalog = User.CanAccessCatalog();
+    var canManageBrands = User.CanManageBrands();
+    var canManageOrders = User.CanAccessOrders();
+    var canManageWarehouse = User.CanAccessWarehouse();
+    var canManageSupport = User.CanAccessSupport();
     var adminInitials = BuildInitials(adminDisplayName);
 }
 
@@ -616,45 +622,54 @@
                                         </div>
 
                                         <div class="admin-topbar-right">
-                                            <div class="admin-alerts">
-                                                <a asp-controller="Order"
-                                                   asp-action="Index"
-                                                   id="orderAlertButton"
-                                                   class="admin-alert-btn order @(currentController == "Order" ? "active" : "")"
-                                                   title="Xem thông báo đơn hàng mới"
-                                                   aria-label="Xem thông báo đơn hàng mới">
-                                                    <span class="admin-alert-icon">
-                                                        <i class="fa fa-bell"></i>
-                                                        <span class="admin-alert-type">
-                                                            <i class="fa fa-shopping-bag"></i>
-                                                        </span>
-                                                        <span id="orderBadge" class="admin-alert-badge">0</span>
-                                                    </span>
-                                                    <span class="admin-alert-meta">
-                                                        <strong>Đơn hàng mới</strong>
-                                                        <small>Theo dõi đơn phát sinh realtime</small>
-                                                    </span>
-                                                </a>
+                                            @if (canManageOrders || canManageSupport)
+                                            {
+                                                <div class="admin-alerts">
+                                                    @if (canManageOrders)
+                                                    {
+                                                        <a asp-controller="Order"
+                                                           asp-action="Index"
+                                                           id="orderAlertButton"
+                                                           class="admin-alert-btn order @(currentController == "Order" ? "active" : "")"
+                                                           title="Xem thông báo đơn hàng mới"
+                                                           aria-label="Xem thông báo đơn hàng mới">
+                                                            <span class="admin-alert-icon">
+                                                                <i class="fa fa-bell"></i>
+                                                                <span class="admin-alert-type">
+                                                                    <i class="fa fa-shopping-bag"></i>
+                                                                </span>
+                                                                <span id="orderBadge" class="admin-alert-badge">0</span>
+                                                            </span>
+                                                            <span class="admin-alert-meta">
+                                                                <strong>Đơn hàng mới</strong>
+                                                                <small>Theo dõi đơn phát sinh realtime</small>
+                                                            </span>
+                                                        </a>
+                                                    }
 
-                                                <a asp-controller="Chat"
-                                                   asp-action="Index"
-                                                   id="chatAlertButton"
-                                                   class="admin-alert-btn chat @(currentController == "Chat" ? "active" : "")"
-                                                   title="Xem thông báo chat mới"
-                                                   aria-label="Xem thông báo chat mới">
-                                                    <span class="admin-alert-icon">
-                                                        <i class="fa fa-bell"></i>
-                                                        <span class="admin-alert-type">
-                                                            <i class="fa fa-comments"></i>
-                                                        </span>
-                                                        <span id="chatBadge" class="admin-alert-badge">0</span>
-                                                    </span>
-                                                    <span class="admin-alert-meta">
-                                                        <strong>Tin nhắn mới</strong>
-                                                        <small>Không bỏ lỡ hội thoại hỗ trợ</small>
-                                                    </span>
-                                                </a>
-                                            </div>
+                                                    @if (canManageSupport)
+                                                    {
+                                                        <a asp-controller="Chat"
+                                                           asp-action="Index"
+                                                           id="chatAlertButton"
+                                                           class="admin-alert-btn chat @(currentController == "Chat" ? "active" : "")"
+                                                           title="Xem thông báo chat mới"
+                                                           aria-label="Xem thông báo chat mới">
+                                                            <span class="admin-alert-icon">
+                                                                <i class="fa fa-bell"></i>
+                                                                <span class="admin-alert-type">
+                                                                    <i class="fa fa-comments"></i>
+                                                                </span>
+                                                                <span id="chatBadge" class="admin-alert-badge">0</span>
+                                                            </span>
+                                                            <span class="admin-alert-meta">
+                                                                <strong>Tin nhắn mới</strong>
+                                                                <small>Không bỏ lỡ hội thoại hỗ trợ</small>
+                                                            </span>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            }
 
                                             <div class="admin-account-card">
                                                 <div class="admin-account-avatar">@adminInitials</div>
@@ -692,89 +707,122 @@
 
                                                 <ul class="sidebar-menu">
                                                     <li>
-                                                        <a asp-controller="Home" asp-action="Index" class="@(currentController == "Home" ? "active" : "")">
+                                                        <a asp-area="" asp-controller="Home" asp-action="Index">
                                                             <i class="fa fa-home"></i> <span>Home</span>
                                                         </a>
                                                     </li>
-                                                    <li>
-                                                        <a asp-controller="Dashboard" asp-action="Index" class="@(currentController == "Dashboard" ? "active" : "")">
-                                                            <i class="fa fa-dashboard"></i> <span>Dashboard</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Slider" asp-action="Index" class="@(currentController == "Slider" ? "active" : "")">
-                                                            <i class="fa fa-image"></i> <span>Slider</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Shipping" asp-action="Index" class="@(currentController == "Shipping" ? "active" : "")">
-                                                            <i class="fa fa-truck"></i> <span>Shipping</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Warehouse" asp-action="Index" class="@(currentController == "Warehouse" ? "active" : "")">
-                                                            <i class="fa fa-cube"></i> <span>Warehouse</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Inventory" asp-action="Index" class="@(currentController == "Inventory" ? "active" : "")">
-                                                            <i class="fa fa-cube"></i> <span>Inventory</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Product" asp-action="Index" class="@(currentController == "Product" ? "active" : "")">
-                                                            <i class="fa fa-cube"></i> <span>Product</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="PcComponentAdmin" asp-action="Index" class="@(currentController == "PcComponentAdmin" ? "active" : "")">
-                                                            <i class="fa fa-cube"></i> <span>PC Builder</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Category" asp-action="Index" class="@(currentController == "Category" ? "active" : "")">
-                                                            <i class="fa fa-list"></i> <span>Categories</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Publisher" asp-action="Index" class="@(currentController == "Publisher" ? "active" : "")">
-                                                            <i class="fa fa-tag"></i> <span>Brand</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Coupon" asp-action="Index" class="@(currentController == "Coupon" ? "active" : "")">
-                                                            <i class="fa fa-ticket"></i> <span>Coupons</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Order" asp-action="Index" id="menuOrders" class="@(currentController == "Order" ? "active" : "")">
-                                                            <i class="fa fa-shopping-bag"></i>
-                                                            <span>Orders</span>
-                                                            <span id="orderDot" class="notify-dot" style="display:none;"></span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="User" asp-action="Index" class="@(currentController == "User" ? "active" : "")">
-                                                            <i class="fa fa-users"></i> <span>Users</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Role" asp-action="Index" class="@(currentController == "Role" ? "active" : "")">
-                                                            <i class="fa fa-user-secret"></i> <span>Roles</span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Chat" asp-action="Index" id="menuChat" class="@(currentController == "Chat" ? "active" : "")">
-                                                            <i class="fa fa-comments"></i>
-                                                            <span>Chat</span>
-                                                            <span id="chatDot" class="notify-dot" style="display:none;"></span>
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a asp-controller="Contact" asp-action="Index" class="@(currentController == "Contact" ? "active" : "")">
-                                                            <i class="fa fa-address-book"></i> <span>Contacts</span>
-                                                        </a>
-                                                    </li>
+                                                    @if (canManageAdmin)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Dashboard" asp-action="Index" class="@(currentController == "Dashboard" ? "active" : "")">
+                                                                <i class="fa fa-dashboard"></i> <span>Dashboard</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageCatalog)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Slider" asp-action="Index" class="@(currentController == "Slider" ? "active" : "")">
+                                                                <i class="fa fa-image"></i> <span>Slider</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageAdmin)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Shipping" asp-action="Index" class="@(currentController == "Shipping" ? "active" : "")">
+                                                                <i class="fa fa-truck"></i> <span>Shipping</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageWarehouse)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Warehouse" asp-action="Index" class="@(currentController == "Warehouse" ? "active" : "")">
+                                                                <i class="fa fa-cube"></i> <span>Warehouse</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a asp-controller="Inventory" asp-action="Index" class="@(currentController == "Inventory" ? "active" : "")">
+                                                                <i class="fa fa-cubes"></i> <span>Inventory</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageCatalog)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Product" asp-action="Index" class="@(currentController == "Product" ? "active" : "")">
+                                                                <i class="fa fa-cube"></i> <span>Product</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a asp-controller="PcComponentAdmin" asp-action="Index" class="@(currentController == "PcComponentAdmin" ? "active" : "")">
+                                                                <i class="fa fa-desktop"></i> <span>PC Builder</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a asp-controller="Category" asp-action="Index" class="@(currentController == "Category" ? "active" : "")">
+                                                                <i class="fa fa-list"></i> <span>Categories</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageBrands)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Publisher" asp-action="Index" class="@(currentController == "Publisher" ? "active" : "")">
+                                                                <i class="fa fa-tag"></i> <span>Brand</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageAdmin)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Coupon" asp-action="Index" class="@(currentController == "Coupon" ? "active" : "")">
+                                                                <i class="fa fa-ticket"></i> <span>Coupons</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageOrders)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Order" asp-action="Index" id="menuOrders" class="@(currentController == "Order" ? "active" : "")">
+                                                                <i class="fa fa-shopping-bag"></i>
+                                                                <span>Orders</span>
+                                                                <span id="orderDot" class="notify-dot" style="display:none;"></span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageAdmin)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="User" asp-action="Index" class="@(currentController == "User" ? "active" : "")">
+                                                                <i class="fa fa-users"></i> <span>Users</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a asp-controller="Role" asp-action="Index" class="@(currentController == "Role" ? "active" : "")">
+                                                                <i class="fa fa-user-secret"></i> <span>Roles</span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageSupport)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Chat" asp-action="Index" id="menuChat" class="@(currentController == "Chat" ? "active" : "")">
+                                                                <i class="fa fa-comments"></i>
+                                                                <span>Chat</span>
+                                                                <span id="chatDot" class="notify-dot" style="display:none;"></span>
+                                                            </a>
+                                                        </li>
+                                                    }
+                                                    @if (canManageAdmin)
+                                                    {
+                                                        <li>
+                                                            <a asp-controller="Contact" asp-action="Index" class="@(currentController == "Contact" ? "active" : "")">
+                                                                <i class="fa fa-address-book"></i> <span>Contacts</span>
+                                                            </a>
+                                                        </li>
+                                                    }
                                                 </ul>
                                             </div>
                                         </aside>

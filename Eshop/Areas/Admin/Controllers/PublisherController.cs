@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles ="Admin, Publisher")]
+    [Authorize(Policy = PolicyNames.BrandManagement)]
     public class PublisherController : Controller
     {
         private readonly DataContext _dataContext;

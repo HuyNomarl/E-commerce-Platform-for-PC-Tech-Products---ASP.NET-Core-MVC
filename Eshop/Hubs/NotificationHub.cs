@@ -8,9 +8,20 @@ namespace Eshop.Hubs
     {
         public override async Task OnConnectedAsync()
         {
-            if (Context.User?.IsInRole("Admin") == true)
+            if (Context.User?.IsInRole(Eshop.Constants.RoleNames.Admin) == true ||
+                Context.User?.IsInRole(Eshop.Constants.RoleNames.OrderStaff) == true)
             {
-                await Groups.AddToGroupAsync(Context.ConnectionId, "Admins");
+                await Groups.AddToGroupAsync(
+                    Context.ConnectionId,
+                    Eshop.Constants.NotificationGroups.OrderManagers);
+            }
+
+            if (Context.User?.IsInRole(Eshop.Constants.RoleNames.Admin) == true ||
+                Context.User?.IsInRole(Eshop.Constants.RoleNames.SupportStaff) == true)
+            {
+                await Groups.AddToGroupAsync(
+                    Context.ConnectionId,
+                    Eshop.Constants.NotificationGroups.SupportAgents);
             }
 
             await base.OnConnectedAsync();

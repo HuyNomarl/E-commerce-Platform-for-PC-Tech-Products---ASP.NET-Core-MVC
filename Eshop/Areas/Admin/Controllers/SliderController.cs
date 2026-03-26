@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.CatalogManagement)]
     public class SliderController : Controller
     {
         private readonly DataContext _dataContext;

@@ -2,6 +2,7 @@
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,7 +12,7 @@ using System.Security.Claims;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.WarehouseManagement)]
     public class InventoryController : Controller
     {
         private readonly DataContext _context;

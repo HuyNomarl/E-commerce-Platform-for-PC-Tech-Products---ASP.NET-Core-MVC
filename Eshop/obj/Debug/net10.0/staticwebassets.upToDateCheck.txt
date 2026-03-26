@@ -1,5 +1,6 @@
 wwwroot\backend\js\site.js
 wwwroot\css\account-dashboard.css
+wwwroot\css\admin-dashboard.css
 wwwroot\css\animate.css
 wwwroot\css\bootstrap.min.css
 wwwroot\css\font-awesome.min.css
@@ -108,9 +109,11 @@ wwwroot\media\products\f4646229b36c4fefb148102f45206a31.jpg
 wwwroot\media\sliders\33c94fdb-5168-47f3-930f-0f666be2fe6f.jpg
 wwwroot\media\sliders\7e95033a-80e9-4279-82c5-6f099fbb45cb.jpg
 wwwroot\media\sliders\84bbfe4a-f523-4936-9092-f88a6e01d2cd.jpg
-wwwroot\css\admin-dashboard.css
+E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
 E:\Web C#\Eshop\Eshop\wwwroot\backend\js\site.js
+E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
 E:\Web C#\Eshop\Eshop\wwwroot\css\account-dashboard.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\admin-dashboard.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
@@ -168,9 +171,8 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js.map
-E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js.map
+E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\LICENSE.md
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\js\bootstrap.js
@@ -184,12 +186,10 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\dist\additional-methods.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\dist\additional-methods.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\dist\jquery.validate.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\dist\jquery.validate.min.js
-E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery-validation\LICENSE.md
-E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.min.js
+E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\LICENSE.txt
-E:\Web C#\Eshop\Eshop\wwwroot\css\admin-dashboard.css

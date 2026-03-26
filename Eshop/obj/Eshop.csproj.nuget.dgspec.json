@@ -10,7 +10,7 @@
         "projectUniqueName": "E:\\Web C#\\Eshop\\Eshop\\Eshop.csproj",
         "projectName": "Eshop",
         "projectPath": "E:\\Web C#\\Eshop\\Eshop\\Eshop.csproj",
-        "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
+        "packagesPath": "e:\\Web C#\\Eshop\\.dotnet\\.nuget\\packages\\",
         "outputPath": "E:\\Web C#\\Eshop\\Eshop\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [

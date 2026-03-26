@@ -8,7 +8,7 @@ using System.Net.Http;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Eshop.Constants.PolicyNames.AdminOnly)]
     public class ShippingController : Controller
     {
         private readonly DataContext _dataContext;
@@ -114,6 +114,7 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
         // ====== PROXY: GET PROVINCES (V2) ======
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetProvincesV2()
         {
@@ -130,6 +131,7 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
         // ====== PROXY: GET WARDS BY PROVINCE (V2) ======
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetWardsByProvinceV2(int provinceCode)
         {

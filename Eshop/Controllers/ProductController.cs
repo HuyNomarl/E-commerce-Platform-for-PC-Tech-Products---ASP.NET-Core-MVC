@@ -1,4 +1,6 @@
 using Eshop.Areas.Admin.Models;
+using Eshop.Constants;
+using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
@@ -77,11 +79,13 @@ namespace Eshop.Controllers
                 .SumAsync(x => (int?)x.ReservedQuantity) ?? 0;
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var existingReview = currentUser == null
+            var isCustomerAccount = User.IsCustomerOnly();
+            var existingReview = currentUser == null || !isCustomerAccount
                 ? null
                 : product.RatingModel.FirstOrDefault(x => x.UserId == currentUser.Id);
 
             bool hasPurchasedProduct = currentUser != null
+                && isCustomerAccount
                 && await HasUserPurchasedProductAsync(currentUser.Id, id);
 
             var reviewSummary = BuildReviewSummary(product.RatingModel);
@@ -113,7 +117,7 @@ namespace Eshop.Controllers
                         : 5),
                     Comment = existingReview?.Comment
                 },
-                IsAuthenticated = currentUser != null,
+                IsAuthenticated = currentUser != null && isCustomerAccount,
                 HasPurchasedProduct = hasPurchasedProduct,
                 HasExistingReview = existingReview != null,
                 CurrentUserDisplayName = currentUser?.UserName,
@@ -124,6 +128,8 @@ namespace Eshop.Controllers
 
             viewModel.ReviewPermissionMessage = currentUser == null
                 ? "Đăng nhập để đánh giá sản phẩm."
+                : !isCustomerAccount
+                    ? "Tài khoản nội bộ không được phép gửi đánh giá sản phẩm."
                 : hasPurchasedProduct
                     ? (existingReview != null
                         ? "Bạn đã từng đánh giá sản phẩm này. Gửi lại biểu mẫu để cập nhật nội dung và bổ sung media mới."
@@ -155,7 +161,7 @@ namespace Eshop.Controllers
             return View(products);
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CommentProduct(ProductReviewFormViewModel reviewForm)

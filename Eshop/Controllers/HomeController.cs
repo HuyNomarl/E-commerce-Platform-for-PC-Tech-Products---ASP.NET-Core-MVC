@@ -1,9 +1,11 @@
 using Eshop.Constants;
+using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Repository;
 using Eshop.Services;
 using Eshop.Views.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -127,6 +129,15 @@ namespace Eshop.Controllers
                 });
             }
 
+            if (!User.IsCustomerOnly())
+            {
+                return StatusCode(403, new
+                {
+                    success = false,
+                    message = "Chỉ tài khoản khách hàng mới được dùng wishlist."
+                });
+            }
+
             var targetProduct = await _dataContext.Products
                 .AsNoTracking()
                 .Include(x => x.Category)
@@ -180,6 +191,15 @@ namespace Eshop.Controllers
                 {
                     success = false,
                     message = "Vui lòng đăng nhập để sử dụng compare."
+                });
+            }
+
+            if (!User.IsCustomerOnly())
+            {
+                return StatusCode(403, new
+                {
+                    success = false,
+                    message = "Chỉ tài khoản khách hàng mới được dùng so sánh sản phẩm."
                 });
             }
 
@@ -275,6 +295,7 @@ namespace Eshop.Controllers
             });
         }
 
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         public async Task<IActionResult> Compare()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -336,6 +357,7 @@ namespace Eshop.Controllers
             return View(model);
         }
 
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCompare(int id)
@@ -357,6 +379,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Compare));
         }
 
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteWishlist(int id)
@@ -378,6 +401,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Wishlist));
         }
 
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         public async Task<IActionResult> Wishlist()
         {
             var user = await _userManager.GetUserAsync(User);

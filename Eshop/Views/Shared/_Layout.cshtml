@@ -1,4 +1,9 @@
 ﻿<!DOCTYPE html>
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var isBackOfficeUser = User.CanAccessBackOffice();
+    var canUseCustomerPages = !isBackOfficeUser;
+}
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -83,12 +88,22 @@
                     </div>
 
                     <div class="tt-top-right tt-auth-links">
-                        @if (User.Identity?.IsAuthenticated ?? false)
+                        @if (isAuthenticated)
                         {
-                            <a asp-controller="Account" asp-action="UpdateAccount" asp-route-tab="home" class="tt-auth-link">
-                                <i class="fa fa-user-circle-o"></i>
-                                <span>Tài khoản</span>
-                            </a>
+                            @if (isBackOfficeUser)
+                            {
+                                <a asp-area="Admin" asp-controller="Portal" asp-action="Index" class="tt-auth-link">
+                                    <i class="fa fa-shield"></i>
+                                    <span>Quản trị</span>
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="UpdateAccount" asp-route-tab="home" class="tt-auth-link">
+                                    <i class="fa fa-user-circle-o"></i>
+                                    <span>Tài khoản</span>
+                                </a>
+                            }
                             <span class="tt-auth-separator">|</span>
                             <a asp-controller="Account" asp-action="Logout" class="tt-auth-link tt-auth-link-logout">
                                 <i class="fa fa-sign-out"></i>
@@ -136,8 +151,11 @@
 
                         <div class="tt-quick-links">
                             <a href="#">PC Gaming</a>
-                            <a asp-controller="Home" asp-action="Wishlist">Yêu thích</a>
-                            <a asp-controller="Home" asp-action="Compare">So sánh</a>
+                            @if (canUseCustomerPages)
+                            {
+                                <a asp-controller="Home" asp-action="Wishlist">Yêu thích</a>
+                                <a asp-controller="Home" asp-action="Compare">So sánh</a>
+                            }
                         </div>
                     </div>
 

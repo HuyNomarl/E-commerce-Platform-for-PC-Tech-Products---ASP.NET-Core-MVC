@@ -110,7 +110,7 @@
                                             }
                                         </div>
 
-                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                        @if (User.IsCustomerOnly())
                                         {
                                             <div class="mini-actions">
                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
@@ -193,7 +193,7 @@
                                                             }
                                                         </div>
 
-                                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                                        @if (User.IsCustomerOnly())
                                                         {
                                                             <div class="mini-actions">
                                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
@@ -307,7 +307,7 @@
                                             }
                                         </div>
 
-                                        @if (User.Identity?.IsAuthenticated ?? false)
+                                        @if (User.IsCustomerOnly())
                                         {
                                             <div class="mini-actions">
                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>

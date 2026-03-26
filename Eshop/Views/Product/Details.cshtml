@@ -105,7 +105,7 @@
                             {
                                 <img id="mainProductImage" src="@mainGalleryItem.Url" alt="@mainGalleryItem.AltText" />
                             }
-                            else
+                            else if (!(User.Identity?.IsAuthenticated ?? false))
                             {
                                 <div class="text-muted text-center"><i class="fa fa-image"></i><br />Chưa có hình ảnh</div>
                             }
@@ -182,12 +182,12 @@
                                     @(string.IsNullOrWhiteSpace(Model.TechnicalDocumentName) ? "Tài liệu kỹ thuật" : "Tải " + Model.TechnicalDocumentName)
                                 </a>
                             }
-                            @if (User.Identity?.IsAuthenticated ?? false)
+                            @if (User.IsCustomerOnly())
                             {
                                 <button type="button" class="pd-btn js-add-wishlist" data-product-id="@product.Id"><i class="fa fa-heart-o"></i> Wishlist</button>
                                 <button type="button" class="pd-btn js-add-compare" data-product-id="@product.Id"><i class="fa fa-balance-scale"></i> Compare</button>
                             }
-                            else
+                            else if (!(User.Identity?.IsAuthenticated ?? false))
                             {
                                 <a asp-controller="Account" asp-action="Login" class="pd-btn pd-btn-doc"><i class="fa fa-user"></i> Đăng nhập để lưu</a>
                             }

@@ -1,6 +1,8 @@
 ﻿using CloudinaryDotNet;
 using Eshop.Areas.Admin.Repository;
+using Eshop.Constants;
 using Eshop.Hubs;
+using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.Configurations;
 using Eshop.Models.Momo;
@@ -8,6 +10,7 @@ using Eshop.Repository;
 using Eshop.Services;
 using Eshop.Services.Momo;
 using Eshop.Services.VNPay;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -165,7 +168,17 @@ builder.Services.AddIdentity<AppUserModel, IdentityRole>(options =>
 // Authorization
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole(RoleNames.Admin));
+    options.AddPolicy(PolicyNames.BackOfficeAccess, policy => policy.RequireRole(RoleNames.BackOfficeRoles));
+    options.AddPolicy(PolicyNames.CatalogManagement, policy => policy.RequireRole(RoleNames.CatalogRoles));
+    options.AddPolicy(PolicyNames.BrandManagement, policy => policy.RequireRole(RoleNames.BrandRoles));
+    options.AddPolicy(PolicyNames.OrderManagement, policy => policy.RequireRole(RoleNames.OrderRoles));
+    options.AddPolicy(PolicyNames.WarehouseManagement, policy => policy.RequireRole(RoleNames.WarehouseRoles));
+    options.AddPolicy(PolicyNames.SupportManagement, policy => policy.RequireRole(RoleNames.SupportRoles));
+    options.AddPolicy(PolicyNames.CustomerSelfService, policy =>
+        policy.RequireAssertion(context =>
+            context.User.IsInRole(RoleNames.Customer) &&
+            !context.User.IsInAnyRole(RoleNames.BackOfficeRoles)));
 });
 
 // Cookie
@@ -181,6 +194,25 @@ builder.Services.ConfigureApplicationCookie(options =>
 
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToAccessDenied = context =>
+        {
+            var returnUrl = Uri.EscapeDataString(
+                $"{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}");
+
+            var canUseAdminAccessDenied =
+                context.Request.Path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase) &&
+                context.HttpContext.User.CanAccessBackOffice();
+
+            var targetPath = canUseAdminAccessDenied
+                ? $"/Admin/Account/AccessDenied?returnUrl={returnUrl}"
+                : $"/Account/AccessDenied?returnUrl={returnUrl}";
+
+            context.Response.Redirect(targetPath);
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Google Login
@@ -199,6 +231,8 @@ builder.Services.AddSignalR(options =>
 });
 
 var app = builder.Build();
+
+await IdentityDataSeeder.SeedAsync(app.Services);
 
 app.UseForwardedHeaders();
 
@@ -233,12 +267,35 @@ app.UseRouting();
 app.UseSession();
 
 app.UseAuthentication();
+
+app.Use(async (context, next) =>
+{
+    var requestPath = context.Request.Path.Value ?? string.Empty;
+    var isPublicAdminEndpoint =
+        string.Equals(requestPath, "/Admin/Shipping/GetProvincesV2", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(requestPath, "/Admin/Shipping/GetWardsByProvinceV2", StringComparison.OrdinalIgnoreCase);
+
+    if (context.User.Identity?.IsAuthenticated == true &&
+        context.Request.Path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase) &&
+        !isPublicAdminEndpoint &&
+        !context.User.CanAccessBackOffice())
+    {
+        var returnUrl = Uri.EscapeDataString(
+            $"{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}");
+
+        context.Response.Redirect($"/Account/AccessDenied?returnUrl={returnUrl}");
+        return;
+    }
+
+    await next();
+});
+
 app.UseAuthorization();
 
 // Routes
 app.MapControllerRoute(
     name: "Areas",
-    pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Portal}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "Category",

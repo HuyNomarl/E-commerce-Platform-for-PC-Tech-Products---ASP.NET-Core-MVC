@@ -1,4 +1,6 @@
 ﻿using Eshop.Areas.Admin.Repository;
+using Eshop.Constants;
+using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
@@ -15,6 +17,7 @@ namespace Eshop.Controllers
     {
         private readonly UserManager<AppUserModel> _userManager;
         private readonly SignInManager<AppUserModel> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly DataContext _dataContext;
         private readonly IEmailSender _emailSender;
         private readonly IInventoryService _inventoryService;
@@ -23,6 +26,7 @@ namespace Eshop.Controllers
         public AccountController(
                 UserManager<AppUserModel> userManager,
                 SignInManager<AppUserModel> signInManager,
+                RoleManager<IdentityRole> roleManager,
                 IEmailSender emailSender,
                 DataContext context,
                 IInventoryService inventoryService,
@@ -30,6 +34,7 @@ namespace Eshop.Controllers
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _emailSender = emailSender;
             _dataContext = context;
             _inventoryService = inventoryService;
@@ -62,11 +67,18 @@ namespace Eshop.Controllers
                 model.UserName,
                 model.Password,
                 isPersistent: false,
-                lockoutOnFailure: false);
+                lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
-                return Redirect(model.ReturnURL ?? "/");
+                var signedInUser = await ResolveUserByLoginIdentifierAsync(model.UserName);
+                return await RedirectAfterSuccessfulSignInAsync(signedInUser, model.ReturnURL);
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.");
+                return View(model);
             }
 
             ModelState.AddModelError(string.Empty, "Đăng nhập không thành công!");
@@ -124,6 +136,18 @@ namespace Eshop.Controllers
 
             if (result.Succeeded)
             {
+                var ensureRoleResult = await EnsureRoleAssignmentAsync(newUser, RoleNames.Customer);
+                if (!ensureRoleResult.Succeeded)
+                {
+                    foreach (var error in ensureRoleResult.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+
+                    await _userManager.DeleteAsync(newUser);
+                    return View(user);
+                }
+
                 TempData["success"] = "Tài khoản đã được tạo thành công!";
                 return RedirectToAction(nameof(Login));
             }
@@ -239,7 +263,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Login));
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpGet]
         public async Task<IActionResult> UpdateAccount(string tab = "home")
         {
@@ -263,7 +287,7 @@ namespace Eshop.Controllers
             return View(vm);
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateInfoAccount(AccountDashboardViewModel model)
@@ -308,7 +332,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(UpdateAccount), new { tab = "profile" });
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpGet]
         public async Task<IActionResult> Details(string orderCode)
         {
@@ -368,7 +392,7 @@ namespace Eshop.Controllers
             return View(vm);
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelOrder(string orderCode)
@@ -426,7 +450,7 @@ namespace Eshop.Controllers
         }
 
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpGet]
         public async Task<IActionResult> History()
         {
@@ -457,7 +481,7 @@ namespace Eshop.Controllers
             return View(result);
         }
 
-        [Authorize]
+        [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(AccountDashboardViewModel model)
@@ -502,7 +526,12 @@ namespace Eshop.Controllers
         public async Task<IActionResult> Logout(string returnURL = "/")
         {
             await _signInManager.SignOutAsync();
-            return Redirect(returnURL);
+            if (!string.IsNullOrWhiteSpace(returnURL) && Url.IsLocalUrl(returnURL))
+            {
+                return LocalRedirect(returnURL);
+            }
+
+            return RedirectToAction("Index", "Home");
         }
 
         [AllowAnonymous]
@@ -515,16 +544,16 @@ namespace Eshop.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult LoginByGoogle()
+        public IActionResult LoginByGoogle(string? returnUrl = null)
         {
-            var redirectUrl = Url.Action(nameof(GoogleResponse), "Account");
+            var redirectUrl = Url.Action(nameof(GoogleResponse), "Account", new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return Challenge(properties, "Google");
         }
 
         [AllowAnonymous]
         [HttpGet]
-        public async Task<IActionResult> GoogleResponse()
+        public async Task<IActionResult> GoogleResponse(string? returnUrl = null)
         {
             var info = await _signInManager.GetExternalLoginInfoAsync();
 
@@ -542,8 +571,22 @@ namespace Eshop.Controllers
 
             if (result.Succeeded)
             {
+                var linkedUser = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (linkedUser != null)
+                {
+                    var ensureRoleResult = await EnsureRoleAssignmentAsync(linkedUser, RoleNames.Customer);
+                    if (!ensureRoleResult.Succeeded)
+                    {
+                        TempData["error"] = string.Join(" | ", ensureRoleResult.Errors.Select(e => e.Description));
+                        await _signInManager.SignOutAsync();
+                        return RedirectToAction(nameof(Login));
+                    }
+
+                    await _signInManager.RefreshSignInAsync(linkedUser);
+                }
+
                 TempData["success"] = "Đăng nhập thành công.";
-                return RedirectToAction("Index", "Home");
+                return await RedirectAfterSuccessfulSignInAsync(linkedUser, returnUrl);
             }
 
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
@@ -561,7 +604,8 @@ namespace Eshop.Controllers
                 user = new AppUserModel
                 {
                     UserName = email,
-                    Email = email
+                    Email = email,
+                    EmailConfirmed = true
                 };
 
                 var createResult = await _userManager.CreateAsync(user);
@@ -571,6 +615,11 @@ namespace Eshop.Controllers
                     TempData["error"] = string.Join(" | ", createResult.Errors.Select(e => e.Description));
                     return RedirectToAction(nameof(Login));
                 }
+            }
+            else if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                await _userManager.UpdateAsync(user);
             }
 
             var checkLogin = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
@@ -585,10 +634,104 @@ namespace Eshop.Controllers
                 }
             }
 
+            var roleAssignmentResult = await EnsureRoleAssignmentAsync(user, RoleNames.Customer);
+            if (!roleAssignmentResult.Succeeded)
+            {
+                TempData["error"] = string.Join(" | ", roleAssignmentResult.Errors.Select(e => e.Description));
+                return RedirectToAction(nameof(Login));
+            }
+
             await _signInManager.SignInAsync(user, isPersistent: false);
 
             TempData["success"] = "Đăng nhập thành công.";
+            return await RedirectAfterSuccessfulSignInAsync(user, returnUrl);
+        }
+
+        private async Task<AppUserModel?> ResolveUserByLoginIdentifierAsync(string? identifier)
+        {
+            if (string.IsNullOrWhiteSpace(identifier))
+            {
+                return null;
+            }
+
+            var normalizedIdentifier = identifier.Trim();
+            var user = await _userManager.FindByNameAsync(normalizedIdentifier);
+
+            if (user != null)
+            {
+                return user;
+            }
+
+            return normalizedIdentifier.Contains('@')
+                ? await _userManager.FindByEmailAsync(normalizedIdentifier)
+                : null;
+        }
+
+        private async Task<IActionResult> RedirectAfterSuccessfulSignInAsync(
+            AppUserModel? user,
+            string? returnUrl = null)
+        {
+            var roles = user != null
+                ? await _userManager.GetRolesAsync(user)
+                : Array.Empty<string>();
+
+            var isBackOfficeUser = roles.Any(RoleNames.IsBackOfficeRole);
+
+            if (IsAllowedReturnUrl(returnUrl, isBackOfficeUser))
+            {
+                return LocalRedirect(returnUrl!);
+            }
+
+            if (isBackOfficeUser)
+            {
+                return RedirectToAction("Index", "Portal", new { area = "Admin" });
+            }
+
             return RedirectToAction("Index", "Home");
+        }
+
+        private bool IsAllowedReturnUrl(string? returnUrl, bool isBackOfficeUser)
+        {
+            if (string.IsNullOrWhiteSpace(returnUrl) || !Url.IsLocalUrl(returnUrl))
+            {
+                return false;
+            }
+
+            return !returnUrl.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase) || isBackOfficeUser;
+        }
+
+        private async Task<IdentityResult> EnsureRoleAssignmentAsync(AppUserModel user, string defaultRoleName)
+        {
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var targetRoleName = currentRoles.Count == 0
+                ? defaultRoleName
+                : RoleNames.ResolvePrimaryRoleName(currentRoles);
+
+            var role = await _roleManager.FindByNameAsync(targetRoleName);
+            if (role == null)
+            {
+                return IdentityResult.Failed(new IdentityError
+                {
+                    Description = $"Không tìm thấy vai trò {targetRoleName} trong hệ thống."
+                });
+            }
+
+            if (currentRoles.Count == 0)
+            {
+                var addToRoleResult = await _userManager.AddToRoleAsync(user, role.Name!);
+                if (!addToRoleResult.Succeeded)
+                {
+                    return addToRoleResult;
+                }
+            }
+
+            if (string.Equals(user.RoleId, role.Id, StringComparison.Ordinal))
+            {
+                return IdentityResult.Success;
+            }
+
+            user.RoleId = role.Id;
+            return await _userManager.UpdateAsync(user);
         }
 
         private async Task<List<OrderHistoryViewModel>> GetUserOrdersAsync(string userId)

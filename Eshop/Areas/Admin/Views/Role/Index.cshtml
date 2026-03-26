@@ -59,42 +59,54 @@
                         {
                             @foreach (var item in Model)
                             {
+                                var isSystemRole = RoleNames.IsSystemRole(item.Name);
                                 <tr>
                                     <td>
                                         <span class="code-pill">@item.Id</span>
                                     </td>
 
                                     <td>
-                                        <div class="cell-main">@item.Name</div>
-                                        <div class="cell-sub">Role trong hệ thống</div>
+                                        <div class="cell-main">@RoleNames.GetDisplayName(item.Name)</div>
+                                        <div class="cell-sub">
+                                            @(isSystemRole
+                                                ? RoleNames.GetDescription(item.Name)
+                                                : "Role trong hệ thống")
+                                        </div>
                                     </td>
 
                                     <td class="text-right">
                                         <div class="action-group">
-                                            <a asp-area="Admin"
-                                                   asp-action="Edit"
-                                                   asp-controller="Role"
-                                                   asp-route-id="@item.Id"
-                                                   class="icon-btn icon-edit"
-                                                   title="Sửa">
-                                                <i class="fa fa-pencil-square-o"></i>
-                                            </a>
+                                            @if (!isSystemRole)
+                                            {
+                                                <a asp-area="Admin"
+                                                       asp-action="Edit"
+                                                       asp-controller="Role"
+                                                       asp-route-id="@item.Id"
+                                                       class="icon-btn icon-edit"
+                                                       title="Sửa">
+                                                    <i class="fa fa-pencil-square-o"></i>
+                                                </a>
 
-                                            <form asp-area="Admin"
-                                                  asp-action="Delete"
-                                                  asp-controller="Role"
-                                                  asp-route-id="@item.Id"
-                                                  method="post"
-                                                  class="delete-form d-inline">
-                                                @Html.AntiForgeryToken()
+                                                <form asp-area="Admin"
+                                                      asp-action="Delete"
+                                                      asp-controller="Role"
+                                                      asp-route-id="@item.Id"
+                                                      method="post"
+                                                      class="delete-form d-inline">
+                                                    @Html.AntiForgeryToken()
 
-                                                <button type="submit"
-                                                        class="icon-btn icon-delete js-delete"
-                                                        data-name="@item.Name"
-                                                        title="Xóa">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
+                                                    <button type="submit"
+                                                            class="icon-btn icon-delete js-delete"
+                                                            data-name="@item.Name"
+                                                            title="Xóa">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-dark">System</span>
+                                            }
                                         </div>
                                     </td>
                                 </tr>

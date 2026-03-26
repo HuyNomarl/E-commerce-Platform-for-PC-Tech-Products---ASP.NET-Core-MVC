@@ -261,7 +261,9 @@ namespace Eshop.Services
         {
             try
             {
-                await _notificationHub.Clients.Group("Admins").SendAsync("NewOrderCreated", new
+                await _notificationHub.Clients
+                    .Group(Eshop.Constants.NotificationGroups.OrderManagers)
+                    .SendAsync("NewOrderCreated", new
                 {
                     orderCode,
                     fullName,

@@ -37,7 +37,7 @@
 
                         <div class="account-auth-divider"><span>hoặc</span></div>
 
-                        <a asp-action="LoginByGoogle" asp-controller="Account" class="account-auth-secondary">
+                        <a asp-action="LoginByGoogle" asp-controller="Account" asp-route-returnUrl="@Model.ReturnURL" class="account-auth-secondary">
                             <i class="fa fa-google"></i> Đăng nhập bằng Google
                         </a>
 

@@ -3,6 +3,7 @@ using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,7 +14,7 @@ using System.Text.RegularExpressions;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.CatalogManagement)]
     public class ProductController : Controller
     {
         private readonly DataContext _dataContext;

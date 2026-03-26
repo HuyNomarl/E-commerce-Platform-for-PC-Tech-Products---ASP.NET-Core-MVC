@@ -1,46 +1,93 @@
-﻿@{
-    ViewData["title"] = "User Index";
+@model IEnumerable<AdminUserListItemViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý người dùng";
 }
 
-<h3>User Index View</h3>
-<a asp-area="Admin" asp-action="Create" asp-controller="User">Add User</a>
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col">Id</th>
-            <th scope="col">User Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">PasswordHash</th>
-            <th scope="col">Phone Number</th>
-            <th scope="col">Role</th>
-            <th scope="col">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <div>
+        <h4 class="mb-1">Người dùng</h4>
+        <div class="text-muted small">Bao gồm cả tài khoản đăng ký thường và đăng nhập qua Google.</div>
+    </div>
 
-        @foreach (var userWithRoles in Model)
-        {
+    <a asp-area="Admin" asp-controller="User" asp-action="Create" class="btn btn-primary">
+        <i class="fa fa-plus-circle me-1"></i> Thêm user
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped align-middle">
+        <thead>
             <tr>
-                <th>@userWithRoles.User.Id</th>
-                <th>@userWithRoles.User.UserName</th>
-                <td>@userWithRoles.User.Email</td>
-                <td title="@(userWithRoles?.User?.PasswordHash)">
-                    @{
-                        var hash = userWithRoles?.User?.PasswordHash ?? "";
-                        var shortHash = hash.Length > 20 ? hash.Substring(0, 20) + "..." : hash;
-                    }
-                    @shortHash
-                </td>
-                <td>@userWithRoles.User.PhoneNumber</td>
-                <td>@userWithRoles.RoleName</td>
-                <td>
-                    <a asp-action="Edit" asp-controller="User" asp-route-id="@userWithRoles.User.Id" class="btn btn-primary">Edit</a>
-                    <a asp-action="Delete" asp-controller="User" asp-route-id="@userWithRoles.User.Id" class="btn btn-primary confirmDeletion">Delete</a>
-                </td>
+                <th>Id</th>
+                <th>User Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Role</th>
+                <th>Đăng nhập</th>
+                <th>Trạng thái</th>
+                <th class="text-center">Actions</th>
             </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td><code>@user.Id</code></td>
+                        <td>@user.UserName</td>
+                        <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
+                        <td>@(string.IsNullOrWhiteSpace(user.PhoneNumber) ? "-" : user.PhoneNumber)</td>
+                        <td>
+                            <span class="badge bg-info text-dark">@user.RoleName</span>
+                        </td>
+                        <td>@user.AuthMethods</td>
+                        <td>
+                            @if (user.IsCurrentUser)
+                            {
+                                <span class="badge bg-dark">Tài khoản hiện tại</span>
+                            }
+                            else if (user.HasPassword)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">External only</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="Edit"
+                               asp-controller="User"
+                               asp-route-id="@user.Id"
+                               class="btn btn-sm btn-primary">
+                                Edit
+                            </a>
 
-        }
-
-
-    </tbody>
-</table>
+                            @if (!user.IsCurrentUser)
+                            {
+                                <form asp-action="Delete"
+                                      asp-controller="User"
+                                      asp-route-id="@user.Id"
+                                      method="post"
+                                      class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-danger confirmDeletion">
+                                        Delete
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center">Chưa có người dùng nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Eshop.Constants.PolicyNames.SupportManagement)]
     public class ChatController : Controller
     {
         private readonly DataContext _context;

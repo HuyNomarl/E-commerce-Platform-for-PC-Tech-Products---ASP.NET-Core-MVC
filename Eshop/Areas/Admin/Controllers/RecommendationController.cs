@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Eshop.Constants.PolicyNames.AdminOnly)]
     public class RecommendationController : Controller
     {
         private readonly RecommendationTrainingService _trainingService;

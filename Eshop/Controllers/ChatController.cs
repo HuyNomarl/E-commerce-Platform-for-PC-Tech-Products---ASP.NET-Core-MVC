@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace Eshop.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = Eshop.Constants.PolicyNames.CustomerSelfService)]
     public class ChatController : Controller
     {
         private readonly DataContext _context;
@@ -23,23 +23,22 @@ namespace Eshop.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAdminInfo()
         {
-            var admins = await _userManager.GetUsersInRoleAsync("Admin");
-            var admin = admins.FirstOrDefault();
+            var supportUser = await GetPreferredSupportUserAsync();
 
-            if (admin == null)
+            if (supportUser == null)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "Chưa có tài khoản admin."
+                    message = "Chưa có tài khoản hỗ trợ."
                 });
             }
 
             return Json(new
             {
                 success = true,
-                adminId = admin.Id,
-                adminName = admin.UserName
+                adminId = supportUser.Id,
+                adminName = supportUser.UserName
             });
         }
 
@@ -50,6 +49,15 @@ namespace Eshop.Controllers
 
             if (string.IsNullOrWhiteSpace(currentUserId))
                 return Unauthorized();
+
+            if (!await UserHasAnyRoleAsync(adminId, new[]
+            {
+                Eshop.Constants.RoleNames.SupportStaff,
+                Eshop.Constants.RoleNames.Admin
+            }))
+            {
+                return NotFound();
+            }
 
             var messages = await _context.Messages
                 .Where(x =>
@@ -67,6 +75,41 @@ namespace Eshop.Controllers
                 .ToListAsync();
 
             return Json(messages);
+        }
+
+        private async Task<AppUserModel?> GetPreferredSupportUserAsync()
+        {
+            foreach (var roleName in new[]
+            {
+                Eshop.Constants.RoleNames.SupportStaff,
+                Eshop.Constants.RoleNames.Admin
+            })
+            {
+                var users = await _userManager.GetUsersInRoleAsync(roleName);
+                var supportUser = users
+                    .OrderBy(x => x.UserName)
+                    .ThenBy(x => x.Email)
+                    .FirstOrDefault();
+
+                if (supportUser != null)
+                {
+                    return supportUser;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<bool> UserHasAnyRoleAsync(string userId, IEnumerable<string> supportedRoles)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.Any(role => supportedRoles.Contains(role, StringComparer.OrdinalIgnoreCase));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿@if (User.Identity != null && User.Identity.IsAuthenticated)
+@if (User.IsCustomerOnly())
 {
     <button id="supportChatToggle" class="support-chat-fab" type="button" title="Chat hỗ trợ">
         <i class="fa fa-comments"></i>

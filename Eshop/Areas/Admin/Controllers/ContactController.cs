@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = Eshop.Constants.PolicyNames.AdminOnly)]
     public class ContactController : Controller
     {
         private readonly DataContext _dataContext;

@@ -3,6 +3,7 @@ using Eshop.Helpers;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
+using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -11,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize]
+    [Authorize(Policy = PolicyNames.OrderManagement)]
     public class OrderController : Controller
     {
         private readonly DataContext _dataContext;
