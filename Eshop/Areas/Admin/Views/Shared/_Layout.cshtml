@@ -1,10 +1,48 @@
 ﻿@using System.Text.Json
+@using System.Security.Claims
 @{
+    string BuildInitials(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "AD";
+        }
+
+        var parts = value.Split(new[] { ' ', '.', '-', '_', '@' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 0)
+        {
+            return "AD";
+        }
+
+        if (parts.Length == 1)
+        {
+            var part = parts[0];
+            return part.Length >= 2
+                ? part[..2].ToUpperInvariant()
+                : part.ToUpperInvariant();
+        }
+
+        return $"{char.ToUpperInvariant(parts[0][0])}{char.ToUpperInvariant(parts[1][0])}";
+    }
+
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var adminName = User.Identity?.Name;
+    var adminEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+    var adminDisplayName = !string.IsNullOrWhiteSpace(adminName)
+        ? adminName
+        : !string.IsNullOrWhiteSpace(adminEmail)
+            ? adminEmail
+            : "Admin";
+    var adminSubtitle = !string.IsNullOrWhiteSpace(adminEmail) && adminEmail != adminDisplayName
+        ? adminEmail
+        : "Tài khoản đang hoạt động";
+    var adminRoleLabel = User.IsInRole("Admin") ? "Quản trị viên" : "Tài khoản nội bộ";
+    var adminInitials = BuildInitials(adminDisplayName);
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,7 +64,7 @@
                 <link href="~/css/main.css" rel="stylesheet">
                     <link href="~/css/responsive.css" rel="stylesheet">
 
-                        <link rel="shortcut icon" href="images/ico/favicon.ico">
+                        <link rel="shortcut icon" href="~/images/ico/favicon.ico">
 
                         <style>
                                 .swal2-actions {
@@ -86,18 +124,250 @@
                                 .admin-topbar-right {
                                     display: flex;
                                     align-items: center;
-                                    gap: 10px;
+                                    justify-content: flex-end;
+                                    gap: 14px;
+                                    flex-wrap: wrap;
                                 }
 
-                                .admin-search {
-                                    min-width: 240px;
+                                .admin-alerts {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                    flex-wrap: wrap;
                                 }
 
-                                    .admin-search input {
-                                        border-radius: 10px;
-                                        border: 1px solid #d1d5db;
-                                        box-shadow: none;
-                                        height: 40px;
+                                .admin-alert-btn {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 12px;
+                                    min-width: 218px;
+                                    padding: 10px 14px;
+                                    border-radius: 16px;
+                                    border: 1px solid #e5e7eb;
+                                    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+                                    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+                                    text-decoration: none;
+                                    color: #111827;
+                                    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+                                }
+
+                                    .admin-alert-btn:hover {
+                                        transform: translateY(-1px);
+                                        border-color: #cbd5e1;
+                                        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+                                        text-decoration: none;
+                                        color: #111827;
+                                    }
+
+                                    .admin-alert-btn.active {
+                                        background: #111827;
+                                        border-color: #111827;
+                                        color: #ffffff;
+                                    }
+
+                                .admin-alert-icon {
+                                    position: relative;
+                                    width: 46px;
+                                    height: 46px;
+                                    border-radius: 14px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 18px;
+                                    color: #ffffff;
+                                    background: linear-gradient(135deg, #b45309, #f59e0b);
+                                    flex-shrink: 0;
+                                }
+
+                                .admin-alert-btn.chat .admin-alert-icon {
+                                    background: linear-gradient(135deg, #0f766e, #14b8a6);
+                                }
+
+                                .admin-alert-btn.active .admin-alert-icon {
+                                    background: rgba(255, 255, 255, 0.14);
+                                }
+
+                                .admin-alert-type {
+                                    position: absolute;
+                                    right: -3px;
+                                    bottom: -3px;
+                                    width: 20px;
+                                    height: 20px;
+                                    border-radius: 999px;
+                                    background: #ffffff;
+                                    border: 2px solid #ffffff;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 10px;
+                                    color: #b45309;
+                                    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+                                }
+
+                                .admin-alert-btn.chat .admin-alert-type {
+                                    color: #0f766e;
+                                }
+
+                                .admin-alert-badge {
+                                    position: absolute;
+                                    top: -7px;
+                                    right: -9px;
+                                    min-width: 22px;
+                                    height: 22px;
+                                    padding: 0 6px;
+                                    border-radius: 999px;
+                                    background: #ef4444;
+                                    color: #ffffff;
+                                    display: none;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    line-height: 1;
+                                    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9);
+                                }
+
+                                .admin-alert-meta {
+                                    min-width: 0;
+                                }
+
+                                    .admin-alert-meta strong {
+                                        display: block;
+                                        font-size: 14px;
+                                        font-weight: 700;
+                                        color: inherit;
+                                        line-height: 1.25;
+                                    }
+
+                                    .admin-alert-meta small {
+                                        display: block;
+                                        margin-top: 3px;
+                                        font-size: 12px;
+                                        color: #6b7280;
+                                        white-space: nowrap;
+                                        overflow: hidden;
+                                        text-overflow: ellipsis;
+                                    }
+
+                                .admin-alert-btn.active .admin-alert-meta small {
+                                    color: rgba(255, 255, 255, 0.72);
+                                }
+
+                                .admin-account-card {
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 14px;
+                                    padding: 10px 14px;
+                                    min-width: 290px;
+                                    max-width: 380px;
+                                    border-radius: 18px;
+                                    border: 1px solid #e5e7eb;
+                                    background: #ffffff;
+                                    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+                                }
+
+                                .admin-account-avatar {
+                                    width: 50px;
+                                    height: 50px;
+                                    border-radius: 16px;
+                                    background: linear-gradient(135deg, #111827, #334155);
+                                    color: #ffffff;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 16px;
+                                    font-weight: 700;
+                                    letter-spacing: .04em;
+                                    flex-shrink: 0;
+                                }
+
+                                .admin-account-meta {
+                                    min-width: 0;
+                                }
+
+                                .admin-account-status {
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 7px;
+                                    margin-bottom: 4px;
+                                    color: #6b7280;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    letter-spacing: .08em;
+                                }
+
+                                    .admin-account-status::before {
+                                        content: "";
+                                        width: 8px;
+                                        height: 8px;
+                                        border-radius: 50%;
+                                        background: #22c55e;
+                                        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+                                    }
+
+                                .admin-account-name,
+                                .admin-account-sub {
+                                    display: block;
+                                    white-space: nowrap;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                }
+
+                                .admin-account-name {
+                                    color: #111827;
+                                    font-size: 15px;
+                                    font-weight: 700;
+                                    line-height: 1.3;
+                                }
+
+                                .admin-account-sub {
+                                    margin-top: 2px;
+                                    color: #6b7280;
+                                    font-size: 12px;
+                                }
+
+                                .admin-account-side {
+                                    display: flex;
+                                    flex-direction: column;
+                                    align-items: flex-end;
+                                    gap: 8px;
+                                    margin-left: auto;
+                                    flex-shrink: 0;
+                                }
+
+                                .admin-role-pill {
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    padding: 6px 10px;
+                                    border-radius: 999px;
+                                    background: #eff6ff;
+                                    color: #1d4ed8;
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    text-transform: uppercase;
+                                    letter-spacing: .05em;
+                                }
+
+                                .admin-logout {
+                                    width: 36px;
+                                    height: 36px;
+                                    border-radius: 12px;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    background: #f3f4f6;
+                                    color: #111827;
+                                    text-decoration: none;
+                                    transition: background-color .2s ease, color .2s ease, transform .2s ease;
+                                }
+
+                                    .admin-logout:hover {
+                                        background: #111827;
+                                        color: #ffffff;
+                                        text-decoration: none;
+                                        transform: translateY(-1px);
                                     }
 
                                 .admin-main {
@@ -265,11 +535,6 @@
                                         position: static;
                                     }
 
-                                    .admin-search {
-                                        min-width: 180px;
-                                        width: 100%;
-                                    }
-
                                     .admin-topbar-inner {
                                         flex-direction: column;
                                         align-items: stretch;
@@ -277,7 +542,17 @@
 
                                     .admin-topbar-right {
                                         width: 100%;
-                                        justify-content: flex-end;
+                                        justify-content: space-between;
+                                    }
+
+                                    .admin-alert-btn {
+                                        min-width: 0;
+                                        flex: 1 1 210px;
+                                    }
+
+                                    .admin-account-card {
+                                        flex: 1 1 300px;
+                                        max-width: none;
                                     }
                                 }
 
@@ -293,6 +568,34 @@
                                     .page-head {
                                         flex-direction: column;
                                         align-items: flex-start;
+                                    }
+
+                                    .admin-topbar-right {
+                                        flex-direction: column;
+                                        align-items: stretch;
+                                    }
+
+                                    .admin-alerts {
+                                        width: 100%;
+                                        display: grid;
+                                        grid-template-columns: 1fr;
+                                    }
+
+                                    .admin-account-card {
+                                        width: 100%;
+                                        min-width: 0;
+                                        max-width: none;
+                                        flex-wrap: wrap;
+                                    }
+
+                                    .admin-account-side {
+                                        width: 100%;
+                                        flex-direction: row;
+                                        align-items: center;
+                                        justify-content: space-between;
+                                        margin-left: 0;
+                                        padding-top: 8px;
+                                        border-top: 1px solid #eef2f7;
                                     }
                                 }
                         </style>
@@ -313,8 +616,67 @@
                                         </div>
 
                                         <div class="admin-topbar-right">
-                                            <div class="admin-search">
-                                                <input type="text" class="form-control" placeholder="Search..." />
+                                            <div class="admin-alerts">
+                                                <a asp-controller="Order"
+                                                   asp-action="Index"
+                                                   id="orderAlertButton"
+                                                   class="admin-alert-btn order @(currentController == "Order" ? "active" : "")"
+                                                   title="Xem thông báo đơn hàng mới"
+                                                   aria-label="Xem thông báo đơn hàng mới">
+                                                    <span class="admin-alert-icon">
+                                                        <i class="fa fa-bell"></i>
+                                                        <span class="admin-alert-type">
+                                                            <i class="fa fa-shopping-bag"></i>
+                                                        </span>
+                                                        <span id="orderBadge" class="admin-alert-badge">0</span>
+                                                    </span>
+                                                    <span class="admin-alert-meta">
+                                                        <strong>Đơn hàng mới</strong>
+                                                        <small>Theo dõi đơn phát sinh realtime</small>
+                                                    </span>
+                                                </a>
+
+                                                <a asp-controller="Chat"
+                                                   asp-action="Index"
+                                                   id="chatAlertButton"
+                                                   class="admin-alert-btn chat @(currentController == "Chat" ? "active" : "")"
+                                                   title="Xem thông báo chat mới"
+                                                   aria-label="Xem thông báo chat mới">
+                                                    <span class="admin-alert-icon">
+                                                        <i class="fa fa-bell"></i>
+                                                        <span class="admin-alert-type">
+                                                            <i class="fa fa-comments"></i>
+                                                        </span>
+                                                        <span id="chatBadge" class="admin-alert-badge">0</span>
+                                                    </span>
+                                                    <span class="admin-alert-meta">
+                                                        <strong>Tin nhắn mới</strong>
+                                                        <small>Không bỏ lỡ hội thoại hỗ trợ</small>
+                                                    </span>
+                                                </a>
+                                            </div>
+
+                                            <div class="admin-account-card">
+                                                <div class="admin-account-avatar">@adminInitials</div>
+
+                                                <div class="admin-account-meta">
+                                                    <span class="admin-account-status">Đang đăng nhập</span>
+                                                    <strong class="admin-account-name">@adminDisplayName</strong>
+                                                    <span class="admin-account-sub">@adminSubtitle</span>
+                                                </div>
+
+                                                <div class="admin-account-side">
+                                                    <span class="admin-role-pill">@adminRoleLabel</span>
+                                                    <a asp-area=""
+                                                       asp-controller="Account"
+                                                       asp-action="Logout"
+                                                       asp-route-returnURL="/Account/Login"
+                                                       class="admin-logout"
+                                                       title="Đăng xuất"
+                                                       aria-label="Đăng xuất">
+                                                        <i class="fa fa-sign-out"></i>
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -426,7 +788,7 @@
                                                     </div>
                                                 </div> *@
 
-                                                @Html.Partial("_NotificationPartial")
+                                                @await Html.PartialAsync("_NotificationPartial")
 
                                                 <div class="render-body-wrap">
                                                     @RenderBody()
@@ -456,7 +818,6 @@
                         <script src="~/js/main.js"></script>
                         <script src="~/backend/js/site.js"></script>
 
-                        <script src="//cdn.datatables.net/2.3.6/js/dataTables.min.js"></script>
                         <script src="https://cdn.datatables.net/2.3.6/js/dataTables.min.js"></script>
                         <script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.min.js"></script>
                         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -488,41 +849,102 @@
                                     });
                                 });
 
-                                const ORDER_KEY = "admin_has_new_order";
-                                const CHAT_KEY = "admin_has_new_chat";
+                                const ORDER_KEY = "admin_order_notify_count";
+                                const CHAT_KEY = "admin_chat_notify_count";
+                                const ORDER_LEGACY_KEY = "admin_has_new_order";
+                                const CHAT_LEGACY_KEY = "admin_has_new_chat";
+                                const CURRENT_CONTROLLER = "@currentController".toLowerCase();
 
-                                function setDotVisible(id, visible) {
-                                    const el = document.getElementById(id);
-                                    if (!el) return;
-                                    el.style.display = visible ? "inline-block" : "none";
+                                function getStoredCount(key, legacyKey) {
+                                    const raw = localStorage.getItem(key);
+
+                                    if (raw !== null) {
+                                        const parsed = parseInt(raw, 10);
+                                        return Number.isNaN(parsed) ? 0 : Math.max(parsed, 0);
+                                    }
+
+                                    return localStorage.getItem(legacyKey) === "1" ? 1 : 0;
                                 }
 
-                                function restoreDots() {
-                                    setDotVisible("orderDot", localStorage.getItem(ORDER_KEY) === "1");
-                                    setDotVisible("chatDot", localStorage.getItem(CHAT_KEY) === "1");
+                                function setStoredCount(key, legacyKey, count) {
+                                    if (count > 0) {
+                                        localStorage.setItem(key, String(count));
+                                        localStorage.setItem(legacyKey, "1");
+                                        return;
+                                    }
+
+                                    localStorage.removeItem(key);
+                                    localStorage.removeItem(legacyKey);
                                 }
 
-                                function markNewOrder() {
-                                    localStorage.setItem(ORDER_KEY, "1");
-                                    setDotVisible("orderDot", true);
+                                function setIndicatorState(dotId, badgeId, count) {
+                                    const dot = document.getElementById(dotId);
+                                    const badge = document.getElementById(badgeId);
+                                    const hasUnread = count > 0;
+
+                                    if (dot) {
+                                        dot.style.display = hasUnread ? "inline-block" : "none";
+                                    }
+
+                                    if (badge) {
+                                        badge.style.display = hasUnread ? "inline-flex" : "none";
+                                        badge.textContent = count > 99 ? "99+" : String(count);
+                                    }
                                 }
 
-                                function markNewChat() {
-                                    localStorage.setItem(CHAT_KEY, "1");
-                                    setDotVisible("chatDot", true);
+                                function syncOrderIndicators() {
+                                    setIndicatorState("orderDot", "orderBadge", getStoredCount(ORDER_KEY, ORDER_LEGACY_KEY));
+                                }
+
+                                function syncChatIndicators() {
+                                    setIndicatorState("chatDot", "chatBadge", getStoredCount(CHAT_KEY, CHAT_LEGACY_KEY));
+                                }
+
+                                function restoreIndicators() {
+                                    syncOrderIndicators();
+                                    syncChatIndicators();
+                                }
+
+                                function incrementOrderCount() {
+                                    if (CURRENT_CONTROLLER === "order") {
+                                        clearOrderMark();
+                                        return;
+                                    }
+
+                                    setStoredCount(ORDER_KEY, ORDER_LEGACY_KEY, getStoredCount(ORDER_KEY, ORDER_LEGACY_KEY) + 1);
+                                    syncOrderIndicators();
+                                }
+
+                                function incrementChatCount() {
+                                    if (CURRENT_CONTROLLER === "chat") {
+                                        clearChatMark();
+                                        return;
+                                    }
+
+                                    setStoredCount(CHAT_KEY, CHAT_LEGACY_KEY, getStoredCount(CHAT_KEY, CHAT_LEGACY_KEY) + 1);
+                                    syncChatIndicators();
                                 }
 
                                 function clearOrderMark() {
-                                    localStorage.removeItem(ORDER_KEY);
-                                    setDotVisible("orderDot", false);
+                                    setStoredCount(ORDER_KEY, ORDER_LEGACY_KEY, 0);
+                                    syncOrderIndicators();
                                 }
 
                                 function clearChatMark() {
-                                    localStorage.removeItem(CHAT_KEY);
-                                    setDotVisible("chatDot", false);
+                                    setStoredCount(CHAT_KEY, CHAT_LEGACY_KEY, 0);
+                                    syncChatIndicators();
                                 }
 
-                                function showRealtimeToast(icon, title, text) {
+                                function attachClearHandler(id, clearFn) {
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+
+                                    el.addEventListener("click", function () {
+                                        clearFn();
+                                    });
+                                }
+
+                                function showRealtimeToast(icon, title, text, url) {
                                     Swal.fire({
                                         toast: true,
                                         position: 'top-end',
@@ -531,26 +953,32 @@
                                         text: text,
                                         showConfirmButton: false,
                                         timer: 5000,
-                                        timerProgressBar: true
+                                        timerProgressBar: true,
+                                        didOpen: (toast) => {
+                                            if (!url) return;
+
+                                            toast.style.cursor = "pointer";
+                                            toast.addEventListener("click", function () {
+                                                window.location.href = url;
+                                            }, { once: true });
+                                        }
                                     });
                                 }
 
-                                restoreDots();
+                                restoreIndicators();
 
-                                const menuOrders = document.getElementById("menuOrders");
-                                const menuChat = document.getElementById("menuChat");
-
-                                if (menuOrders) {
-                                    menuOrders.addEventListener("click", function () {
-                                        clearOrderMark();
-                                    });
+                                if (CURRENT_CONTROLLER === "order") {
+                                    clearOrderMark();
                                 }
 
-                                if (menuChat) {
-                                    menuChat.addEventListener("click", function () {
-                                        clearChatMark();
-                                    });
+                                if (CURRENT_CONTROLLER === "chat") {
+                                    clearChatMark();
                                 }
+
+                                attachClearHandler("menuOrders", clearOrderMark);
+                                attachClearHandler("orderAlertButton", clearOrderMark);
+                                attachClearHandler("menuChat", clearChatMark);
+                                attachClearHandler("chatAlertButton", clearChatMark);
 
                                 if (typeof signalR !== "undefined") {
                                     const notificationConnection = new signalR.HubConnectionBuilder()
@@ -559,12 +987,19 @@
                                         .build();
 
                                     notificationConnection.on("NewOrderCreated", function (data) {
-                                        markNewOrder();
+                                        incrementOrderCount();
+
+                                        const orderCode = data && data.orderCode ? data.orderCode : "chưa có mã";
+                                        const orderCustomer = data && data.fullName ? data.fullName : "";
+                                        const orderText = orderCustomer
+                                            ? "Mã đơn: " + orderCode + " - " + orderCustomer
+                                            : "Mã đơn: " + orderCode;
 
                                         showRealtimeToast(
                                             "info",
                                             "Đơn hàng mới",
-                                            "Mã đơn: " + data.orderCode + " - " + data.fullName
+                                            orderText,
+                                            data && data.url ? data.url : "/Admin/Order"
                                         );
 
                                         window.dispatchEvent(new CustomEvent("eshop:new-order", {
@@ -573,12 +1008,18 @@
                                     });
 
                                     notificationConnection.on("NewChatNotification", function (data) {
-                                        markNewChat();
+                                        incrementChatCount();
+
+                                        const chatSender = data && data.fromUserName ? data.fromUserName : "Khách hàng";
+                                        const chatText = data && data.preview
+                                            ? chatSender + ": " + data.preview
+                                            : "Có đoạn chat mới cần phản hồi.";
 
                                         showRealtimeToast(
                                             "info",
                                             "Chat mới",
-                                            data.fromUserName + ": " + data.preview
+                                            chatText,
+                                            data && data.url ? data.url : "/Admin/Chat"
                                         );
 
                                         window.dispatchEvent(new CustomEvent("eshop:new-chat", {
@@ -589,7 +1030,6 @@
                                     async function startNotificationHub() {
                                         try {
                                             await notificationConnection.start();
-                                            console.log("NotificationHub connected");
                                         } catch (err) {
                                             console.error(err);
                                             setTimeout(startNotificationHub, 5000);
