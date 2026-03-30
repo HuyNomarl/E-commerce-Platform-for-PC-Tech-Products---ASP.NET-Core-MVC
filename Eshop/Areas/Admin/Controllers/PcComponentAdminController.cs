@@ -36,6 +36,7 @@ namespace Eshop.Areas.Admin.Controllers
             var items = await _context.Products
                 .Include(x => x.Publisher)
                 .Include(x => x.Category)
+                .Include(x => x.ProductImages)
                 .Where(x => x.ProductType == ProductType.Component || x.ProductType == ProductType.Monitor)
                 .OrderByDescending(x => x.Id)
                 .ToListAsync();

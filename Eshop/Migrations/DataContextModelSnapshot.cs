@@ -17,7 +17,7 @@ namespace Eshop.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -131,7 +131,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.CompareModel", b =>
@@ -160,7 +160,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("Compares");
+                    b.ToTable("Compares", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ContactModel", b =>
@@ -189,7 +189,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Contact");
+                    b.ToTable("Contact", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.CouponModel", b =>
@@ -235,7 +235,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coupons");
+                    b.ToTable("Coupons", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReceiptDetailModel", b =>
@@ -264,7 +264,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryReceiptDetails");
+                    b.ToTable("InventoryReceiptDetails", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReceiptModel", b =>
@@ -329,7 +329,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryReceipts");
+                    b.ToTable("InventoryReceipts", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReservationDetailModel", b =>
@@ -360,7 +360,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryReservationDetails");
+                    b.ToTable("InventoryReservationDetails", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReservationModel", b =>
@@ -420,7 +420,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SessionId", "Status");
 
-                    b.ToTable("InventoryReservations");
+                    b.ToTable("InventoryReservations", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryStockModel", b =>
@@ -450,7 +450,7 @@ namespace Eshop.Migrations
                     b.HasIndex("ProductId", "WarehouseId")
                         .IsUnique();
 
-                    b.ToTable("InventoryStocks");
+                    b.ToTable("InventoryStocks", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryTransactionDetailModel", b =>
@@ -485,7 +485,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryTransactionDetails");
+                    b.ToTable("InventoryTransactionDetails", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryTransactionModel", b =>
@@ -531,7 +531,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryTransactions");
+                    b.ToTable("InventoryTransactions", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.MessageModel", b =>
@@ -569,7 +569,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SenderId", "ReceiverId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.OrderDetails", b =>
@@ -617,7 +617,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.OrderModel", b =>
@@ -710,7 +710,7 @@ namespace Eshop.Migrations
                     b.HasIndex("OrderCode")
                         .IsUnique();
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.PcBuildItemModel", b =>
@@ -739,7 +739,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PcBuildItems");
+                    b.ToTable("PcBuildItems", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.PcBuildModel", b =>
@@ -769,7 +769,57 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PcBuilds");
+                    b.ToTable("PcBuilds", (string)null);
+                });
+
+            modelBuilder.Entity("Eshop.Models.PcBuildShareModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("OpenedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PcBuildId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReceiverUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SenderUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ShareCode")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PcBuildId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("ShareCode")
+                        .IsUnique()
+                        .HasFilter("[ShareCode] IS NOT NULL");
+
+                    b.HasIndex("ReceiverUserId", "CreatedAt");
+
+                    b.ToTable("PcBuildShares", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.PrebuiltPcComponentModel", b =>
@@ -801,7 +851,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PrebuiltPcComponents");
+                    b.ToTable("PrebuiltPcComponents", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductImageModel", b =>
@@ -833,7 +883,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages");
+                    b.ToTable("ProductImages", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductModel", b =>
@@ -891,7 +941,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("PublisherId");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionGroupModel", b =>
@@ -919,7 +969,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductOptionGroups");
+                    b.ToTable("ProductOptionGroups", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionValueModel", b =>
@@ -956,7 +1006,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductOptionGroupId");
 
-                    b.ToTable("ProductOptionValues");
+                    b.ToTable("ProductOptionValues", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductQuantityModel", b =>
@@ -983,7 +1033,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductModelId");
 
-                    b.ToTable("productQuantityModels");
+                    b.ToTable("productQuantityModels", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductSpecificationModel", b =>
@@ -1018,7 +1068,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SpecificationDefinitionId");
 
-                    b.ToTable("ProductSpecifications");
+                    b.ToTable("ProductSpecifications", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductTechnicalAssetModel", b =>
@@ -1055,7 +1105,7 @@ namespace Eshop.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("ProductTechnicalAssets");
+                    b.ToTable("ProductTechnicalAssets", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.PublisherModel", b =>
@@ -1082,7 +1132,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Publishers");
+                    b.ToTable("Publishers", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingMediaModel", b =>
@@ -1126,7 +1176,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("RatingId", "SortOrder");
 
-                    b.ToTable("RatingMedia");
+                    b.ToTable("RatingMedia", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingModel", b =>
@@ -1136,6 +1186,21 @@ namespace Eshop.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminReply")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("AdminReplyAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AdminReplyByName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("AdminReplyUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
@@ -1173,7 +1238,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("RatingModels");
+                    b.ToTable("RatingModels", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.ShippingModel", b =>
@@ -1207,7 +1272,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shippings");
+                    b.ToTable("Shippings", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.SliderModel", b =>
@@ -1234,7 +1299,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sliders");
+                    b.ToTable("Sliders", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.SpecificationDefinitionModel", b =>
@@ -1276,7 +1341,7 @@ namespace Eshop.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("SpecificationDefinitions");
+                    b.ToTable("SpecificationDefinitions", (string)null);
 
                     b.HasData(
                         new
@@ -1740,7 +1805,7 @@ namespace Eshop.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("Eshop.Models.WishlistModel", b =>
@@ -1769,7 +1834,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("Wishlists");
+                    b.ToTable("Wishlists", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -2103,6 +2168,33 @@ namespace Eshop.Migrations
                     b.Navigation("PcBuild");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Eshop.Models.PcBuildShareModel", b =>
+                {
+                    b.HasOne("Eshop.Models.PcBuildModel", "PcBuild")
+                        .WithMany()
+                        .HasForeignKey("PcBuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.AppUserModel", "ReceiverUser")
+                        .WithMany()
+                        .HasForeignKey("ReceiverUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Eshop.Models.AppUserModel", "SenderUser")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PcBuild");
+
+                    b.Navigation("ReceiverUser");
+
+                    b.Navigation("SenderUser");
                 });
 
             modelBuilder.Entity("Eshop.Models.PrebuiltPcComponentModel", b =>

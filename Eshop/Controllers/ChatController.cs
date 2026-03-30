@@ -1,36 +1,40 @@
-﻿using Eshop.Repository;
+using Eshop.Constants;
+using Eshop.Models;
+using Eshop.Models.ViewModels;
+using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Eshop.Models;
 using System.Security.Claims;
 
 namespace Eshop.Controllers
 {
-    [Authorize(Policy = Eshop.Constants.PolicyNames.CustomerSelfService)]
+    [Authorize(Policy = PolicyNames.CustomerSelfService)]
     public class ChatController : Controller
     {
-        private readonly DataContext _context;
         private readonly UserManager<AppUserModel> _userManager;
+        private readonly ISupportChatService _supportChatService;
 
-        public ChatController(DataContext context, UserManager<AppUserModel> userManager)
+        public ChatController(
+            UserManager<AppUserModel> userManager,
+            ISupportChatService supportChatService)
         {
-            _context = context;
             _userManager = userManager;
+            _supportChatService = supportChatService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAdminInfo()
         {
-            var supportUser = await GetPreferredSupportUserAsync();
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var supportUser = await _supportChatService.GetPreferredSupportUserAsync(currentUserId);
 
             if (supportUser == null)
             {
                 return Json(new
                 {
                     success = false,
-                    message = "Chưa có tài khoản hỗ trợ."
+                    message = "Chua co tai khoan ho tro."
                 });
             }
 
@@ -38,78 +42,52 @@ namespace Eshop.Controllers
             {
                 success = true,
                 adminId = supportUser.Id,
-                adminName = supportUser.UserName
+                adminName = supportUser.UserName,
+                title = "Doi ngu ho tro"
             });
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSupportMessages(string adminId)
+        public async Task<IActionResult> GetSupportMessages(string? adminId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrWhiteSpace(currentUserId))
+            {
                 return Unauthorized();
-
-            if (!await UserHasAnyRoleAsync(adminId, new[]
-            {
-                Eshop.Constants.RoleNames.SupportStaff,
-                Eshop.Constants.RoleNames.Admin
-            }))
-            {
-                return NotFound();
             }
 
-            var messages = await _context.Messages
-                .Where(x =>
-                    (x.SenderId == currentUserId && x.ReceiverId == adminId) ||
-                    (x.SenderId == adminId && x.ReceiverId == currentUserId))
-                .OrderBy(x => x.CreatedAt)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.SenderId,
-                    x.ReceiverId,
-                    x.Content,
-                    CreatedAt = x.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                })
-                .ToListAsync();
-
+            await _supportChatService.MarkConversationReadForCustomerAsync(currentUserId);
+            var messages = await _supportChatService.GetConversationForCustomerAsync(currentUserId);
             return Json(messages);
         }
 
-        private async Task<AppUserModel?> GetPreferredSupportUserAsync()
+        [HttpGet]
+        public async Task<IActionResult> SearchProducts(string? term)
         {
-            foreach (var roleName in new[]
-            {
-                Eshop.Constants.RoleNames.SupportStaff,
-                Eshop.Constants.RoleNames.Admin
-            })
-            {
-                var users = await _userManager.GetUsersInRoleAsync(roleName);
-                var supportUser = users
-                    .OrderBy(x => x.UserName)
-                    .ThenBy(x => x.Email)
-                    .FirstOrDefault();
-
-                if (supportUser != null)
-                {
-                    return supportUser;
-                }
-            }
-
-            return null;
+            var products = await _supportChatService.SearchProductsAsync(term);
+            return Json(products);
         }
 
-        private async Task<bool> UserHasAnyRoleAsync(string userId, IEnumerable<string> supportedRoles)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendSupportMessage([FromForm] SupportChatSendInputViewModel input)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                return false;
+                return Unauthorized();
             }
 
-            var roles = await _userManager.GetRolesAsync(user);
-            return roles.Any(role => supportedRoles.Contains(role, StringComparer.OrdinalIgnoreCase));
+            try
+            {
+                var payload = await _supportChatService.SendAsync(currentUser.Id, input.ReceiverId, input);
+                return Json(payload);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

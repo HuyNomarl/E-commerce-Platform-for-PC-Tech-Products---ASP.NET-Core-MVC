@@ -1,22 +1,30 @@
-﻿using Eshop.Repository;
+using Eshop.Constants;
+using Eshop.Models;
+using Eshop.Models.ViewModels;
+using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Eshop.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Policy = Eshop.Constants.PolicyNames.SupportManagement)]
+    [Authorize(Policy = PolicyNames.SupportManagement)]
     public class ChatController : Controller
     {
-        private readonly DataContext _context;
+        private readonly UserManager<AppUserModel> _userManager;
+        private readonly ISupportChatService _supportChatService;
 
-        public ChatController(DataContext context)
+        public ChatController(
+            UserManager<AppUserModel> userManager,
+            ISupportChatService supportChatService)
         {
-            _context = context;
+            _userManager = userManager;
+            _supportChatService = supportChatService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
             return View();
         }
@@ -24,48 +32,54 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUsersChatted()
         {
-            var adminId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-            var userIds = await _context.Messages
-                .Where(x => x.SenderId == adminId || x.ReceiverId == adminId)
-                .Select(x => x.SenderId == adminId ? x.ReceiverId : x.SenderId)
-                .Distinct()
-                .ToListAsync();
-
-            var users = await _context.Users
-                .Where(x => userIds.Contains(x.Id))
-                .Select(x => new
-                {
-                    x.Id,
-                    x.UserName,
-                    x.Email
-                })
-                .ToListAsync();
-
+            var users = await _supportChatService.GetSupportConversationsAsync();
             return Json(users);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetMessages(string userId)
         {
-            var adminId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest();
+            }
 
-            var messages = await _context.Messages
-                .Where(x =>
-                    (x.SenderId == adminId && x.ReceiverId == userId) ||
-                    (x.SenderId == userId && x.ReceiverId == adminId))
-                .OrderBy(x => x.CreatedAt)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.SenderId,
-                    x.ReceiverId,
-                    x.Content,
-                    CreatedAt = x.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                })
-                .ToListAsync();
-
+            await _supportChatService.MarkConversationReadForSupportAsync(userId);
+            var messages = await _supportChatService.GetConversationForSupportAsync(userId);
             return Json(messages);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchProducts(string? term)
+        {
+            var products = await _supportChatService.SearchProductsAsync(term);
+            return Json(products);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage([FromForm] SupportChatSendInputViewModel input)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
+            if (string.IsNullOrWhiteSpace(input.ReceiverId))
+            {
+                return BadRequest(new { message = "Chua chon khach hang de chat." });
+            }
+
+            try
+            {
+                var payload = await _supportChatService.SendAsync(currentUser.Id, input.ReceiverId, input);
+                return Json(payload);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

@@ -63,6 +63,7 @@ namespace Eshop.Controllers
                     .AsNoTracking()
                     .Include(p => p.Publisher)
                     .Include(p => p.Category)
+                    .Include(p => p.ProductImages)
                     .ToListAsync();
 
                 var productCacheOptions = new MemoryCacheEntryOptions()
@@ -312,6 +313,8 @@ namespace Eshop.Controllers
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Publisher)
                 .Include(x => x.Product)
+                    .ThenInclude(p => p.ProductImages)
+                .Include(x => x.Product)
                     .ThenInclude(p => p.RatingModel)
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Specifications)
@@ -418,6 +421,8 @@ namespace Eshop.Controllers
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Publisher)
                 .Include(x => x.Product)
+                    .ThenInclude(p => p.ProductImages)
+                .Include(x => x.Product)
                     .ThenInclude(p => p.RatingModel)
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Specifications)
@@ -449,7 +454,7 @@ namespace Eshop.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error(int statuscode)
         {
-            if (statuscode == 0)
+            if (statuscode == 404)
             {
                 return View("NotFound");
             }

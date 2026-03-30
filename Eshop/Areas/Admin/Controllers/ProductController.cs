@@ -37,6 +37,7 @@ namespace Eshop.Areas.Admin.Controllers
                 .OrderByDescending(p => p.Id)
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
+                .Include(p => p.ProductImages)
                 .ToListAsync();
 
             return View(products);
@@ -237,6 +238,8 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var blockReason = await GetDeleteBlockReasonAsync(id);

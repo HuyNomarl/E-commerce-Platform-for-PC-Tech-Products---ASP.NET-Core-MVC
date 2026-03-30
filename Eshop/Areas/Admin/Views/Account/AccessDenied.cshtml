@@ -17,8 +17,12 @@
             <a class="btn btn-outline-secondary" href="@returnUrl">Thử lại</a>
         }
 
-        <a class="btn btn-outline-danger" href="/Account/Logout?returnURL=/Account/Login">
-            Đăng xuất
-        </a>
+        <form asp-controller="Account" asp-action="Logout" asp-area="" method="post" style="display:inline-block;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnURL" value="/Account/Login" />
+            <button type="submit" class="btn btn-outline-danger">
+                Đăng xuất
+            </button>
+        </form>
     </div>
 </div>

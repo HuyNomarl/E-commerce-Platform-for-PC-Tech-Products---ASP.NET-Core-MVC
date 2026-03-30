@@ -10,6 +10,7 @@ wwwroot\css\prettyPhoto.css
 wwwroot\css\price-range.css
 wwwroot\css\responsive.css
 wwwroot\css\site-custom.css
+wwwroot\css\typography.css
 wwwroot\favicon.ico
 wwwroot\images\dune.jpg
 wwwroot\images\gallery1.jpg
@@ -118,11 +119,11 @@ E:\Web C#\Eshop\Eshop\wwwroot\css\animate.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\bootstrap.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\font-awesome.min.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\home-index.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
+E:\Web C#\Eshop\Eshop\wwwroot\css\typography.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\prettyPhoto.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\price-range.css
 E:\Web C#\Eshop\Eshop\wwwroot\css\responsive.css
-E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css
+E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
 E:\Web C#\Eshop\Eshop\wwwroot\favicon.ico
 E:\Web C#\Eshop\Eshop\wwwroot\js\admin-dashboard.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\bootstrap.min.js
@@ -134,7 +135,7 @@ E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.prettyPhoto.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\jquery.scrollUp.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\main.js
 E:\Web C#\Eshop\Eshop\wwwroot\js\price-range.js
-E:\Web C#\Eshop\Eshop\wwwroot\js\support-chat.js
+E:\Web C#\Eshop\Eshop\wwwroot\css\main.css
 E:\Web C#\Eshop\Eshop\wwwroot\js\swal-helpers.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
 E:\Web C#\Eshop\Eshop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css.map
@@ -193,3 +194,4 @@ E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Web C#\Eshop\Eshop\wwwroot\lib\jquery\LICENSE.txt
+E:\Web C#\Eshop\Eshop\wwwroot\css\site-custom.css

@@ -4,90 +4,427 @@
     ViewData["Title"] = "Quản lý người dùng";
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <div>
-        <h4 class="mb-1">Người dùng</h4>
-        <div class="text-muted small">Bao gồm cả tài khoản đăng ký thường và đăng nhập qua Google.</div>
+<div class="row g-3 user-index-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Người dùng</h4>
+                <div class="small page-subtitle">Quản trị tài khoản nội bộ, tài khoản khách hàng và phương thức đăng nhập.</div>
+            </div>
+
+            <a asp-area="Admin"
+               asp-controller="User"
+               asp-action="Create"
+               class="icon-btn icon-add"
+               title="Thêm người dùng">
+                <i class="fa fa-plus-circle"></i>
+            </a>
+        </div>
     </div>
 
-    <a asp-area="Admin" asp-controller="User" asp-action="Create" class="btn btn-primary">
-        <i class="fa fa-plus-circle me-1"></i> Thêm user
-    </a>
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-toolbar">
+                <div>
+                    <div class="section-title mb-0">Danh sách người dùng</div>
+                    <div class="section-subtitle">Theo dõi vai trò, cách đăng nhập và trạng thái hoạt động của từng tài khoản.</div>
+                </div>
+
+                <div class="toolbar-right">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm theo tên, email, vai trò..." />
+                    </div>
+
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@Model.Count()</span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table user-table" id="myTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 280px;">Người dùng</th>
+                            <th style="width: 220px;">Liên hệ</th>
+                            <th style="width: 230px;">Vai trò</th>
+                            <th style="width: 170px;">Đăng nhập</th>
+                            <th style="width: 150px;">Trạng thái</th>
+                            <th style="width: 140px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="cell-main">@user.UserName</div>
+                                        <div class="cell-sub">@(!string.IsNullOrWhiteSpace(user.Email) ? user.Email : "Chưa có email")</div>
+                                        <span class="code-pill" title="@user.Id">@user.Id</span>
+                                    </td>
+
+                                    <td>
+                                        <div class="cell-main">@(!string.IsNullOrWhiteSpace(user.PhoneNumber) ? user.PhoneNumber : "Chưa cập nhật")</div>
+                                        <div class="cell-sub">@(!string.IsNullOrWhiteSpace(user.Email) ? user.Email : "Không có email đăng nhập")</div>
+                                    </td>
+
+                                    <td>
+                                        <div class="cell-main">@user.RoleName</div>
+                                        <div class="cell-sub">@user.RoleDescription</div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-light text-dark auth-badge">@user.AuthMethods</span>
+                                    </td>
+
+                                    <td>
+                                        @if (user.IsCurrentUser)
+                                        {
+                                            <span class="badge bg-dark">Tài khoản hiện tại</span>
+                                        }
+                                        else if (user.HasPassword)
+                                        {
+                                            <span class="badge bg-success">Đang hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Chỉ external</span>
+                                        }
+                                    </td>
+
+                                    <td class="text-right">
+                                        <div class="action-group">
+                                            <a asp-action="Edit"
+                                               asp-controller="User"
+                                               asp-route-id="@user.Id"
+                                               class="icon-btn icon-edit"
+                                               title="Sửa">
+                                                <i class="fa fa-pencil-square-o"></i>
+                                            </a>
+
+                                            @if (!user.IsCurrentUser)
+                                            {
+                                                <form asp-action="Delete"
+                                                      asp-controller="User"
+                                                      asp-route-id="@user.Id"
+                                                      method="post"
+                                                      class="delete-form d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="icon-btn icon-delete js-delete"
+                                                            data-name="@user.UserName"
+                                                            title="Xóa">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="empty-cell text-center">
+                                    <div class="empty-wrap">
+                                        <i class="fa fa-folder-open-o empty-icon"></i>
+                                        <div>Chưa có người dùng nào.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>User Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Role</th>
-                <th>Đăng nhập</th>
-                <th>Trạng thái</th>
-                <th class="text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                @foreach (var user in Model)
-                {
-                    <tr>
-                        <td><code>@user.Id</code></td>
-                        <td>@user.UserName</td>
-                        <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
-                        <td>@(string.IsNullOrWhiteSpace(user.PhoneNumber) ? "-" : user.PhoneNumber)</td>
-                        <td>
-                            <span class="badge bg-info text-dark">@user.RoleName</span>
-                        </td>
-                        <td>@user.AuthMethods</td>
-                        <td>
-                            @if (user.IsCurrentUser)
-                            {
-                                <span class="badge bg-dark">Tài khoản hiện tại</span>
-                            }
-                            else if (user.HasPassword)
-                            {
-                                <span class="badge bg-success">Hoạt động</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">External only</span>
-                            }
-                        </td>
-                        <td class="text-center">
-                            <a asp-action="Edit"
-                               asp-controller="User"
-                               asp-route-id="@user.Id"
-                               class="btn btn-sm btn-primary">
-                                Edit
-                            </a>
+<style>
+    .user-index-page .page-subtitle {
+        opacity: .75;
+    }
 
-                            @if (!user.IsCurrentUser)
-                            {
-                                <form asp-action="Delete"
-                                      asp-controller="User"
-                                      asp-route-id="@user.Id"
-                                      method="post"
-                                      class="d-inline">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-danger confirmDeletion">
-                                        Delete
-                                    </button>
-                                </form>
-                            }
-                        </td>
-                    </tr>
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 22px 22px 0 22px;
+        flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 280px;
+    }
+
+        .search-box .form-control {
+            height: 42px;
+            border-radius: 12px;
+            padding-left: 40px;
+            border: 1px solid #d1d5db;
+            box-shadow: none;
+        }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .user-table {
+        margin-bottom: 0;
+    }
+
+        .user-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .user-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .user-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .cell-sub {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 2px;
+    }
+
+    .code-pill {
+        display: inline-block;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+
+    .auth-badge {
+        white-space: normal;
+        line-height: 1.4;
+    }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+        padding: 0;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-add {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        color: #16a34a;
+    }
+
+    .icon-edit {
+        color: #f59e0b;
+    }
+
+    .icon-delete {
+        color: #ef4444;
+    }
+
+    .empty-cell {
+        padding: 40px 20px !important;
+    }
+
+    .empty-wrap {
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    div.dt-container .dt-search {
+        display: none;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
+    }
+
+    @@media (max-width: 767px) {
+        .table-toolbar {
+            padding: 18px 18px 0 18px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-box {
+            min-width: 100%;
+        }
+
+        .toolbar-right {
+            width: 100%;
+        }
+
+        .code-pill {
+            max-width: 160px;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).on("click", ".js-delete", function (e) {
+            e.preventDefault();
+
+            const btn = this;
+            const form = btn.closest("form");
+            const userName = btn.getAttribute("data-name") || "";
+
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    confirmButton: "btn btn-success",
+                    cancelButton: "btn btn-danger"
+                },
+                buttonsStyling: false
+            });
+
+            swalWithBootstrapButtons.fire({
+                title: "Bạn có chắc không?",
+                text: userName
+                    ? `Bạn chắc chắn muốn xóa người dùng "${userName}"? Bạn không thể hoàn tác!`
+                    : "Bạn không thể hoàn tác!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Xóa",
+                cancelButtonText: "Hủy",
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                } else if (result.dismiss === Swal.DismissReason.cancel) {
+                    swalWithBootstrapButtons.fire({
+                        title: "Đã hủy",
+                        text: "Người dùng vẫn an toàn.",
+                        icon: "error"
+                    });
                 }
+            });
+        });
+    </script>
+
+    <script>
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] },
+                topEnd: null
             }
-            else
-            {
-                <tr>
-                    <td colspan="8" class="text-center">Chưa có người dùng nào.</td>
-                </tr>
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            const totalEl = document.getElementById('totalRows');
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
             }
-        </tbody>
-    </table>
-</div>
+        });
+    </script>
+}

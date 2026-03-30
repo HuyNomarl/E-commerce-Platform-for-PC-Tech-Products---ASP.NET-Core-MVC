@@ -35,6 +35,7 @@ namespace Eshop.Repository
         public DbSet<PrebuiltPcComponentModel> PrebuiltPcComponents { get; set; }
         public DbSet<PcBuildModel> PcBuilds { get; set; }
         public DbSet<PcBuildItemModel> PcBuildItems { get; set; }
+        public DbSet<PcBuildShareModel> PcBuildShares { get; set; }
         public DbSet<ProductImageModel> ProductImages { get; set; }
         public DbSet<ProductTechnicalAssetModel> ProductTechnicalAssets { get; set; }
         public DbSet<WarehouseModel> Warehouses { get; set; }
@@ -169,6 +170,31 @@ namespace Eshop.Repository
                 .HasOne(x => x.Product)
                 .WithMany()
                 .HasForeignKey(x => x.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PcBuildShareModel>()
+                .HasIndex(x => x.ShareCode)
+                .IsUnique();
+
+            builder.Entity<PcBuildShareModel>()
+                .HasIndex(x => new { x.ReceiverUserId, x.CreatedAt });
+
+            builder.Entity<PcBuildShareModel>()
+                .HasOne(x => x.PcBuild)
+                .WithMany()
+                .HasForeignKey(x => x.PcBuildId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<PcBuildShareModel>()
+                .HasOne(x => x.SenderUser)
+                .WithMany()
+                .HasForeignKey(x => x.SenderUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PcBuildShareModel>()
+                .HasOne(x => x.ReceiverUser)
+                .WithMany()
+                .HasForeignKey(x => x.ReceiverUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             PcSpecificationSeed.Seed(builder);

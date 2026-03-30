@@ -1,0 +1,319 @@
+@model IEnumerable<Eshop.Models.RatingModel>
+
+@{
+    ViewData["Title"] = "Phan hoi danh gia";
+}
+
+@functions {
+    public static string BuildInitial(string? name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? "?" : name.Trim()[0].ToString().ToUpperInvariant();
+    }
+}
+
+<div class="review-admin-page">
+    <div class="review-admin-head">
+        <div>
+            <h2>Phan hoi danh gia</h2>
+            <p>Theo doi review cua khach hang va tra loi truc tiep tu trang quan tri.</p>
+        </div>
+        <div class="review-admin-stats">@Model.Count() review</div>
+    </div>
+
+    <div class="review-admin-list">
+        @if (Model.Any())
+        {
+            @foreach (var review in Model)
+            {
+                <article class="review-admin-card">
+                    <div class="review-admin-main">
+                        <div class="review-admin-avatar">@BuildInitial(review.Name)</div>
+                        <div class="review-admin-body">
+                            <div class="review-admin-top">
+                                <div>
+                                    <strong>@(string.IsNullOrWhiteSpace(review.Name) ? "Khach hang" : review.Name)</strong>
+                                    <div class="review-admin-meta">
+                                        <span>San pham: @(review.Product?.Name ?? "Khong xac dinh")</span>
+                                        <span>@((review.UpdatedAt ?? review.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</span>
+                                    </div>
+                                </div>
+                                <div class="review-admin-stars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fa @(i <= review.Stars ? "fa-star" : "fa-star-o")"></i>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(review.Comment))
+                            {
+                                <p class="review-admin-comment">@review.Comment</p>
+                            }
+
+                            @if (review.MediaItems.Any())
+                            {
+                                <div class="review-admin-media">
+                                    @foreach (var media in review.MediaItems.OrderBy(x => x.SortOrder).ThenBy(x => x.Id))
+                                    {
+                                        <div class="review-admin-media-item">
+                                            @if (string.Equals(media.ResourceType, "video", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <video controls preload="metadata"><source src="@media.Url" /></video>
+                                            }
+                                            else
+                                            {
+                                                <img src="@media.Url" alt="review-media" />
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(review.AdminReply))
+                            {
+                                <div class="review-admin-replied">
+                                    <div class="review-admin-reply-label">
+                                        Phan hoi hien tai
+                                        @if (!string.IsNullOrWhiteSpace(review.AdminReplyByName))
+                                        {
+                                            <span>boi @review.AdminReplyByName</span>
+                                        }
+                                    </div>
+                                    <div class="review-admin-reply-text">@review.AdminReply</div>
+                                    @if (review.AdminReplyAt.HasValue)
+                                    {
+                                        <div class="review-admin-reply-time">@review.AdminReplyAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                    }
+                                </div>
+                            }
+
+                            <form asp-action="Reply" asp-controller="Review" method="post" class="review-admin-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@review.Id" />
+                                <textarea name="adminReply"
+                                          rows="4"
+                                          placeholder="Nhap phan hoi cua admin cho review nay...">@review.AdminReply</textarea>
+                                <div class="review-admin-actions">
+                                    <button type="submit" class="btn btn-dark">
+                                        @(string.IsNullOrWhiteSpace(review.AdminReply) ? "Luu phan hoi" : "Cap nhat phan hoi")
+                                    </button>
+                                    @if (!string.IsNullOrWhiteSpace(review.AdminReply))
+                                    {
+                                        <span class="review-admin-hint">Xoa noi dung va luu lai neu ban muon go bo phan hoi.</span>
+                                    }
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            }
+        }
+        else
+        {
+            <div class="review-admin-empty">Chua co review nao de phan hoi.</div>
+        }
+    </div>
+</div>
+
+<style>
+    .review-admin-page {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .review-admin-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 4px 0;
+    }
+
+    .review-admin-head h2 {
+        margin: 0 0 6px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .review-admin-head p {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    .review-admin-stats {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .review-admin-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .review-admin-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        padding: 20px;
+    }
+
+    .review-admin-main {
+        display: flex;
+        gap: 14px;
+    }
+
+    .review-admin-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #f97316, #fb7185);
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .review-admin-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .review-admin-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .review-admin-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .review-admin-stars {
+        color: #f59e0b;
+        white-space: nowrap;
+        font-size: 16px;
+    }
+
+    .review-admin-comment {
+        margin: 0 0 14px;
+        color: #334155;
+        line-height: 1.7;
+        white-space: pre-line;
+    }
+
+    .review-admin-media {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .review-admin-media-item {
+        overflow: hidden;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+    }
+
+    .review-admin-media-item img,
+    .review-admin-media-item video {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .review-admin-replied {
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+
+    .review-admin-reply-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1d4ed8;
+        margin-bottom: 8px;
+    }
+
+    .review-admin-reply-label span {
+        margin-left: 8px;
+        font-weight: 600;
+    }
+
+    .review-admin-reply-text {
+        color: #1e3a8a;
+        white-space: pre-line;
+        line-height: 1.7;
+    }
+
+    .review-admin-reply-time {
+        margin-top: 8px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .review-admin-form textarea {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid #d1d5db;
+        padding: 12px 14px;
+        resize: vertical;
+        min-height: 110px;
+    }
+
+    .review-admin-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .review-admin-hint {
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .review-admin-empty {
+        padding: 34px 18px;
+        border-radius: 18px;
+        border: 1px dashed #cbd5e1;
+        text-align: center;
+        color: #64748b;
+        background: #f8fafc;
+    }
+
+    @@media (max-width: 767px) {
+        .review-admin-head,
+        .review-admin-top,
+        .review-admin-main {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .review-admin-stats {
+            align-self: flex-start;
+        }
+    }
+</style>

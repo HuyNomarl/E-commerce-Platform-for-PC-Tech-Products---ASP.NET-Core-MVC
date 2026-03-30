@@ -1,29 +1,60 @@
 @if (User.IsCustomerOnly())
 {
-    <button id="supportChatToggle" class="support-chat-fab" type="button" title="Chat hỗ trợ">
+    <button id="supportChatToggle" class="support-chat-fab" type="button" title="Chat ho tro">
         <i class="fa fa-comments"></i>
     </button>
 
     <div id="supportChatBox" class="support-chat-popup is-hidden" aria-hidden="true">
         <div class="support-chat-header">
-            <span id="supportChatTitle">Hỗ trợ trực tuyến</span>
-            <button type="button" id="supportChatClose" class="support-chat-close" aria-label="Đóng chat">
+            <div class="support-chat-header-main">
+                <span id="supportChatTitle">Ho tro truc tuyen</span>
+                <small>Gui tin nhan, hinh/video hoac chia se san pham</small>
+            </div>
+            <button type="button" id="supportChatClose" class="support-chat-close" aria-label="Dong chat">
                 &times;
             </button>
         </div>
 
         <div id="supportChatMessages" class="support-chat-messages">
-            <div class="support-chat-empty">Bắt đầu cuộc trò chuyện...</div>
+            <div class="support-chat-empty">Bat dau cuoc tro chuyen voi admin.</div>
         </div>
 
-        <div class="support-chat-input-wrap">
-            <input type="text"
-                   id="supportChatInput"
-                   class="form-control"
-                   placeholder="Nhập tin nhắn..." />
-            <button type="button" id="supportChatSend" class="btn btn-warning">
-                Gửi
-            </button>
+        <div class="support-chat-composer">
+            @Html.AntiForgeryToken()
+
+            <div id="supportChatSelection" class="support-chat-selection" style="display:none;"></div>
+
+            <div id="supportChatProductPicker" class="support-chat-product-picker" style="display:none;">
+                <div class="support-chat-product-search">
+                    <input type="text" id="supportChatProductSearch" class="form-control" placeholder="Tim san pham can gui..." />
+                    <button type="button" id="supportChatProductSearchBtn" class="btn btn-default">Tim</button>
+                </div>
+                <div id="supportChatProductResults" class="support-chat-product-results"></div>
+            </div>
+
+            <div class="support-chat-input-wrap">
+                <textarea id="supportChatInput"
+                          class="form-control"
+                          rows="2"
+                          placeholder="Nhap noi dung chat..."></textarea>
+            </div>
+
+            <div class="support-chat-toolbar">
+                <div class="support-chat-actions">
+                    <label class="support-chat-tool" for="supportChatAttachment">
+                        <i class="fa fa-paperclip"></i> Media
+                    </label>
+                    <input type="file" id="supportChatAttachment" accept="image/*,video/*" />
+
+                    <button type="button" id="supportChatPickProduct" class="support-chat-tool">
+                        <i class="fa fa-cube"></i> San pham
+                    </button>
+                </div>
+
+                <button type="button" id="supportChatSend" class="btn btn-warning support-chat-send">
+                    Gui
+                </button>
+            </div>
         </div>
     </div>
 }

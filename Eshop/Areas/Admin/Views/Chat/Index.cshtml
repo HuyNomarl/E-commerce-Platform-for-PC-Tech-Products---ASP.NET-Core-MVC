@@ -1,166 +1,205 @@
-﻿@{
-    ViewData["Title"] = "Chat hỗ trợ";
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Chat ho tro";
+    var currentAdminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 }
 
-<div class="row g-3 chat-page">
-  
-
-    <div class="col-12 col-lg-4">
-        <div class="card-soft users-card">
-            <div class="panel-head">
-                <div>
-                    <div class="section-title mb-0">Khách hàng</div>
-                    <div class="section-subtitle">Danh sách người dùng đã từng nhắn tin</div>
-                </div>
+<div class="admin-chat-shell">
+    <div class="admin-chat-users">
+        <div class="admin-chat-panel-head">
+            <div>
+                <div class="section-title mb-0">Khach hang</div>
+                <div class="section-subtitle">Hoi thoai ho tro va tin nhan moi nhat</div>
             </div>
-
-            <div id="userList" class="user-list"></div>
         </div>
+        <div id="userList" class="admin-chat-user-list"></div>
     </div>
 
-    <div class="col-12 col-lg-8">
-        <div class="card-soft chat-card">
-            <div class="panel-head chat-head">
-                <div id="chatLiveBanner" class="chat-live-banner" style="display:none;">
-                    <strong>Có tin nhắn mới</strong>
-                    <span id="chatLiveText"></span>
-                </div>
-                <div>
-                    <div class="section-title mb-0">Hội thoại</div>
-                    <div id="chatTitle" class="section-subtitle">Chọn khách hàng để chat</div>
-                </div>
+    <div class="admin-chat-main">
+        <div class="admin-chat-panel-head">
+            <div>
+                <div class="section-title mb-0">Hoi thoai</div>
+                <div id="chatTitle" class="section-subtitle">Chon khach hang de bat dau</div>
             </div>
+            <div id="chatLiveBanner" class="admin-chat-banner" style="display:none;"></div>
+        </div>
 
-            <div id="chatMessages" class="chat-messages empty-state">
-                <div class="empty-wrap">
-                    <i class="fa fa-comments-o empty-icon"></i>
-                    <div>Chưa có cuộc trò chuyện nào được chọn.</div>
-                </div>
+        <div id="chatMessages" class="admin-chat-messages empty-state">
+            <div class="empty-wrap">
+                <i class="fa fa-comments-o empty-icon"></i>
+                <div>Chua co cuoc tro chuyen nao duoc chon.</div>
             </div>
+        </div>
 
+        <div class="admin-chat-composer">
             @Html.AntiForgeryToken()
 
-            <div class="chat-input-wrap">
-                <div class="chat-input-group">
-                    <input type="text"
-                           id="messageInput"
-                           class="form-control input-soft"
-                           placeholder="Nhập tin nhắn..." />
-                    <button id="sendBtn" class="btn btn-accent" type="button">
-                        <i class="fa fa-paper-plane me-1"></i> Gửi
+            <div id="chatSelection" class="admin-chat-selection" style="display:none;"></div>
+
+            <div id="chatProductPicker" class="admin-chat-product-picker" style="display:none;">
+                <div class="admin-chat-product-search">
+                    <input type="text" id="chatProductSearch" class="form-control input-soft" placeholder="Tim san pham de goi y..." />
+                    <button type="button" id="chatProductSearchBtn" class="btn btn-default">Tim</button>
+                </div>
+                <div id="chatProductResults" class="admin-chat-product-results"></div>
+            </div>
+
+            <textarea id="messageInput"
+                      class="form-control input-soft"
+                      rows="3"
+                      placeholder="Nhap tin nhan ho tro..."></textarea>
+
+            <div class="admin-chat-toolbar">
+                <div class="admin-chat-tools">
+                    <label class="admin-chat-tool" for="chatAttachment">
+                        <i class="fa fa-paperclip"></i> Media
+                    </label>
+                    <input type="file" id="chatAttachment" accept="image/*,video/*" />
+
+                    <button type="button" id="chatPickProduct" class="admin-chat-tool">
+                        <i class="fa fa-cube"></i> San pham
                     </button>
                 </div>
+
+                <button id="sendBtn" class="btn btn-accent" type="button">
+                    <i class="fa fa-paper-plane me-1"></i> Gui
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <style>
-    .chat-live-banner {
-    margin: 14px 18px 0 18px;
-    padding: 10px 12px;
-    border: 1px solid #bfdbfe;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-radius: 12px;
-    font-size: 13px;
-}
-    .chat-page .page-subtitle {
-        opacity: .75;
+    .admin-chat-shell {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 18px;
     }
 
-    .card-soft {
+    .admin-chat-users,
+    .admin-chat-main {
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        border-radius: 18px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
         overflow: hidden;
     }
 
-    .users-card,
-    .chat-card {
-        min-height: 620px;
-    }
-
-    .panel-head {
-        padding: 20px 22px 14px 22px;
+    .admin-chat-panel-head {
+        padding: 20px 22px 16px;
         border-bottom: 1px solid #eef2f7;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
     }
 
-    .chat-head {
-        background: #fafafa;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #111827;
-        margin-bottom: 4px;
-    }
-
-    .section-subtitle {
-        color: #6b7280;
-        font-size: 13px;
-    }
-
-    .user-list {
-        padding: 14px;
-        max-height: 540px;
+    .admin-chat-user-list {
+        max-height: 720px;
         overflow-y: auto;
+        padding: 14px;
     }
 
-    .user-item {
-        display: block;
+    .admin-chat-user {
         width: 100%;
-        text-align: left;
         border: 1px solid #e5e7eb;
+        border-radius: 16px;
         background: #fff;
-        border-radius: 14px;
-        padding: 14px 16px;
+        padding: 14px;
+        text-align: left;
         margin-bottom: 10px;
-        cursor: pointer;
         transition: all .2s ease;
     }
 
-        .user-item:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
+    .admin-chat-user:hover,
+    .admin-chat-user.active {
+        border-color: #111827;
+        box-shadow: 0 14px 26px rgba(15, 23, 42, 0.08);
+    }
 
-        .user-item.active {
-            background: #111827;
-            border-color: #111827;
-            color: #fff;
-        }
+    .admin-chat-user.active {
+        background: #111827;
+        color: #fff;
+    }
 
-    .user-name {
+    .admin-chat-user-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 6px;
+    }
+
+    .admin-chat-user-name {
         font-weight: 700;
         font-size: 14px;
-        margin-bottom: 4px;
     }
 
-    .user-meta {
+    .admin-chat-user-time {
+        font-size: 11px;
+        color: #6b7280;
+        white-space: nowrap;
+    }
+
+    .admin-chat-user.active .admin-chat-user-time,
+    .admin-chat-user.active .admin-chat-user-email,
+    .admin-chat-user.active .admin-chat-user-preview {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .admin-chat-user-email,
+    .admin-chat-user-preview {
         font-size: 12px;
         color: #6b7280;
-        word-break: break-word;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    .user-item.active .user-meta {
-        color: rgba(255,255,255,.78);
+    .admin-chat-user-foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 8px;
     }
 
-    .chat-messages {
-        height: 440px;
+    .admin-chat-unread {
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        border-radius: 999px;
+        background: #ef4444;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .admin-chat-banner {
+        padding: 10px 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-radius: 12px;
+        font-size: 13px;
+        min-height: 44px;
+    }
+
+    .admin-chat-messages {
+        height: 520px;
         overflow-y: auto;
         padding: 18px;
-        background: #fcfcfd;
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
     }
 
-        .chat-messages.empty-state {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    .admin-chat-messages.empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     .empty-wrap {
         color: #6b7280;
@@ -168,130 +207,257 @@
     }
 
     .empty-icon {
-        font-size: 30px;
+        display: block;
         margin-bottom: 10px;
-        display: block;
+        font-size: 30px;
     }
 
-    .message-row {
+    .admin-chat-row {
         display: flex;
-        margin: 10px 0;
+        margin-bottom: 12px;
     }
 
-        .message-row.me {
-            justify-content: flex-end;
-        }
-
-        .message-row.other {
-            justify-content: flex-start;
-        }
-
-    .message-bubble {
-        max-width: 72%;
-        padding: 10px 14px;
-        border-radius: 16px;
-        font-size: 14px;
-        line-height: 1.45;
-        word-break: break-word;
-        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    .admin-chat-row.me {
+        justify-content: flex-end;
     }
 
-    .message-row.me .message-bubble {
+    .admin-chat-row.other {
+        justify-content: flex-start;
+    }
+
+    .admin-chat-bubble {
+        max-width: 76%;
+        padding: 12px 14px;
+        border-radius: 18px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+    }
+
+    .admin-chat-row.me .admin-chat-bubble {
         background: #dbeafe;
-        color: #111827;
-        border-bottom-right-radius: 6px;
+        border-color: #bfdbfe;
     }
 
-    .message-row.other .message-bubble {
-        background: #f3f4f6;
-        color: #111827;
-        border-bottom-left-radius: 6px;
-    }
-
-    .message-time {
+    .admin-chat-sender {
         display: block;
+        margin-bottom: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+    }
+
+    .admin-chat-rich {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .admin-chat-media {
+        overflow: hidden;
+        border-radius: 14px;
+        background: #0f172a;
+    }
+
+    .admin-chat-media img,
+    .admin-chat-media video {
+        width: 100%;
+        max-height: 260px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .admin-chat-product-card {
+        display: flex;
+        gap: 12px;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .admin-chat-product-card img {
+        width: 88px;
+        height: 88px;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+
+    .admin-chat-product-card-body {
+        padding: 12px 12px 12px 0;
+    }
+
+    .admin-chat-product-card-body strong,
+    .admin-chat-product-card-body span {
+        display: block;
+    }
+
+    .admin-chat-product-card-body span {
         margin-top: 6px;
+        color: #ea580c;
+        font-weight: 700;
+    }
+
+    .admin-chat-time {
+        display: block;
+        margin-top: 8px;
         font-size: 11px;
         color: #6b7280;
     }
 
-    .chat-input-wrap {
-        padding: 16px 18px 18px 18px;
+    .admin-chat-composer {
         border-top: 1px solid #eef2f7;
+        padding: 16px 18px 18px;
         background: #fff;
     }
 
-    .chat-input-group {
+    .admin-chat-selection {
+        margin-bottom: 10px;
+        border-radius: 14px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        padding: 10px 12px;
+        color: #1d4ed8;
+    }
+
+    .admin-chat-selection .remove-selection {
+        float: right;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font-size: 16px;
+    }
+
+    .admin-chat-product-picker {
+        margin-bottom: 10px;
+        border: 1px solid #e5e7eb;
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 10px;
+    }
+
+    .admin-chat-product-search {
         display: flex;
         gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .admin-chat-product-results {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .admin-chat-product-item {
+        width: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        display: flex;
         align-items: center;
+        gap: 10px;
+        padding: 8px;
+        text-align: left;
+    }
+
+    .admin-chat-product-item img {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        object-fit: cover;
+        background: #f8fafc;
+    }
+
+    .admin-chat-product-item strong,
+    .admin-chat-product-item span {
+        display: block;
+    }
+
+    .admin-chat-product-item span {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 12px;
+    }
+
+    .admin-chat-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 12px;
+    }
+
+    .admin-chat-tools {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .admin-chat-tool {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid #dbe4ef;
+        background: #f8fafc;
+        color: #334155;
+        cursor: pointer;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    #chatAttachment {
+        display: none;
     }
 
     .input-soft {
-        border-radius: 12px;
+        border-radius: 14px;
         border: 1px solid #d1d5db;
         box-shadow: none;
-        min-height: 46px;
-        background: #fff;
     }
-
-        .input-soft:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
-        }
 
     .btn-accent {
         background: #111827;
         border: 1px solid #111827;
         color: #fff;
-        border-radius: 12px;
+        border-radius: 14px;
         padding: 10px 18px;
-        font-weight: 600;
-        min-width: 110px;
+        font-weight: 700;
     }
 
-        .btn-accent:hover,
-        .btn-accent:focus {
-            color: #fff;
-            background: #0f172a;
-            border-color: #0f172a;
-        }
+    .btn-accent:hover,
+    .btn-accent:focus {
+        color: #fff;
+        background: #0f172a;
+        border-color: #0f172a;
+    }
 
     @@media (max-width: 991px) {
-        .users-card,
-        .chat-card {
-            min-height: unset;
+        .admin-chat-shell {
+            grid-template-columns: 1fr;
         }
 
-        .user-list {
-            max-height: 300px;
-        }
-
-        .chat-messages {
-            height: 380px;
+        .admin-chat-user-list {
+            max-height: 280px;
         }
     }
 
     @@media (max-width: 767px) {
-        .panel-head {
-            padding: 16px 18px 12px 18px;
-        }
-
-        .chat-input-wrap {
-            padding: 14px 16px 16px 16px;
-        }
-
-        .chat-input-group {
+        .admin-chat-toolbar,
+        .admin-chat-product-search,
+        .admin-chat-panel-head {
             flex-direction: column;
             align-items: stretch;
         }
 
-        .btn-accent {
-            width: 100%;
-        }
-
-        .message-bubble {
-            max-width: 88%;
+        .admin-chat-bubble {
+            max-width: 92%;
         }
     }
 </style>
@@ -299,164 +465,499 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script>
-        let selectedUserId = null;
+        (function () {
+            const currentAdminId = "@currentAdminId";
+            const userList = document.getElementById("userList");
+            const chatMessages = document.getElementById("chatMessages");
+            const chatTitle = document.getElementById("chatTitle");
+            const messageInput = document.getElementById("messageInput");
+            const sendBtn = document.getElementById("sendBtn");
+            const chatLiveBanner = document.getElementById("chatLiveBanner");
+            const chatSelection = document.getElementById("chatSelection");
+            const chatAttachment = document.getElementById("chatAttachment");
+            const chatPickProduct = document.getElementById("chatPickProduct");
+            const chatProductPicker = document.getElementById("chatProductPicker");
+            const chatProductSearch = document.getElementById("chatProductSearch");
+            const chatProductSearchBtn = document.getElementById("chatProductSearchBtn");
+            const chatProductResults = document.getElementById("chatProductResults");
+            const antiForgeryTokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const antiForgeryToken = antiForgeryTokenInput ? antiForgeryTokenInput.value : "";
 
-        const userList = document.getElementById("userList");
-        const chatMessages = document.getElementById("chatMessages");
-        const chatTitle = document.getElementById("chatTitle");
-        const messageInput = document.getElementById("messageInput");
-        const sendBtn = document.getElementById("sendBtn");
-        const chatLiveBanner = document.getElementById("chatLiveBanner");
-        const chatLiveText = document.getElementById("chatLiveText");
+            let selectedUserId = null;
+            let selectedUserName = "";
+            let selectedAttachment = null;
+            let selectedProduct = null;
+            let sending = false;
+            const renderedMessageIds = new Set();
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/hubs/chat")
-            .withAutomaticReconnect()
-            .build();
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/chat")
+                .withAutomaticReconnect()
+                .build();
 
-        function renderEmptyChat() {
-            chatMessages.classList.add("empty-state");
-            chatMessages.innerHTML = `
-                <div class="empty-wrap">
-                    <i class="fa fa-comments-o empty-icon"></i>
-                    <div>Chưa có tin nhắn trong cuộc trò chuyện này.</div>
-                </div>
-            `;
-        }
+            function escapeHtml(value) {
+                return (value || "").replace(/[&<>"']/g, function (char) {
+                    return ({
+                        "&": "&amp;",
+                        "<": "&lt;",
+                        ">": "&gt;",
+                        "\"": "&quot;",
+                        "'": "&#39;"
+                    })[char];
+                });
+            }
 
-        function appendMessage(msg, isMe) {
-            if (chatMessages.classList.contains("empty-state")) {
+            function formatPrice(value) {
+                return new Intl.NumberFormat("vi-VN").format(value || 0) + " d";
+            }
+
+            function renderEmptyChat(text) {
+                chatMessages.classList.add("empty-state");
+                chatMessages.innerHTML = `
+                    <div class="empty-wrap">
+                        <i class="fa fa-comments-o empty-icon"></i>
+                        <div>${escapeHtml(text)}</div>
+                    </div>
+                `;
+            }
+
+            function clearMessages() {
+                renderedMessageIds.clear();
                 chatMessages.classList.remove("empty-state");
                 chatMessages.innerHTML = "";
             }
 
-            const row = document.createElement("div");
-            row.className = `message-row ${isMe ? "me" : "other"}`;
-
-            row.innerHTML = `
-                <div class="message-bubble">
-                    <div>${msg.content}</div>
-                    <small class="message-time">${msg.createdAt || ''}</small>
-                </div>
-            `;
-
-            chatMessages.appendChild(row);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function setActiveUser(selectedLi) {
-            document.querySelectorAll(".user-item").forEach(x => x.classList.remove("active"));
-            if (selectedLi) selectedLi.classList.add("active");
-        }
-
-        async function loadUsers() {
-            const res = await fetch('/Admin/Chat/GetUsersChatted');
-            const users = await res.json();
-
-            userList.innerHTML = "";
-
-            if (!users || !users.length) {
-                userList.innerHTML = `
-                    <div class="empty-wrap" style="padding: 24px 12px;">
-                        <i class="fa fa-user-o empty-icon"></i>
-                        <div>Chưa có khách hàng nào nhắn tin.</div>
-                    </div>
-                `;
-                return;
+            function clearAttachment() {
+                selectedAttachment = null;
+                if (chatAttachment) {
+                    chatAttachment.value = "";
+                }
             }
 
-            users.forEach(user => {
-                const item = document.createElement("button");
-                item.type = "button";
-                item.className = "user-item";
-                item.dataset.userId = user.id;
-                item.innerHTML = `
-                    <div class="user-name">${user.userName}</div>
-                    <div class="user-meta">${user.email}</div>
+            function clearProduct() {
+                selectedProduct = null;
+            }
+
+            function renderSelection() {
+                if (!chatSelection) {
+                    return;
+                }
+
+                if (!selectedAttachment && !selectedProduct) {
+                    chatSelection.style.display = "none";
+                    chatSelection.innerHTML = "";
+                    return;
+                }
+
+                chatSelection.style.display = "block";
+
+                if (selectedAttachment) {
+                    const mediaLabel = (selectedAttachment.type || "").startsWith("video/") ? "Video" : "Anh";
+                    chatSelection.innerHTML = `
+                        <button type="button" class="remove-selection" data-clear="attachment">&times;</button>
+                        <strong>${mediaLabel}</strong>
+                        <div>${escapeHtml(selectedAttachment.name)}</div>
+                    `;
+                    return;
+                }
+
+                chatSelection.innerHTML = `
+                    <button type="button" class="remove-selection" data-clear="product">&times;</button>
+                    <strong>San pham da chon</strong>
+                    <div>${escapeHtml(selectedProduct.name || "")}</div>
                 `;
+            }
 
-                item.addEventListener("click", async () => {
-                    selectedUserId = user.id;
-                    chatTitle.textContent = "Đang chat với: " + user.userName;
-                    setActiveUser(item);
+            function toggleProductPicker(forceOpen) {
+                if (!chatProductPicker) {
+                    return;
+                }
 
-                    if (chatLiveBanner) {
-                        chatLiveBanner.style.display = "none";
+                const shouldOpen = typeof forceOpen === "boolean"
+                    ? forceOpen
+                    : chatProductPicker.style.display === "none";
+
+                chatProductPicker.style.display = shouldOpen ? "block" : "none";
+                if (!shouldOpen && chatProductResults) {
+                    chatProductResults.innerHTML = "";
+                }
+            }
+
+            function createRichContent(message) {
+                const wrapper = document.createElement("div");
+                wrapper.className = "admin-chat-rich";
+
+                if (message.text) {
+                    const text = document.createElement("div");
+                    text.textContent = message.text;
+                    wrapper.appendChild(text);
+                }
+
+                if (message.attachmentUrl) {
+                    const media = document.createElement("div");
+                    media.className = "admin-chat-media";
+
+                    if ((message.messageType || "").toLowerCase() === "video") {
+                        const video = document.createElement("video");
+                        video.controls = true;
+                        video.preload = "metadata";
+                        video.src = message.attachmentUrl;
+                        media.appendChild(video);
+                    } else {
+                        const img = document.createElement("img");
+                        img.src = message.attachmentUrl;
+                        img.alt = message.attachmentName || "chat-media";
+                        media.appendChild(img);
                     }
 
-                    await loadMessages(user.id);
+                    wrapper.appendChild(media);
+                }
+
+                if (message.product) {
+                    const link = document.createElement("a");
+                    link.className = "admin-chat-product-card";
+                    link.href = message.product.url || "#";
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+
+                    const img = document.createElement("img");
+                    img.src = message.product.imageUrl || "/images/gallery1.jpg";
+                    img.alt = message.product.name || "san-pham";
+
+                    const body = document.createElement("div");
+                    body.className = "admin-chat-product-card-body";
+
+                    const name = document.createElement("strong");
+                    name.textContent = message.product.name || "San pham";
+
+                    const price = document.createElement("span");
+                    price.textContent = formatPrice(message.product.price);
+
+                    body.appendChild(name);
+                    body.appendChild(price);
+                    link.appendChild(img);
+                    link.appendChild(body);
+                    wrapper.appendChild(link);
+                }
+
+                return wrapper;
+            }
+
+            function appendMessage(message) {
+                const messageId = message && message.id ? String(message.id) : null;
+                if (messageId && renderedMessageIds.has(messageId)) {
+                    return;
+                }
+
+                if (messageId) {
+                    renderedMessageIds.add(messageId);
+                }
+
+                if (chatMessages.classList.contains("empty-state")) {
+                    chatMessages.classList.remove("empty-state");
+                    chatMessages.innerHTML = "";
+                }
+
+                const isMe = message.senderId === currentAdminId;
+                const row = document.createElement("div");
+                row.className = "admin-chat-row " + (isMe ? "me" : "other");
+
+                const bubble = document.createElement("div");
+                bubble.className = "admin-chat-bubble";
+
+                if (!isMe) {
+                    const sender = document.createElement("span");
+                    sender.className = "admin-chat-sender";
+                    sender.textContent = message.senderName || "Khach hang";
+                    bubble.appendChild(sender);
+                }
+
+                bubble.appendChild(createRichContent(message));
+
+                const time = document.createElement("small");
+                time.className = "admin-chat-time";
+                time.textContent = message.createdAt || "";
+                bubble.appendChild(time);
+
+                row.appendChild(bubble);
+                chatMessages.appendChild(row);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function setActiveUser(selectedButton) {
+                document.querySelectorAll(".admin-chat-user").forEach(x => x.classList.remove("active"));
+                if (selectedButton) {
+                    selectedButton.classList.add("active");
+                }
+            }
+
+            async function loadUsers() {
+                const response = await fetch("/Admin/Chat/GetUsersChatted");
+                const users = await response.json();
+
+                userList.innerHTML = "";
+
+                if (!users || !users.length) {
+                    userList.innerHTML = `
+                        <div class="empty-wrap" style="padding: 26px 14px;">
+                            <i class="fa fa-user-o empty-icon"></i>
+                            <div>Chua co khach hang nao nhan tin.</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                users.forEach(function (user) {
+                    const item = document.createElement("button");
+                    item.type = "button";
+                    item.className = "admin-chat-user";
+                    item.dataset.userId = user.id;
+                    item.innerHTML = `
+                        <div class="admin-chat-user-head">
+                            <div class="admin-chat-user-name">${escapeHtml(user.userName || "Khach hang")}</div>
+                            <div class="admin-chat-user-time">${escapeHtml(user.lastMessageAt || "")}</div>
+                        </div>
+                        <div class="admin-chat-user-email">${escapeHtml(user.email || "")}</div>
+                        <div class="admin-chat-user-foot">
+                            <div class="admin-chat-user-preview">${escapeHtml(user.lastMessagePreview || "Chua co tin nhan")}</div>
+                            ${user.unreadCount > 0 ? `<span class="admin-chat-unread">${escapeHtml(String(user.unreadCount))}</span>` : ""}
+                        </div>
+                    `;
+
+                    if (selectedUserId === user.id) {
+                        item.classList.add("active");
+                    }
+
+                    item.addEventListener("click", async function () {
+                        selectedUserId = user.id;
+                        selectedUserName = user.userName || "Khach hang";
+                        chatTitle.textContent = "Dang chat voi: " + selectedUserName;
+                        if (chatLiveBanner) {
+                            chatLiveBanner.style.display = "none";
+                        }
+                        setActiveUser(item);
+                        await loadMessages(user.id);
+                        await loadUsers();
+                    });
+
+                    userList.appendChild(item);
                 });
+            }
 
-                userList.appendChild(item);
+            async function loadMessages(userId) {
+                const response = await fetch("/Admin/Chat/GetMessages?userId=" + encodeURIComponent(userId));
+                const messages = await response.json();
+
+                clearMessages();
+
+                if (!messages || !messages.length) {
+                    renderEmptyChat("Chua co tin nhan trong cuoc tro chuyen nay.");
+                    return;
+                }
+
+                messages.forEach(appendMessage);
+            }
+
+            async function searchProducts() {
+                if (!chatProductResults) {
+                    return;
+                }
+
+                const keyword = (chatProductSearch && chatProductSearch.value || "").trim();
+                const response = await fetch("/Admin/Chat/SearchProducts?term=" + encodeURIComponent(keyword));
+                const data = await response.json();
+
+                chatProductResults.innerHTML = "";
+
+                if (!data || !data.length) {
+                    chatProductResults.innerHTML = '<div class="empty-wrap" style="padding: 16px;">Khong tim thay san pham.</div>';
+                    return;
+                }
+
+                data.forEach(function (product) {
+                    const item = document.createElement("button");
+                    item.type = "button";
+                    item.className = "admin-chat-product-item";
+                    item.innerHTML = `
+                        <img src="${escapeHtml(product.imageUrl || "/images/gallery1.jpg")}" alt="${escapeHtml(product.name || "san-pham")}" />
+                        <div>
+                            <strong>${escapeHtml(product.name || "San pham")}</strong>
+                            <span>${escapeHtml(formatPrice(product.price))}</span>
+                        </div>
+                    `;
+
+                    item.addEventListener("click", function () {
+                        clearAttachment();
+                        selectedProduct = product;
+                        renderSelection();
+                        toggleProductPicker(false);
+                    });
+
+                    chatProductResults.appendChild(item);
+                });
+            }
+
+            async function sendMessage() {
+                if (!selectedUserId || sending) {
+                    return;
+                }
+
+                const content = messageInput.value.trim();
+                if (!content && !selectedAttachment && !selectedProduct) {
+                    return;
+                }
+
+                sending = true;
+                sendBtn.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append("__RequestVerificationToken", antiForgeryToken);
+                    formData.append("receiverId", selectedUserId);
+                    if (content) {
+                        formData.append("content", content);
+                    }
+                    if (selectedAttachment) {
+                        formData.append("attachment", selectedAttachment);
+                    }
+                    if (selectedProduct && selectedProduct.id) {
+                        formData.append("productId", selectedProduct.id);
+                    }
+
+                    const response = await fetch("/Admin/Chat/SendMessage", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload && payload.message ? payload.message : "Gui tin nhan that bai.");
+                    }
+
+                    appendMessage(payload);
+                    messageInput.value = "";
+                    clearAttachment();
+                    clearProduct();
+                    renderSelection();
+                    await loadUsers();
+                    messageInput.focus();
+                } catch (error) {
+                    console.error(error);
+                    if (typeof Swal !== "undefined") {
+                        Swal.fire("Loi", error.message || "Gui tin nhan that bai.", "error");
+                    }
+                } finally {
+                    sending = false;
+                    sendBtn.disabled = false;
+                }
+            }
+
+            function handleRealtimeMessage(message) {
+                loadUsers();
+
+                if (!selectedUserId) {
+                    if (chatLiveBanner) {
+                        chatLiveBanner.style.display = "block";
+                        chatLiveBanner.textContent = (message.senderName || "Khach hang") + ": " + (message.preview || message.content || "");
+                    }
+                    return;
+                }
+
+                const related = message.senderId === selectedUserId || message.receiverId === selectedUserId;
+                if (!related) {
+                    if (chatLiveBanner) {
+                        chatLiveBanner.style.display = "block";
+                        chatLiveBanner.textContent = (message.senderName || "Khach hang") + ": " + (message.preview || message.content || "");
+                    }
+                    return;
+                }
+
+                if (message.senderId === selectedUserId && !message.isFromSupport) {
+                    loadMessages(selectedUserId).then(loadUsers);
+                    return;
+                }
+
+                appendMessage(message);
+            }
+
+            connection.on("ReceiveSupportMessage", handleRealtimeMessage);
+            connection.on("ReceiveSupportInboxMessage", handleRealtimeMessage);
+
+            sendBtn.addEventListener("click", function () {
+                sendMessage();
             });
-        }
 
-        async function loadMessages(userId) {
-            const res = await fetch('/Admin/Chat/GetMessages?userId=' + encodeURIComponent(userId));
-            const messages = await res.json();
-
-            chatMessages.innerHTML = "";
-            chatMessages.classList.remove("empty-state");
-
-            if (!messages || !messages.length) {
-                renderEmptyChat();
-                return;
-            }
-
-            messages.forEach(msg => {
-                const isMe = msg.senderId !== userId;
-                appendMessage(msg, isMe);
+            messageInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
             });
-        }
 
-        connection.on("ReceiveSupportMessage", async function (msg) {
-            await loadUsers();
-
-            if (chatLiveBanner && !selectedUserId) {
-                chatLiveBanner.style.display = "block";
-                chatLiveText.textContent = `${msg.senderName || "Khách hàng"}: ${msg.content || ""}`;
+            if (chatAttachment) {
+                chatAttachment.addEventListener("change", function () {
+                    selectedAttachment = this.files && this.files[0] ? this.files[0] : null;
+                    if (selectedAttachment) {
+                        clearProduct();
+                        toggleProductPicker(false);
+                    }
+                    renderSelection();
+                });
             }
 
-            if (!selectedUserId) return;
-
-            const related =
-                msg.senderId === selectedUserId || msg.receiverId === selectedUserId;
-
-            if (!related) return;
-
-            const isMe = msg.senderId !== selectedUserId;
-            appendMessage(msg, isMe);
-        });
-
-        sendBtn.addEventListener("click", async function () {
-            const content = messageInput.value.trim();
-            if (!content || !selectedUserId) return;
-
-            try {
-                await connection.invoke("SendMessage", selectedUserId, content);
-                messageInput.value = "";
-                messageInput.focus();
-            } catch (err) {
-                console.error(err);
+            if (chatPickProduct) {
+                chatPickProduct.addEventListener("click", function () {
+                    if (selectedAttachment) {
+                        clearAttachment();
+                        renderSelection();
+                    }
+                    toggleProductPicker();
+                });
             }
-        });
 
-        messageInput.addEventListener("keypress", function (e) {
-            if (e.key === "Enter") {
-                sendBtn.click();
+            if (chatProductSearchBtn) {
+                chatProductSearchBtn.addEventListener("click", function () {
+                    searchProducts();
+                });
             }
-        });
 
-        async function start() {
-            try {
-                await connection.start();
-                await loadUsers();
-            } catch (err) {
-                console.error(err);
-                setTimeout(start, 5000);
+            if (chatProductSearch) {
+                chatProductSearch.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter") {
+                        event.preventDefault();
+                        searchProducts();
+                    }
+                });
             }
-        }
 
-        start();
+            if (chatSelection) {
+                chatSelection.addEventListener("click", function (event) {
+                    const button = event.target.closest("[data-clear]");
+                    if (!button) {
+                        return;
+                    }
+
+                    if (button.getAttribute("data-clear") === "attachment") {
+                        clearAttachment();
+                    } else {
+                        clearProduct();
+                    }
+
+                    renderSelection();
+                });
+            }
+
+            async function start() {
+                try {
+                    await connection.start();
+                    await loadUsers();
+                } catch (error) {
+                    console.error(error);
+                    setTimeout(start, 5000);
+                }
+            }
+
+            start();
+        })();
     </script>
 }

@@ -28,7 +28,14 @@ namespace Eshop.Libraries
             var vnPayTranIdRaw = vnPay.GetResponseData("vnp_TransactionNo");
             var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
             var orderInfo = vnPay.GetResponseData("vnp_OrderInfo");
+            var amountRaw = vnPay.GetResponseData("vnp_Amount");
             var secureHash = collection.FirstOrDefault(x => x.Key == "vnp_SecureHash").Value.ToString();
+            decimal amount = 0m;
+
+            if (decimal.TryParse(amountRaw, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedAmount))
+            {
+                amount = parsedAmount / 100m;
+            }
 
             var checkSignature = vnPay.ValidateSignature(secureHash, hashSecret);
             var isSuccess = checkSignature && vnpResponseCode == "00";
@@ -42,7 +49,8 @@ namespace Eshop.Libraries
                 PaymentId = vnPayTranIdRaw,
                 TransactionId = vnPayTranIdRaw,
                 Token = secureHash,
-                VnPayResponseCode = vnpResponseCode
+                VnPayResponseCode = vnpResponseCode,
+                Amount = amount
             };
         }
 

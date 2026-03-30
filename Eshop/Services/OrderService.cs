@@ -6,7 +6,6 @@ using Eshop.Models.ViewModel;
 using Eshop.Repository;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -19,6 +18,7 @@ namespace Eshop.Services
         private readonly IEmailSender _emailSender;
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly IInventoryService _inventoryService;
+        private readonly ICheckoutPricingService _checkoutPricingService;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
@@ -26,12 +26,14 @@ namespace Eshop.Services
             IEmailSender emailSender,
             IHubContext<NotificationHub> notificationHub,
             IInventoryService inventoryService,
+            ICheckoutPricingService checkoutPricingService,
             ILogger<OrderService> logger)
         {
             _dataContext = dataContext;
             _emailSender = emailSender;
             _notificationHub = notificationHub;
             _inventoryService = inventoryService;
+            _checkoutPricingService = checkoutPricingService;
             _logger = logger;
         }
 
@@ -40,7 +42,7 @@ namespace Eshop.Services
             var paymentMethod = (model.PaymentMethod ?? "COD").Trim().ToUpperInvariant();
 
             if (paymentMethod == "VNPAY" || paymentMethod == "MOMO")
-                throw new InvalidOperationException("Thanh toán online phải đi qua luồng reservation trước khi tạo đơn.");
+                throw new InvalidOperationException("Thanh toán online phải đi qua luồng giữ chỗ trước khi tạo đơn.");
 
             var reservationCode = await _inventoryService.ReserveCartAsync(httpContext, user, paymentMethod);
 
@@ -58,16 +60,24 @@ namespace Eshop.Services
             }
         }
 
-        public async Task<string?> CreateOrderFromReservationAsync(HttpContext httpContext, ClaimsPrincipal user, CheckoutInputViewModel model, string reservationCode)
+        public async Task<string?> CreateOrderFromReservationAsync(
+            HttpContext httpContext,
+            ClaimsPrincipal user,
+            CheckoutInputViewModel model,
+            string reservationCode,
+            PendingCheckoutStateViewModel? pendingState = null)
         {
-            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = user.FindFirstValue(ClaimTypes.Email);
-            var userName = user.Identity?.Name;
+            var userId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? pendingState?.UserId;
+            var userEmail = user.FindFirstValue(ClaimTypes.Email) ?? pendingState?.UserEmail;
+            var userName = user.Identity?.Name ?? pendingState?.UserName;
 
-            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userEmail))
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
                 return null;
 
-            var cartItems = httpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var cartItems = httpContext.Session.GetJson<List<CartItemModel>>("Cart")
+                ?? pendingState?.CartItems
+                ?? new List<CartItemModel>();
+
             if (cartItems.Count == 0)
                 return null;
 
@@ -76,60 +86,52 @@ namespace Eshop.Services
             try
             {
                 var productIds = cartItems.Select(x => (int)x.ProductId).Distinct().ToList();
-
                 var products = await _dataContext.Products
+                    .Include(x => x.ProductImages)
                     .Where(x => productIds.Contains(x.Id))
                     .ToDictionaryAsync(x => x.Id);
 
-                var subTotal = cartItems.Sum(x => x.Quantity * x.Price);
-                var shippingCost = ReadShippingCost(httpContext);
+                var pricingSummary = pendingState == null
+                    ? await _checkoutPricingService.BuildSummaryAsync(httpContext, model)
+                    : new CheckoutPricingSummaryViewModel
+                    {
+                        CartItems = pendingState.CartItems,
+                        SubTotal = pendingState.SubTotal,
+                        ShippingCost = pendingState.ShippingCost,
+                        DiscountAmount = pendingState.DiscountAmount,
+                        TotalAmount = pendingState.ExpectedTotal,
+                        CouponCode = pendingState.CouponCode,
+                        CouponId = pendingState.CouponId,
+                        ShippingSelection = new CheckoutShippingSelectionViewModel
+                        {
+                            ProvinceCode = model.ProvinceCode,
+                            WardCode = model.WardCode,
+                            ProvinceName = model.tinh,
+                            DistrictName = model.quan,
+                            WardName = model.phuong
+                        }
+                    };
 
-                decimal discountAmount = 0m;
-                string? couponCode = null;
-
-                var appliedCoupon = httpContext.Session.GetJson<AppliedCouponModel>("Coupon");
-                if (appliedCoupon != null)
+                if (pricingSummary.CouponId.HasValue)
                 {
-                    var coupon = await _dataContext.Coupons.FirstOrDefaultAsync(x => x.Id == appliedCoupon.CouponId);
-
-                    if (coupon != null)
+                    var coupon = await _dataContext.Coupons.FirstOrDefaultAsync(x => x.Id == pricingSummary.CouponId.Value);
+                    if (coupon != null && coupon.Quantity > 0)
                     {
-                        var now = DateTime.Now;
-                        var isValid =
-                            coupon.Status == 1 &&
-                            coupon.Quantity > 0 &&
-                            coupon.DateStart <= now &&
-                            coupon.DateEnd >= now &&
-                            (!coupon.MinOrderAmount.HasValue || subTotal >= coupon.MinOrderAmount.Value);
-
-                        if (isValid)
-                        {
-                            discountAmount = CalculateDiscount(coupon, subTotal);
-                            couponCode = coupon.NameCode;
-                            coupon.Quantity -= 1;
-                        }
-                        else
-                        {
-                            httpContext.Session.Remove("Coupon");
-                        }
-                    }
-                    else
-                    {
-                        httpContext.Session.Remove("Coupon");
+                        coupon.Quantity -= 1;
                     }
                 }
 
-                var totalAmount = subTotal - discountAmount + shippingCost;
-                if (totalAmount < 0)
-                {
-                    totalAmount = 0;
-                }
-
+                var provinceName = pricingSummary.ShippingSelection?.ProvinceName ?? model.tinh;
+                var districtName = !string.IsNullOrWhiteSpace(model.quan)
+                    ? model.quan
+                    : pricingSummary.ShippingSelection?.DistrictName;
+                var wardName = pricingSummary.ShippingSelection?.WardName ?? model.phuong;
+                var totalAmount = pricingSummary.TotalAmount < 0 ? 0 : pricingSummary.TotalAmount;
                 var orderCode = Guid.NewGuid().ToString("N");
                 var createdAt = DateTime.Now;
-                var fullAddress = $"{model.Address}, {model.phuong}"
-                    + $"{(string.IsNullOrWhiteSpace(model.quan) ? string.Empty : ", " + model.quan)}"
-                    + $", {model.tinh}";
+                var fullAddress = $"{model.Address}, {wardName}"
+                    + $"{(string.IsNullOrWhiteSpace(districtName) ? string.Empty : ", " + districtName)}"
+                    + $", {provinceName}";
 
                 var order = new OrderModel
                 {
@@ -140,16 +142,16 @@ namespace Eshop.Services
                     Phone = model.Phone,
                     Email = model.Email,
                     Address = fullAddress,
-                    Province = model.tinh,
-                    District = model.quan,
-                    Ward = model.phuong,
+                    Province = provinceName,
+                    District = districtName,
+                    Ward = wardName,
                     Note = model.Note,
                     Status = (int)OrderStatus.Pending,
                     CreatedTime = createdAt,
-                    SubTotal = subTotal,
-                    DiscountAmount = discountAmount,
-                    CouponCode = couponCode,
-                    ShippingCost = shippingCost,
+                    SubTotal = pricingSummary.SubTotal,
+                    DiscountAmount = pricingSummary.DiscountAmount,
+                    CouponCode = pricingSummary.CouponCode,
+                    ShippingCost = pricingSummary.ShippingCost,
                     TotalAmount = totalAmount,
                     PaymentMethod = string.IsNullOrWhiteSpace(model.PaymentMethod)
                         ? "COD"
@@ -172,7 +174,7 @@ namespace Eshop.Services
                         OrderId = order.OrderId,
                         ProductId = (int)cart.ProductId,
                         ProductName = product.Name,
-                        ProductImage = product.Image,
+                        ProductImage = ProductImageHelper.ResolveProductImage(product),
                         Price = cart.Price,
                         Quantity = cart.Quantity,
                         BuildGroupKey = cart.BuildGroupKey,
@@ -194,7 +196,7 @@ namespace Eshop.Services
                 httpContext.Session.Remove("Coupon");
                 httpContext.Session.Remove("CheckoutInfo");
                 httpContext.Session.Remove("ActiveReservationCode");
-                httpContext.Response.Cookies.Delete("ShippingPrice");
+                _checkoutPricingService.ClearShippingSelection(httpContext);
 
                 await TryPushAdminNotificationAsync(orderCode, model.FullName, model.Phone, totalAmount, createdAt);
                 await TrySendOrderConfirmationEmailAsync(httpContext, order, createdDetails);
@@ -208,55 +210,6 @@ namespace Eshop.Services
             }
         }
 
-        private decimal CalculateDiscount(CouponModel coupon, decimal subTotal)
-        {
-            decimal discountAmount = 0;
-
-            if (coupon == null || subTotal <= 0)
-                return 0;
-
-            if (coupon.DiscountType == 1)
-            {
-                discountAmount = subTotal * coupon.Discount / 100;
-            }
-            else if (coupon.DiscountType == 2)
-            {
-                discountAmount = coupon.Discount;
-            }
-
-            if (coupon.MaxDiscountAmount.HasValue && discountAmount > coupon.MaxDiscountAmount.Value)
-            {
-                discountAmount = coupon.MaxDiscountAmount.Value;
-            }
-
-            if (discountAmount > subTotal)
-            {
-                discountAmount = subTotal;
-            }
-
-            return discountAmount;
-        }
-
-        private static decimal ReadShippingCost(HttpContext httpContext)
-        {
-            var shippingCookie = httpContext.Request.Cookies["ShippingPrice"];
-
-            if (string.IsNullOrWhiteSpace(shippingCookie))
-            {
-                return 0m;
-            }
-
-            try
-            {
-                var shippingCost = Newtonsoft.Json.JsonConvert.DeserializeObject<decimal>(shippingCookie);
-                return shippingCost < 0 ? 0m : shippingCost;
-            }
-            catch
-            {
-                return 0m;
-            }
-        }
-
         private async Task TryPushAdminNotificationAsync(string orderCode, string? fullName, string? phone, decimal totalAmount, DateTime createdAt)
         {
             try
@@ -264,14 +217,14 @@ namespace Eshop.Services
                 await _notificationHub.Clients
                     .Group(Eshop.Constants.NotificationGroups.OrderManagers)
                     .SendAsync("NewOrderCreated", new
-                {
-                    orderCode,
-                    fullName,
-                    phone,
-                    totalAmount = totalAmount.ToString("N0"),
-                    createdAt = createdAt.ToString("dd/MM/yyyy HH:mm"),
-                    url = $"/Admin/Order/ViewOrder?orderCode={orderCode}"
-                });
+                    {
+                        orderCode,
+                        fullName,
+                        phone,
+                        totalAmount = totalAmount.ToString("N0"),
+                        createdAt = createdAt.ToString("dd/MM/yyyy HH:mm"),
+                        url = $"/Admin/Order/ViewOrder?orderCode={orderCode}"
+                    });
             }
             catch (Exception ex)
             {
@@ -301,11 +254,11 @@ namespace Eshop.Services
 
         private static string BuildOrderConfirmationEmail(HttpContext httpContext, OrderModel order, IReadOnlyCollection<OrderDetails> details)
         {
-            var sb = new StringBuilder();
             var orderUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/Account/Details?orderCode={Uri.EscapeDataString(order.OrderCode)}";
+            var sb = new StringBuilder();
 
             sb.Append("""
-<div style="font-family:Arial,Helvetica,sans-serif;background:#f5f7fb;padding:24px;color:#111827;">
+<div style="font-family:'Inter','Segoe UI','Helvetica Neue',sans-serif;background:#f5f7fb;padding:24px;color:#111827;">
     <div style="max-width:760px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e5e7eb;">
         <div style="padding:24px 28px;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#ffffff;">
             <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;">Eshop</div>
@@ -335,9 +288,7 @@ namespace Eshop.Services
                     <div style="font-size:16px;font-weight:700;">{HtmlEncode(OrderDisplayHelper.GetPaymentMethodLabel(order.PaymentMethod))}</div>
                 </div>
             </div>
-""");
 
-            sb.Append("""
             <table style="width:100%;border-collapse:collapse;margin-bottom:18px;">
                 <thead>
                     <tr style="background:#f8fafc;">

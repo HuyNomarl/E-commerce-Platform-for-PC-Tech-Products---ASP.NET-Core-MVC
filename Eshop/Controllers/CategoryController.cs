@@ -34,6 +34,10 @@ namespace Eshop.Controllers
             }
 
             var products = await _dataContext.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Publisher)
+                .Include(p => p.ProductImages)
                 .Where(p => categoryIds.Contains(p.CategoryId))
                 .ToListAsync();
 

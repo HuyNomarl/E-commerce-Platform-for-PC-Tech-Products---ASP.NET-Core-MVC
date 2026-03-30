@@ -180,7 +180,9 @@ namespace Eshop.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var value = await _dataContext.ProductOptionValues.FindAsync(id);
+            var value = await _dataContext.ProductOptionValues
+                .Include(x => x.ProductOptionGroup)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (value == null)
             {
                 return NotFound();
@@ -195,8 +197,11 @@ namespace Eshop.Areas.Admin.Controllers
 
             await _dataContext.SaveChangesAsync();
 
-            return RedirectToAction("Index", new { productId = 1 });
+            return RedirectToAction(nameof(Index), new { productId = value.ProductOptionGroup.ProductId });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroup(int id)
         {
             var group = await _dataContext.ProductOptionGroups
@@ -219,6 +224,8 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index), new { productId });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteValue(int id)
         {
             var value = await _dataContext.ProductOptionValues.FindAsync(id);
@@ -228,6 +235,11 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             var group = await _dataContext.ProductOptionGroups.FindAsync(value.ProductOptionGroupId);
+            if (group == null)
+            {
+                return NotFound();
+            }
+
             int productId = group.ProductId;
 
             _dataContext.ProductOptionValues.Remove(value);

@@ -194,6 +194,8 @@ namespace Eshop.Areas.Admin.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             var category = await _dataContext.Categories.FindAsync(id);

@@ -25,6 +25,12 @@ namespace Eshop.Models.ViewModel
         [Required(ErrorMessage = "Vui lòng chọn phường/xã")]
         public string phuong { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng chọn mã tỉnh/thành")]
+        public string ProvinceCode { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng chọn mã phường/xã")]
+        public string WardCode { get; set; }
+
         public string? Note { get; set; }
 
         public string? PaymentMethod { get; set; }

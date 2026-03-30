@@ -1,0 +1,67 @@
+:root {
+    --font-body: 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+    --font-display: 'Poppins', 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+html {
+    font-family: var(--font-body);
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-body);
+    font-feature-settings: "liga" 1, "calt" 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.btn,
+.tt-top-link,
+.tt-account-link,
+.tt-auth-link,
+.tt-search-btn,
+.tt-category-toggle,
+.tt-feature-item span,
+.tt-action-text strong,
+.admin-brand-text h4,
+.admin-alert-meta strong,
+.dash-section__title,
+.dash-card__head h4,
+.dash-kpi__value,
+.mainmenu ul li a,
+.shop-menu ul li a,
+.left-sidebar h2,
+.brands_products h2,
+.category-products .panel-default .panel-heading .panel-title a,
+.brands-name .nav-stacked li a,
+h2.title,
+.productinfo h2,
+.product-overlay h2,
+.product-information h2,
+.product-information span span,
+.heading h3,
+.checkout-options h3,
+.single-blog-post h3,
+.companyinfo h2,
+.item h1,
+.item h2,
+.get,
+.content-404 h1,
+.content-404 h2 a,
+.table thead th {
+    font-family: var(--font-display);
+}
+
+.dash,
+.admin-shell,
+.dataTables_wrapper,
+.swal2-popup {
+    font-family: var(--font-body);
+}

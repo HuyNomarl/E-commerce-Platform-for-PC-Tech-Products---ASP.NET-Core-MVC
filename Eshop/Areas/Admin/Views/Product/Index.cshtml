@@ -163,19 +163,19 @@
                                 <td>
                                     <div class="thumb-wrap">
                                         @{
-                                            var imageSrc = !string.IsNullOrWhiteSpace(item.Image)
-                                                ? item.Image
-                                                : item.ProductImages?
-                                                    .OrderBy(x => x.SortOrder)
-                                                    .FirstOrDefault()?.Url;
-
-                                            if (string.IsNullOrWhiteSpace(imageSrc))
-                                            {
-                                                imageSrc = Url.Content("~/media/products/noname.jpg");
-                                            }
+                                            var imageSrc = ProductImageHelper.ResolveProductImage(item);
                                         }
 
-                                        <img src="@imageSrc" alt="@item.Name" class="thumb" />
+                                        @if (!string.IsNullOrWhiteSpace(imageSrc))
+                                        {
+                                            <img src="@imageSrc" alt="@item.Name" class="thumb" />
+                                        }
+                                        else
+                                        {
+                                            <div class="thumb thumb-placeholder">
+                                                <i class="fa fa-image"></i>
+                                            </div>
+                                        }
                                     </div>
                                 </td>
 
@@ -245,13 +245,21 @@
                                             <i class="fa fa-sliders"></i>
                                         </a>
 
-                                        <a asp-action="Delete"
-                                               asp-controller="Product"
-                                               asp-route-id="@item.Id"
-                                               class="icon-btn icon-delete confirmDeletion"
-                                               title="Xóa">
-                                            <i class="fa fa-trash"></i>
-                                        </a>
+                                        <form asp-action="Delete"
+                                              asp-controller="Product"
+                                              method="post"
+                                              style="display:inline-block;"
+                                              data-swal-confirm
+                                              data-swal-title="Xóa sản phẩm?"
+                                              data-swal-text="Sản phẩm sẽ bị xóa nếu không còn ràng buộc dữ liệu."
+                                              data-swal-confirm-text="Xóa"
+                                              data-swal-cancel-text="Hủy">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="icon-btn icon-delete" title="Xóa">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -438,6 +446,14 @@
         border-radius: 12px;
         border: 1px solid #e5e7eb;
         background: #f9fafb;
+    }
+
+    .thumb-placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-size: 20px;
     }
 
     .name-main {

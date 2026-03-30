@@ -10,7 +10,7 @@
         "projectUniqueName": "E:\\Web C#\\Eshop\\Eshop\\Eshop.csproj",
         "projectName": "Eshop",
         "projectPath": "E:\\Web C#\\Eshop\\Eshop\\Eshop.csproj",
-        "packagesPath": "e:\\Web C#\\Eshop\\.dotnet\\.nuget\\packages\\",
+        "packagesPath": "C:\\Users\\pc\\.nuget\\packages\\",
         "outputPath": "E:\\Web C#\\Eshop\\Eshop\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
@@ -60,27 +60,27 @@
             },
             "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.ML": {
               "target": "Package",
@@ -92,7 +92,7 @@
             },
             "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
               "target": "Package",
-              "version": "[10.0.0, )"
+              "version": "[10.0.2, )"
             },
             "Newtonsoft.Json": {
               "target": "Package",

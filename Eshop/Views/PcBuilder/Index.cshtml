@@ -242,7 +242,7 @@
 
     .builder-actions {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         margin-top: 18px;
     }
@@ -263,6 +263,159 @@
 
     .btn-cart-red {
         background: #ef1b12;
+    }
+
+    .builder-utility-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+    }
+
+    .builder-utility-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .builder-utility-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+
+    .builder-utility-sub {
+        color: #555;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .share-search-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+        .share-search-row input,
+        .share-note-input {
+            width: 100%;
+            border: 1px solid #d6d6d6;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+            outline: none;
+        }
+
+    .share-note-input {
+        resize: vertical;
+        min-height: 88px;
+        margin-bottom: 12px;
+    }
+
+    .share-search-btn,
+    .share-action-btn,
+    .share-load-btn,
+    .share-download-btn {
+        border: none;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+
+    .share-search-btn,
+    .share-action-btn {
+        background: #003a3f;
+        color: #fff;
+        padding: 10px 14px;
+        white-space: nowrap;
+    }
+
+    .share-results,
+    .shared-build-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-height: 80px;
+    }
+
+    .share-result-item,
+    .shared-build-item {
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 12px;
+        background: #fafafa;
+    }
+
+    .share-result-item.active {
+        border-color: #0f766e;
+        box-shadow: 0 0 0 2px rgba(15, 118, 110, .12);
+        background: #f0fdfa;
+    }
+
+    .share-result-top,
+    .shared-build-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .share-result-name,
+    .shared-build-name {
+        font-size: 15px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .share-result-meta,
+    .shared-build-meta {
+        font-size: 13px;
+        color: #4b5563;
+        margin-top: 4px;
+        line-height: 1.5;
+    }
+
+    .share-select-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-weight: 700;
+        background: #e5e7eb;
+        color: #111827;
+        white-space: nowrap;
+    }
+
+    .share-result-item.active .share-select-btn {
+        background: #0f766e;
+        color: #fff;
+    }
+
+    .shared-build-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .share-load-btn {
+        background: #ef1b12;
+        color: #fff;
+        padding: 8px 12px;
+    }
+
+    .share-download-btn {
+        background: #003a3f;
+        color: #fff;
+        padding: 8px 12px;
+    }
+
+    .utility-empty {
+        padding: 12px;
+        border: 1px dashed #d4d4d4;
+        border-radius: 8px;
+        color: #6b7280;
+        background: #f9fafb;
+        font-size: 14px;
     }
 
     .picker-overlay {
@@ -665,6 +818,10 @@
         .filter-options-grid {
             grid-template-columns: 1fr;
         }
+
+        .builder-utility-grid {
+            grid-template-columns: 1fr;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -691,6 +848,12 @@
 
         .builder-actions {
             grid-template-columns: 1fr;
+        }
+
+        .share-search-row,
+        .share-result-top,
+        .shared-build-top {
+            flex-direction: column;
         }
 
         .build-chatbox {
@@ -725,10 +888,42 @@
         </div>
 
         <div class="builder-actions">
-            <button type="button" class="builder-bottom-btn btn-darkgreen">TẢI ẢNH CẤU HÌNH</button>
-            <button type="button" class="builder-bottom-btn btn-darkgreen">TẢI FILE EXCEL CẤU HÌNH</button>
-            <button type="button" class="builder-bottom-btn btn-darkgreen">XEM &amp; IN</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen" id="saveDraftBtn">LƯU CẤU HÌNH</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen" id="exportExcelBtn">XUẤT FILE EXCEL</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen" id="importExcelBtn">NHẬP FILE EXCEL</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen" id="shareBuildBtn">CHIA SẺ CẤU HÌNH</button>
+            <button type="button" class="builder-bottom-btn btn-darkgreen" id="printBuildBtn">XEM &amp; IN</button>
             <button type="button" class="builder-bottom-btn btn-cart-red" id="saveBuildBtn">THÊM VÀO GIỎ HÀNG</button>
+        </div>
+
+        <input type="file" id="importExcelInput" accept=".xlsx,.xlsm,.xltx,.xltm" hidden />
+
+        <div class="builder-utility-grid">
+            <section class="builder-utility-card">
+                <div class="builder-utility-title">Chia sẻ cấu hình cho người dùng khác</div>
+                <div class="builder-utility-sub">Tìm khách hàng theo tên hoặc email, chọn người nhận rồi chia sẻ trực tiếp cấu hình hiện tại.</div>
+
+                <div class="share-search-row">
+                    <input type="text" id="shareReceiverKeyword" placeholder="Nhập tên hoặc email người nhận..." />
+                    <button type="button" class="share-search-btn" id="btnSearchShareReceiver">Tìm người nhận</button>
+                </div>
+
+                <div class="share-results" id="shareReceiverResults">
+                    <div class="utility-empty">Đăng nhập rồi tìm người nhận để chia sẻ cấu hình.</div>
+                </div>
+
+                <textarea class="share-note-input" id="shareNoteInput" placeholder="Ghi chú gửi kèm cho người nhận (không bắt buộc)..."></textarea>
+                <button type="button" class="share-action-btn" id="btnConfirmShareBuild">GỬI CẤU HÌNH</button>
+            </section>
+
+            <section class="builder-utility-card">
+                <div class="builder-utility-title">Cấu hình được chia sẻ với bạn</div>
+                <div class="builder-utility-sub">Bạn có thể nạp nhanh cấu hình vào Builder hoặc tải file Excel từ người gửi.</div>
+
+                <div class="shared-build-list" id="sharedBuildList">
+                    <div class="utility-empty">Chưa có cấu hình nào được chia sẻ.</div>
+                </div>
+            </section>
         </div>
     </div>
 </div>
@@ -816,6 +1011,7 @@
 
 @section Scripts {
     <script>
+        const userIsAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
         const SLOT_CONFIGS = [
             { type: "CPU", label: "1. CPU", buttonText: "Chọn CPU", multi: false },
             { type: "Mainboard", label: "2. MAINBOARD", buttonText: "Chọn Mainboard", multi: false },
@@ -844,6 +1040,9 @@
         let pickerAllItems = [];
         let pickerFilteredItems = [];
         let compatibilityState = { totalPrice: 0, estimatedPower: 0, messages: [] };
+        let shareSearchResults = [];
+        let selectedShareReceiverId = null;
+        let sharedBuildItems = [];
 
         const pickerFilterState = {
             keyword: "",
@@ -871,6 +1070,18 @@
         const sendBuildChatBtn = document.getElementById("sendBuildChatBtn");
         const toggleBuildChatbox = document.getElementById("toggleBuildChatbox");
         const buildChatbox = document.getElementById("buildChatbox");
+        const saveDraftBtn = document.getElementById("saveDraftBtn");
+        const exportExcelBtn = document.getElementById("exportExcelBtn");
+        const importExcelBtn = document.getElementById("importExcelBtn");
+        const importExcelInput = document.getElementById("importExcelInput");
+        const printBuildBtn = document.getElementById("printBuildBtn");
+        const shareBuildBtn = document.getElementById("shareBuildBtn");
+        const shareReceiverKeyword = document.getElementById("shareReceiverKeyword");
+        const shareReceiverResults = document.getElementById("shareReceiverResults");
+        const shareNoteInput = document.getElementById("shareNoteInput");
+        const btnSearchShareReceiver = document.getElementById("btnSearchShareReceiver");
+        const btnConfirmShareBuild = document.getElementById("btnConfirmShareBuild");
+        const sharedBuildList = document.getElementById("sharedBuildList");
 
         function initPcBuilderPage() {
             document.getElementById("btnClosePicker")?.addEventListener("click", closePicker);
@@ -880,6 +1091,14 @@
             document.getElementById("btnResetBuild")?.addEventListener("click", resetBuild);
             document.getElementById("saveBuildBtn")?.addEventListener("click", addBuildToCart);
             document.getElementById("btnClearPickerFilters")?.addEventListener("click", clearPickerFilters);
+            saveDraftBtn?.addEventListener("click", saveBuild);
+            exportExcelBtn?.addEventListener("click", exportBuildExcel);
+            importExcelBtn?.addEventListener("click", () => importExcelInput?.click());
+            importExcelInput?.addEventListener("change", onImportExcelFileSelected);
+            printBuildBtn?.addEventListener("click", () => window.print());
+            shareBuildBtn?.addEventListener("click", shareCurrentBuild);
+            btnSearchShareReceiver?.addEventListener("click", searchShareReceivers);
+            btnConfirmShareBuild?.addEventListener("click", shareCurrentBuild);
 
             pickerSort?.addEventListener("change", () => {
                 pickerFilterState.sort = pickerSort.value;
@@ -918,8 +1137,21 @@
                 toggleBuildChatbox.textContent = buildChatbox.classList.contains("collapsed") ? "+" : "−";
             });
 
+            shareReceiverKeyword?.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    searchShareReceivers();
+                }
+            });
+
             renderBuildTable();
             renderMessages();
+            renderShareReceiverResults();
+            renderSharedBuildList();
+
+            if (userIsAuthenticated) {
+                loadSharedBuilds();
+            }
         }
 
         function getFilterConfig(type) {
@@ -1015,7 +1247,7 @@
         }
 
         function renderSelectedItem(type, multi, item) {
-            const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+            const imageUrl = item.image || "/images/no-image.png";
             const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
             const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
 
@@ -1299,7 +1531,7 @@
             pickerList.innerHTML = pickerFilteredItems.map(item => {
                 const checked = isCheckedInPicker(item.id, multi, pickerType) ? "checked" : "";
                 const inputType = multi ? "checkbox" : "radio";
-                const imageUrl = item.image ? `/media/products/${item.image}` : "/images/no-image.png";
+                const imageUrl = item.image || "/images/no-image.png";
                 const stockText = Number(item.stock || 0) > 0 ? "Còn hàng" : "Hết hàng";
                 const stockClass = Number(item.stock || 0) > 0 ? "selected-stock" : "selected-out";
 
@@ -1620,20 +1852,12 @@
                 return;
             }
 
-            const promptResult = await showAppPrompt({
-                title: "Lưu cấu hình",
-                text: "Nhập tên cấu hình bạn muốn lưu.",
-                inputValue: "PC Gaming mới",
-                inputPlaceholder: "Ví dụ: PC Gaming mới",
-                confirmButtonText: "Lưu",
-                cancelButtonText: "Hủy",
-                required: true,
-                requiredMessage: "Vui lòng nhập tên cấu hình."
-            });
+            const buildName = await promptBuildName(
+                "Lưu cấu hình",
+                "Nhập tên cấu hình bạn muốn lưu.",
+                "Lưu");
 
-            if (!promptResult.isConfirmed) return;
-
-            const buildName = (promptResult.value || "").trim();
+            if (!buildName) return;
 
             const res = await fetch("/api/pc-builder/save", {
                 method: "POST",
@@ -1649,6 +1873,351 @@
             }
 
             await showAppAlert(`Lưu thành công. Mã build: ${data.buildCode}`, "success");
+        }
+
+        async function promptBuildName(title, text, confirmButtonText) {
+            const promptResult = await showAppPrompt({
+                title,
+                text,
+                inputValue: "PC Gaming mới",
+                inputPlaceholder: "Ví dụ: PC Gaming mới",
+                confirmButtonText,
+                cancelButtonText: "Hủy",
+                required: true,
+                requiredMessage: "Vui lòng nhập tên cấu hình."
+            });
+
+            if (!promptResult.isConfirmed) return null;
+            return String(promptResult.value || "").trim();
+        }
+
+        async function parseJsonResponse(res) {
+            const text = await res.text();
+
+            if (!text) {
+                return {};
+            }
+
+            try {
+                return JSON.parse(text);
+            } catch {
+                return { message: text };
+            }
+        }
+
+        function buildCompatibilityMessages(detail, warnings) {
+            const result = [];
+
+            (warnings || []).forEach(message => {
+                result.push({ level: "warning", message });
+            });
+
+            (detail.messages || []).forEach(message => {
+                result.push(message);
+            });
+
+            if (result.length === 0) {
+                result.push({ level: "info", message: "Cấu hình hiện chưa có cảnh báo tương thích." });
+            }
+
+            return result;
+        }
+
+        function applyResolvedBuild(detail, warnings) {
+            closePicker();
+
+            SLOT_CONFIGS.forEach(slot => {
+                buildState[slot.type] = slot.multi ? [] : null;
+            });
+
+            (detail.items || []).forEach(entry => {
+                const type = entry.componentType || entry.product?.componentType;
+                if (!type || !Object.prototype.hasOwnProperty.call(buildState, type)) {
+                    return;
+                }
+
+                const product = {
+                    ...(entry.product || {}),
+                    id: entry.productId,
+                    quantity: entry.quantity || 1
+                };
+
+                if (isMultiSlot(type)) {
+                    buildState[type].push(product);
+                } else {
+                    buildState[type] = product;
+                }
+            });
+
+            compatibilityState = {
+                totalPrice: Number(detail.totalPrice || 0),
+                estimatedPower: Number(detail.estimatedPower || 0),
+                messages: buildCompatibilityMessages(detail, warnings)
+            };
+
+            renderBuildTable();
+            renderMessages();
+        }
+
+        async function exportBuildExcel() {
+            const items = collectPayloadItems();
+            if (items.length === 0) {
+                await showAppAlert("Bạn chưa chọn linh kiện nào.", "warning");
+                return;
+            }
+
+            const buildName = await promptBuildName(
+                "Xuất file Excel",
+                "Nhập tên cấu hình để xuất file Excel.",
+                "Xuất Excel");
+
+            if (!buildName) return;
+
+            const res = await fetch("/api/pc-builder/export-excel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ buildName, items })
+            });
+
+            if (!res.ok) {
+                const data = await parseJsonResponse(res);
+                await showAppAlert(data.message || "Không thể xuất file Excel lúc này.", "error");
+                return;
+            }
+
+            await downloadResponseAsFile(res, `${buildName}.xlsx`);
+        }
+
+        async function downloadResponseAsFile(res, fallbackName) {
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            const disposition = res.headers.get("Content-Disposition") || "";
+            const matchedFileName = disposition.match(/filename\*?=(?:UTF-8''|\"?)([^\";]+)/i);
+            const fileName = matchedFileName
+                ? decodeURIComponent(matchedFileName[1].replaceAll('"', ""))
+                : fallbackName;
+
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        }
+
+        async function onImportExcelFileSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            await importBuildFromExcel(file);
+            event.target.value = "";
+        }
+
+        async function importBuildFromExcel(file) {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/pc-builder/import-excel", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await parseJsonResponse(res);
+
+            if (!res.ok) {
+                await showAppAlert(data.message || "Không thể nhập file Excel.", "error");
+                return;
+            }
+
+            applyResolvedBuild(data, data.warnings || []);
+
+            if ((data.warnings || []).length > 0) {
+                await showAppAlert("Đã nhập file Excel, nhưng có một số dòng không khớp hoàn toàn. Chi tiết đang hiển thị trong vùng cảnh báo.", "warning");
+                return;
+            }
+
+            await showAppAlert(`Đã nhập cấu hình từ file ${data.sourceFileName || file.name}.`, "success");
+        }
+
+        function renderShareReceiverResults() {
+            if (!shareReceiverResults) return;
+
+            if (!userIsAuthenticated) {
+                shareReceiverResults.innerHTML = `<div class="utility-empty">Đăng nhập bằng tài khoản khách hàng để tìm người nhận và chia sẻ cấu hình.</div>`;
+                return;
+            }
+
+            if (!shareSearchResults.length) {
+                shareReceiverResults.innerHTML = `<div class="utility-empty">Chưa có kết quả tìm kiếm. Hãy nhập tên hoặc email rồi bấm "Tìm người nhận".</div>`;
+                return;
+            }
+
+            shareReceiverResults.innerHTML = shareSearchResults.map(user => `
+                <div class="share-result-item ${selectedShareReceiverId === user.id ? "active" : ""}">
+                    <div class="share-result-top">
+                        <div>
+                            <div class="share-result-name">${escapeHtml(user.userName || "Khách hàng")}</div>
+                            <div class="share-result-meta">${escapeHtml(user.email || "Không có email")}</div>
+                        </div>
+                        <button type="button" class="share-select-btn" onclick="selectShareReceiver('${escapeHtml(user.id)}')">
+                            ${selectedShareReceiverId === user.id ? "Đã chọn" : "Chọn"}
+                        </button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        async function searchShareReceivers() {
+            if (!userIsAuthenticated) {
+                await showAppAlert("Bạn cần đăng nhập bằng tài khoản khách hàng để chia sẻ cấu hình.", "warning");
+                return;
+            }
+
+            const keyword = String(shareReceiverKeyword?.value || "").trim();
+            const res = await fetch(`/api/pc-builder/share-users?keyword=${encodeURIComponent(keyword)}`);
+            const data = await parseJsonResponse(res);
+
+            if (!res.ok) {
+                await showAppAlert(data.message || "Không tìm được người nhận lúc này.", "error");
+                return;
+            }
+
+            shareSearchResults = Array.isArray(data) ? data : [];
+
+            if (!shareSearchResults.some(x => x.id === selectedShareReceiverId)) {
+                selectedShareReceiverId = shareSearchResults.length > 0 ? shareSearchResults[0].id : null;
+            }
+
+            renderShareReceiverResults();
+        }
+
+        function selectShareReceiver(userId) {
+            selectedShareReceiverId = userId;
+            renderShareReceiverResults();
+        }
+
+        async function shareCurrentBuild() {
+            if (!userIsAuthenticated) {
+                await showAppAlert("Bạn cần đăng nhập bằng tài khoản khách hàng để chia sẻ cấu hình.", "warning");
+                return;
+            }
+
+            const items = collectPayloadItems();
+            if (items.length === 0) {
+                await showAppAlert("Bạn chưa chọn linh kiện nào.", "warning");
+                return;
+            }
+
+            if (!selectedShareReceiverId) {
+                await showAppAlert("Bạn chưa chọn người nhận.", "warning");
+                return;
+            }
+
+            const buildName = await promptBuildName(
+                "Chia sẻ cấu hình",
+                "Nhập tên cấu hình trước khi gửi cho người nhận.",
+                "Chia sẻ");
+
+            if (!buildName) return;
+
+            const res = await fetch("/api/pc-builder/share", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    buildName,
+                    receiverId: selectedShareReceiverId,
+                    note: shareNoteInput?.value || "",
+                    items
+                })
+            });
+
+            const data = await parseJsonResponse(res);
+
+            if (!res.ok) {
+                await showAppAlert(data.message || "Không thể chia sẻ cấu hình lúc này.", "error");
+                return;
+            }
+
+            if (shareNoteInput) {
+                shareNoteInput.value = "";
+            }
+
+            await showAppAlert(data.message || "Đã chia sẻ cấu hình thành công.", "success");
+        }
+
+        async function loadSharedBuilds() {
+            if (!sharedBuildList) return;
+
+            if (!userIsAuthenticated) {
+                renderSharedBuildList();
+                return;
+            }
+
+            const res = await fetch("/api/pc-builder/shared");
+            const data = await parseJsonResponse(res);
+
+            if (!res.ok) {
+                sharedBuildList.innerHTML = `<div class="utility-empty">${escapeHtml(data.message || "Không tải được danh sách cấu hình được chia sẻ.")}</div>`;
+                return;
+            }
+
+            sharedBuildItems = Array.isArray(data) ? data : [];
+            renderSharedBuildList();
+        }
+
+        function renderSharedBuildList() {
+            if (!sharedBuildList) return;
+
+            if (!userIsAuthenticated) {
+                sharedBuildList.innerHTML = `<div class="utility-empty">Đăng nhập bằng tài khoản khách hàng để xem các cấu hình được chia sẻ.</div>`;
+                return;
+            }
+
+            const items = Array.isArray(sharedBuildItems) ? sharedBuildItems : [];
+            if (!items.length) {
+                sharedBuildList.innerHTML = `<div class="utility-empty">Chưa có cấu hình nào được chia sẻ.</div>`;
+                return;
+            }
+
+            sharedBuildList.innerHTML = items.map(item => `
+                <div class="shared-build-item">
+                    <div class="shared-build-top">
+                        <div>
+                            <div class="shared-build-name">${escapeHtml(item.buildName || "PC Build")}</div>
+                            <div class="shared-build-meta">
+                                Người gửi: ${escapeHtml(item.senderName || "Không rõ")}<br />
+                                Thời gian: ${escapeHtml(item.createdAtText || "")}<br />
+                                Tổng giá: ${formatPrice(item.totalPrice || 0)}
+                                ${item.note ? `<br />Ghi chú: ${escapeHtml(item.note)}` : ""}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shared-build-actions">
+                        <button type="button" class="share-load-btn" onclick="loadSharedBuild('${escapeHtml(item.shareCode)}')">Nạp vào Builder</button>
+                        <button type="button" class="share-download-btn" onclick="downloadSharedBuildExcel('${escapeHtml(item.shareCode)}')">Tải Excel</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        async function loadSharedBuild(shareCode) {
+            const res = await fetch(`/api/pc-builder/shared/${encodeURIComponent(shareCode)}`);
+            const data = await parseJsonResponse(res);
+
+            if (!res.ok) {
+                await showAppAlert(data.message || "Không thể tải cấu hình được chia sẻ.", "error");
+                return;
+            }
+
+            applyResolvedBuild(data, []);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            await showAppAlert("Đã nạp cấu hình được chia sẻ vào Build PC.", "success");
+            loadSharedBuilds();
+        }
+
+        function downloadSharedBuildExcel(shareCode) {
+            window.location.href = `/api/pc-builder/shared/${encodeURIComponent(shareCode)}/excel`;
         }
 
         function appendChatMessage(role, text) {
@@ -1719,20 +2288,12 @@
                 return;
             }
 
-            const promptResult = await showAppPrompt({
-                title: "Thêm cấu hình vào giỏ hàng",
-                text: "Nhập tên cấu hình để lưu cùng giỏ hàng.",
-                inputValue: "PC Gaming mới",
-                inputPlaceholder: "Ví dụ: PC Gaming mới",
-                confirmButtonText: "Tiếp tục",
-                cancelButtonText: "Hủy",
-                required: true,
-                requiredMessage: "Vui lòng nhập tên cấu hình."
-            });
+            const buildName = await promptBuildName(
+                "Thêm cấu hình vào giỏ hàng",
+                "Nhập tên cấu hình để lưu cùng giỏ hàng.",
+                "Tiếp tục");
 
-            if (!promptResult.isConfirmed) return;
-
-            const buildName = (promptResult.value || "").trim();
+            if (!buildName) return;
 
             const res = await fetch("/api/pc-builder/add-to-cart", {
                 method: "POST",
@@ -1755,6 +2316,9 @@
         window.changeQty = changeQty;
         window.removeSelectedItem = removeSelectedItem;
         window.askBuildAssistant = askBuildAssistant;
+        window.selectShareReceiver = selectShareReceiver;
+        window.loadSharedBuild = loadSharedBuild;
+        window.downloadSharedBuildExcel = downloadSharedBuildExcel;
 
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", initPcBuilderPage);

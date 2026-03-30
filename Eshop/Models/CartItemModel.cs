@@ -1,3 +1,4 @@
+using Eshop.Helpers;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -41,7 +42,7 @@ namespace Eshop.Models
             BasePrice = product.Price;
             OptionPrice = 0;
             Quantity = 1;
-            Image = product.Image;
+            Image = ProductImageHelper.ResolveProductImage(product);
         }
 
         public static string GenerateLineKey(

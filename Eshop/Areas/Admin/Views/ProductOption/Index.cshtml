@@ -27,12 +27,18 @@
                 <div>
                     <a asp-action="CreateValue" asp-route-groupId="@group.Id" class="btn btn-success btn-sm">Thêm giá trị</a>
                     <a asp-action="EditGroup" asp-route-id="@group.Id" class="btn btn-warning btn-sm">Sửa nhóm</a>
-                    <a asp-action="DeleteGroup" asp-route-id="@group.Id" class="btn btn-danger btn-sm"
-                       data-swal-confirm-link
-                       data-swal-title="Xóa nhóm tùy chọn?"
-                       data-swal-text="Nhóm tùy chọn và các giá trị liên quan sẽ bị xóa."
-                       data-swal-confirm-text="Xóa"
-                       data-swal-cancel-text="Hủy">Xóa nhóm</a>
+                    <form asp-action="DeleteGroup"
+                          method="post"
+                          style="display:inline-block;"
+                          data-swal-confirm
+                          data-swal-title="Xóa nhóm tùy chọn?"
+                          data-swal-text="Nhóm tùy chọn và các giá trị liên quan sẽ bị xóa."
+                          data-swal-confirm-text="Xóa"
+                          data-swal-cancel-text="Hủy">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@group.Id" />
+                        <button type="submit" class="btn btn-danger btn-sm">Xóa nhóm</button>
+                    </form>
                 </div>
             </div>
 
@@ -63,12 +69,18 @@
                                     <td>@(item.Status == 1 ? "Hiển thị" : "Ẩn")</td>
                                     <td>
                                         <a asp-action="EditValue" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
-                                        <a asp-action="DeleteValue" asp-route-id="@item.Id" class="btn btn-danger btn-sm"
-                                           data-swal-confirm-link
-                                           data-swal-title="Xóa giá trị?"
-                                           data-swal-text="Giá trị tùy chọn này sẽ bị xóa khỏi sản phẩm."
-                                           data-swal-confirm-text="Xóa"
-                                           data-swal-cancel-text="Hủy">Xóa</a>
+                                        <form asp-action="DeleteValue"
+                                              method="post"
+                                              style="display:inline-block;"
+                                              data-swal-confirm
+                                              data-swal-title="Xóa giá trị?"
+                                              data-swal-text="Giá trị tùy chọn này sẽ bị xóa khỏi sản phẩm."
+                                              data-swal-confirm-text="Xóa"
+                                              data-swal-cancel-text="Hủy">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                                        </form>
                                     </td>
                                 </tr>
                             }

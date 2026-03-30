@@ -1,9 +1,12 @@
-﻿using Eshop.Models.ViewModel;
+using Eshop.Constants;
+using Eshop.Models.ViewModel;
 using Eshop.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Eshop.Controllers
 {
+    [Authorize(Policy = PolicyNames.CustomerSelfService)]
     public class CheckoutController : Controller
     {
         private readonly IOrderService _orderService;

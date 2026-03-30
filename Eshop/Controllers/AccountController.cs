@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 using System.Security.Claims;
 
 namespace Eshop.Controllers
@@ -164,42 +165,33 @@ namespace Eshop.Controllers
         [HttpGet]
         public IActionResult ForgetPass()
         {
-            return View();
+            return View(new ForgotPasswordRequestViewModel());
         }
 
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMailForgotPass(AppUserModel user)
+        public async Task<IActionResult> SendMailForgotPass(ForgotPasswordRequestViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(user.Email))
+            if (!ModelState.IsValid)
             {
-                TempData["error"] = "Vui lòng nhập email.";
-                return RedirectToAction(nameof(ForgetPass));
+                return View(nameof(ForgetPass), model);
             }
 
-            var checkMail = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
-
-            if (checkMail == null)
+            var checkMail = await _userManager.FindByEmailAsync(model.Email);
+            if (checkMail != null)
             {
-                TempData["error"] = "Email không tồn tại.";
-                return RedirectToAction(nameof(ForgetPass));
+                var token = await _userManager.GeneratePasswordResetTokenAsync(checkMail);
+                var resetLink = $"{Request.Scheme}://{Request.Host}/Account/NewPass?email={WebUtility.UrlEncode(checkMail.Email)}&token={WebUtility.UrlEncode(token)}";
+                var receiver = checkMail.Email!;
+                var subject = "Đổi mật khẩu tài khoản " + checkMail.Email;
+                var message = "Bấm vào link để đổi mật khẩu: "
+                    + $"<a href='{resetLink}'>Click here</a>";
+
+                await _emailSender.SendEmailAsync(receiver, subject, message);
             }
 
-            var token = Guid.NewGuid().ToString();
-
-            checkMail.Token = token;
-            _dataContext.Update(checkMail);
-            await _dataContext.SaveChangesAsync();
-
-            var receiver = checkMail.Email!;
-            var subject = "Đổi mật khẩu tài khoản " + checkMail.Email;
-            var message = "Bấm vào link để đổi mật khẩu: "
-                + $"<a href='{Request.Scheme}://{Request.Host}/Account/NewPass?email={checkMail.Email}&token={token}'>Click here</a>";
-
-            await _emailSender.SendEmailAsync(receiver, subject, message);
-
-            TempData["success"] = "Đã gửi email hướng dẫn đặt lại mật khẩu.";
+            TempData["success"] = "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.";
             return RedirectToAction(nameof(ForgetPass));
         }
 
@@ -213,51 +205,49 @@ namespace Eshop.Controllers
                 return RedirectToAction(nameof(ForgetPass));
             }
 
-            var checkUser = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Email == email && u.Token == token);
-
+            var decodedEmail = WebUtility.UrlDecode(email);
+            var decodedToken = WebUtility.UrlDecode(token);
+            var checkUser = await _userManager.FindByEmailAsync(decodedEmail);
             if (checkUser == null)
             {
-                TempData["error"] = "Email không tồn tại hoặc token không đúng.";
+                TempData["error"] = "Liên kết đặt lại mật khẩu không hợp lệ.";
                 return RedirectToAction(nameof(ForgetPass));
             }
 
-            ViewBag.Email = checkUser.Email;
-            ViewBag.Token = token;
-            return View();
+            return View(new ResetPasswordViewModel
+            {
+                Email = checkUser.Email!,
+                Token = decodedToken
+            });
         }
 
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateNewPassword(AppUserModel user, string token)
+        public async Task<IActionResult> UpdateNewPassword(ResetPasswordViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(user.Email) ||
-                string.IsNullOrWhiteSpace(token) ||
-                string.IsNullOrWhiteSpace(user.PasswordHash))
+            if (!ModelState.IsValid)
             {
-                TempData["error"] = "Dữ liệu không hợp lệ.";
-                return RedirectToAction(nameof(ForgetPass));
+                return View(nameof(NewPass), model);
             }
 
-            var checkUser = await _userManager.Users
-                .FirstOrDefaultAsync(u => u.Email == user.Email && u.Token == token);
-
+            var checkUser = await _userManager.FindByEmailAsync(model.Email);
             if (checkUser == null)
             {
-                TempData["error"] = "Email không tồn tại hoặc token không đúng.";
+                TempData["error"] = "Liên kết đặt lại mật khẩu không hợp lệ.";
                 return RedirectToAction(nameof(ForgetPass));
             }
 
-            var newToken = Guid.NewGuid().ToString();
+            var resetResult = await _userManager.ResetPasswordAsync(checkUser, model.Token, model.Password);
+            if (!resetResult.Succeeded)
+            {
+                foreach (var error in resetResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
 
-            var passwordHasher = new PasswordHasher<AppUserModel>();
-            var passwordHash = passwordHasher.HashPassword(checkUser, user.PasswordHash);
-
-            checkUser.PasswordHash = passwordHash;
-            checkUser.Token = newToken;
-
-            await _userManager.UpdateAsync(checkUser);
+                return View(nameof(NewPass), model);
+            }
 
             TempData["success"] = "Đổi mật khẩu thành công.";
             return RedirectToAction(nameof(Login));
@@ -523,6 +513,8 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(UpdateAccount), new { tab = "password" });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout(string returnURL = "/")
         {
             await _signInManager.SignOutAsync();

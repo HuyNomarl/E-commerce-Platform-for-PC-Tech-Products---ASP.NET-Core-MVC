@@ -3,10 +3,10 @@ using Eshop.Models.ViewModel;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
+using Eshop.Helpers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace Eshop.Controllers
 {
@@ -15,86 +15,40 @@ namespace Eshop.Controllers
         private readonly DataContext _dataContext;
         private readonly UserManager<AppUserModel> _userManager;
         private readonly IInventoryService _inventoryService;
+        private readonly ICheckoutPricingService _checkoutPricingService;
 
 
         public CartController(
                  DataContext dataContext,
                  UserManager<AppUserModel> userManager,
-                 IInventoryService inventoryService)
+                 IInventoryService inventoryService,
+                 ICheckoutPricingService checkoutPricingService)
         {
             _dataContext = dataContext;
             _userManager = userManager;
             _inventoryService = inventoryService;
+            _checkoutPricingService = checkoutPricingService;
         }
 
 
         public async Task<IActionResult> Index()
         {
-            List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-
-            var shippingPriceCookie = Request.Cookies["ShippingPrice"];
-            decimal shippingPrice = 0;
-
-            if (!string.IsNullOrEmpty(shippingPriceCookie))
-            {
-                try
-                {
-                    shippingPrice = JsonConvert.DeserializeObject<decimal>(shippingPriceCookie);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error decoding shipping price cookie: {ex.Message}");
-                }
-            }
-
-            decimal subTotal = cartItems.Sum(x => x.Total);
-            decimal discountAmount = 0;
-            string? couponCode = null;
-
-            var appliedCoupon = HttpContext.Session.GetJson<AppliedCouponModel>("Coupon");
-            if (appliedCoupon != null)
-            {
-                var coupon = await _dataContext.Coupons.FirstOrDefaultAsync(x => x.Id == appliedCoupon.CouponId);
-
-                if (coupon != null)
-                {
-                    var now = DateTime.Now;
-
-                    bool isValid =
-                        coupon.Status == 1 &&
-                        coupon.Quantity > 0 &&
-                        coupon.DateStart <= now &&
-                        coupon.DateEnd >= now &&
-                        (!coupon.MinOrderAmount.HasValue || subTotal >= coupon.MinOrderAmount.Value);
-
-                    if (isValid)
-                    {
-                        discountAmount = CalculateDiscount(coupon, subTotal);
-                        couponCode = coupon.NameCode;
-                    }
-                    else
-                    {
-                        HttpContext.Session.Remove("Coupon");
-                    }
-                }
-                else
-                {
-                    HttpContext.Session.Remove("Coupon");
-                }
-            }
-
-            decimal finalTotal = subTotal - discountAmount + shippingPrice;
-            if (finalTotal < 0) finalTotal = 0;
+            var pricingSummary = await _checkoutPricingService.BuildSummaryAsync(HttpContext);
 
             CartItemViewModel cartItemViewModel = new()
             {
-                CartItems = cartItems,
-                GrandTotal = subTotal,
-                ShippingPrice = shippingPrice,
-                DiscountAmount = discountAmount,
-                CouponCode = couponCode,
-                FinalTotal = finalTotal
+                CartItems = pricingSummary.CartItems,
+                GrandTotal = pricingSummary.SubTotal,
+                ShippingPrice = pricingSummary.ShippingCost,
+                DiscountAmount = pricingSummary.DiscountAmount,
+                CouponCode = pricingSummary.CouponCode,
+                FinalTotal = pricingSummary.TotalAmount
             };
+
+            ViewBag.SelectedProvinceCode = pricingSummary.ShippingSelection?.ProvinceCode ?? "";
+            ViewBag.SelectedWardCode = pricingSummary.ShippingSelection?.WardCode ?? "";
+            ViewBag.SelectedProvinceName = pricingSummary.ShippingSelection?.ProvinceName ?? "";
+            ViewBag.SelectedWardName = pricingSummary.ShippingSelection?.WardName ?? "";
 
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
@@ -114,7 +68,7 @@ namespace Eshop.Controllers
 
         public IActionResult Checkout()
         {
-            return View("~/Views/Checkout/Index.cshtml");
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -129,6 +83,7 @@ namespace Eshop.Controllers
             }
 
             var product = await _dataContext.Products
+                .Include(p => p.ProductImages)
                 .Include(p => p.OptionGroups)
                     .ThenInclude(g => g.OptionValues)
                 .FirstOrDefaultAsync(p => p.Id == model.ProductId);
@@ -146,6 +101,7 @@ namespace Eshop.Controllers
             {
                 Quantity = model.Quantity > 0 ? model.Quantity : 1
             };
+            newCartItem.Image = ProductImageHelper.ResolveProductImage(product);
 
             var availableStock = await GetAvailableStockAsync(product.Id);
 
@@ -218,6 +174,8 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Decrease(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: giảm số lượng.");
@@ -244,6 +202,8 @@ namespace Eshop.Controllers
             if (cart.Count == 0)
             {
                 HttpContext.Session.Remove("Cart");
+                HttpContext.Session.Remove("Coupon");
+                _checkoutPricingService.ClearShippingSelection(HttpContext);
             }
             else
             {
@@ -254,6 +214,8 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Increase(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: tăng số lượng.");
@@ -293,6 +255,8 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Remove(string lineKey)
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa sản phẩm.");
@@ -308,6 +272,8 @@ namespace Eshop.Controllers
             if (cart.Count == 0)
             {
                 HttpContext.Session.Remove("Cart");
+                HttpContext.Session.Remove("Coupon");
+                _checkoutPricingService.ClearShippingSelection(HttpContext);
             }
             else
             {
@@ -318,65 +284,51 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Clear()
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa toàn bộ.");
 
             HttpContext.Session.Remove("Cart");
+            HttpContext.Session.Remove("Coupon");
+            _checkoutPricingService.ClearShippingSelection(HttpContext);
             TempData["Success"] = "Đã xóa toàn bộ giỏ hàng.";
             return RedirectToAction("Index");
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetShipping(ShippingModel shippingModel, string phuong, string tinh)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GetShipping(string provinceCode, string wardCode, string provinceName, string wardName)
         {
-            var exitstingShipping = await _dataContext.Shippings
-                .FirstOrDefaultAsync(s => s.City == tinh && s.Ward == phuong);
-
-            decimal shippingPrice = 0;
-
-            if (exitstingShipping != null)
+            if (string.IsNullOrWhiteSpace(provinceCode) || provinceCode == "0" ||
+                string.IsNullOrWhiteSpace(wardCode) || wardCode == "0")
             {
-                shippingPrice = exitstingShipping.ShippingCost;
-            }
-            else
-            {
-                shippingPrice = 50000;
+                return BadRequest(new { success = false, message = "Vui lòng chọn đầy đủ tỉnh/thành và phường/xã." });
             }
 
-            var shippingPriceJson = JsonConvert.SerializeObject(shippingPrice);
-
-            try
+            _checkoutPricingService.SaveShippingSelection(HttpContext, new CheckoutShippingSelectionViewModel
             {
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-                    Secure = true
-                };
+                ProvinceCode = provinceCode,
+                WardCode = wardCode,
+                ProvinceName = provinceName,
+                WardName = wardName
+            });
 
-                Response.Cookies.Append("ShippingPrice", shippingPriceJson, cookieOptions);
-            }
-            catch (Exception ex)
+            var pricingSummary = await _checkoutPricingService.BuildSummaryAsync(HttpContext);
+            return Json(new
             {
-                Console.WriteLine($"Error adding shipping price cookie: {ex.Message}");
-            }
-
-            return Json(new { shippingPrice });
+                success = true,
+                shippingPrice = pricingSummary.ShippingCost,
+                totalAmount = pricingSummary.TotalAmount
+            });
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult DeleteShippingCookie()
         {
-            try
-            {
-                Response.Cookies.Delete("ShippingPrice");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error deleting shipping price cookie: {ex.Message}");
-            }
-
+            _checkoutPricingService.ClearShippingSelection(HttpContext);
             return RedirectToAction("Index");
         }
 
@@ -447,36 +399,13 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult RemoveCoupon()
         {
             HttpContext.Session.Remove("Coupon");
             TempData["Success"] = "Đã bỏ mã giảm giá.";
             return RedirectToAction("Index");
-        }
-
-        private decimal CalculateDiscount(CouponModel coupon, decimal subTotal)
-        {
-            decimal discountAmount = 0;
-
-            if (coupon == null || subTotal <= 0)
-                return 0;
-
-            if (coupon.DiscountType == 1)
-            {
-                discountAmount = subTotal * coupon.Discount / 100;
-            }
-            else if (coupon.DiscountType == 2)
-            {
-                discountAmount = coupon.Discount;
-            }
-
-            if (discountAmount > subTotal)
-            {
-                discountAmount = subTotal;
-            }
-
-            return discountAmount;
         }
 
         private static bool IsSameOptions(List<CartItemOptionModel> oldOptions, List<CartItemOptionModel> newOptions)

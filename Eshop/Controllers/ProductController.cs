@@ -64,6 +64,7 @@ namespace Eshop.Controllers
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
+                .Include(p => p.ProductImages)
                 .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
                 .OrderByDescending(p => p.Sold)
                 .ThenByDescending(p => p.Id)
@@ -144,7 +145,8 @@ namespace Eshop.Controllers
             IQueryable<ProductModel> query = _dataContext.Products
                 .AsNoTracking()
                 .Include(p => p.Category)
-                .Include(p => p.Publisher);
+                .Include(p => p.Publisher)
+                .Include(p => p.ProductImages);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -369,7 +371,7 @@ namespace Eshop.Controllers
                 .ThenByDescending(x => x.IsMain)
                 .ThenBy(x => x.Id))
             {
-                var url = ResolveProductAssetUrl(image.Url);
+                var url = ProductImageHelper.ResolveAssetUrl(image.Url);
                 if (string.IsNullOrWhiteSpace(url) || !seen.Add(url))
                     continue;
 
@@ -381,7 +383,7 @@ namespace Eshop.Controllers
                 });
             }
 
-            var legacyImageUrl = ResolveProductAssetUrl(product.Image);
+            var legacyImageUrl = ProductImageHelper.ResolveAssetUrl(product.Image);
             if (!string.IsNullOrWhiteSpace(legacyImageUrl) && seen.Add(legacyImageUrl))
             {
                 items.Add(new ProductGalleryItemViewModel
@@ -472,20 +474,6 @@ namespace Eshop.Controllers
             }
 
             return string.Empty;
-        }
-
-        private static string? ResolveProductAssetUrl(string? assetValue)
-        {
-            if (string.IsNullOrWhiteSpace(assetValue))
-                return null;
-
-            if (assetValue.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                assetValue.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-            {
-                return assetValue;
-            }
-
-            return "/media/products/" + Path.GetFileName(assetValue);
         }
 
         private static bool IsImageFile(IFormFile file)

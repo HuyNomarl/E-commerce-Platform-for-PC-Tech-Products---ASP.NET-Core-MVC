@@ -3,20 +3,6 @@
 @using Eshop.Views.ViewModels
 @model ComparePageVM
 
-@functions {
-    public static string ResolveImage(string? image)
-    {
-        if (string.IsNullOrWhiteSpace(image)) return string.Empty;
-        if (image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-            image.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            return image;
-        }
-
-        return "/media/products/" + System.IO.Path.GetFileName(image);
-    }
-}
-
 @{
     ViewData["Title"] = "Compare";
     var items = Model.Items ?? new List<CompareItemVM>();
@@ -113,7 +99,7 @@
                         <th>Sản phẩm</th>
                         @foreach (var item in items)
                         {
-                            var image = ResolveImage(item.Product.Image);
+                            var image = ProductImageHelper.ResolveProductImage(item.Product);
                             <td>
                                 <div class="cp-product-card">
                                     <div class="cp-image">

@@ -28,6 +28,17 @@ namespace Eshop.Models
         [Range(1, 5)]
         public int Stars { get; set; }
 
+        [StringLength(2000)]
+        public string? AdminReply { get; set; }
+
+        [StringLength(450)]
+        public string? AdminReplyUserId { get; set; }
+
+        [StringLength(150)]
+        public string? AdminReplyByName { get; set; }
+
+        public DateTime? AdminReplyAt { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 

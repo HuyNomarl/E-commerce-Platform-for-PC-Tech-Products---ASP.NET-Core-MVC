@@ -1,8 +1,7 @@
-﻿@using Microsoft.AspNetCore.Identity
-@model IdentityRole
+@model AdminRoleUpsertViewModel
 
 @{
-    ViewData["Title"] = "Edit Role";
+    ViewData["Title"] = "Chỉnh sửa vai trò";
 }
 
 <div class="row g-3 role-edit-page">
@@ -10,7 +9,7 @@
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
                 <h4 class="mb-1">Chỉnh sửa vai trò</h4>
-                <div class="small page-subtitle">Cập nhật tên vai trò trong hệ thống</div>
+                <div class="small page-subtitle">Cập nhật tên vai trò và giữ đồng bộ với luồng phân quyền hiện tại.</div>
             </div>
 
             <a asp-action="Index" class="btn btn-outline-secondary">
@@ -22,18 +21,19 @@
     <div class="col-12 col-xl-8">
         <div class="card-soft form-card">
             <div class="card-body-custom">
-                <form asp-action="Edit" method="post" class="js-confirm-save">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <div class="row form-grid">
-                        <div class="col-12 form-col">
-                            <label asp-for="Name" class="form-label">Tên vai trò</label>
-                            <input asp-for="Name" class="form-control input-soft" placeholder="Nhập tên vai trò" />
-                            <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
-                        </div>
+                    <div class="form-col">
+                        <label asp-for="Name" class="form-label"></label>
+                        <input asp-for="Name" class="form-control input-soft" placeholder="Nhập tên vai trò" />
+                        <span asp-validation-for="Name" class="text-danger small d-block mt-1"></span>
                     </div>
 
-                    <div class="form-actions mt-3">
+                    <div class="form-actions mt-4">
                         <button type="submit" class="btn btn-accent">
                             <i class="fa fa-floppy-o me-1"></i> Cập nhật
                         </button>
@@ -68,14 +68,7 @@
         padding: 24px;
     }
 
-    .form-grid {
-        margin-left: -10px;
-        margin-right: -10px;
-    }
-
     .form-col {
-        padding-left: 10px;
-        padding-right: 10px;
         margin-bottom: 20px;
     }
 

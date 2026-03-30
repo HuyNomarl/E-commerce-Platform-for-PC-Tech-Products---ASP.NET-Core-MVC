@@ -1,4 +1,3 @@
-﻿using Eshop.Models;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +13,25 @@ namespace Eshop.Controllers
             _dataContext = dataContext;
         }
 
-        public async Task<IActionResult> Index(String Slug = "")
+        public async Task<IActionResult> Index(string Slug = "")
         {
-            PublisherModel publisher = _dataContext.Publishers.Where(p => p.Slug == Slug && p.status == 1).FirstOrDefault();
+            var publisher = await _dataContext.Publishers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Slug == Slug && p.status == 1);
+
             if (publisher == null)
             {
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            var productsByCategory = _dataContext.Products.Where(p => p.PublisherId == publisher.Id);
+            var productsByPublisher = _dataContext.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Publisher)
+                .Include(p => p.ProductImages)
+                .Where(p => p.PublisherId == publisher.Id);
 
-            return View(await productsByCategory.OrderByDescending(p => p.Id).ToListAsync());
+            return View(await productsByPublisher.OrderByDescending(p => p.Id).ToListAsync());
         }
     }
 }

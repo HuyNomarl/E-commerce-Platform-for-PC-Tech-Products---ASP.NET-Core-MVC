@@ -21,13 +21,15 @@ namespace Eshop.Services.VNPay
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
 
-            var txnRef = $"DH{DateTime.Now:yyyyMMddHHmmss}";
+            var txnRef = string.IsNullOrWhiteSpace(model.TxnRef)
+                ? $"DH{DateTime.Now:yyyyMMddHHmmss}"
+                : model.TxnRef.Trim();
             var pay = new VnPayLibrary();
             var urlCallBack = _configuration["PaymentCallBack:ReturnUrl"];
 
             var orderDescription = string.IsNullOrWhiteSpace(model.OrderDescription)
                 ? "Thanh toan don hang"
-                : model.OrderDescription;
+                : NormalizeVnPayOrderInfo(model.OrderDescription);
 
             var orderType = string.IsNullOrWhiteSpace(model.OrderType)
                 ? "other"

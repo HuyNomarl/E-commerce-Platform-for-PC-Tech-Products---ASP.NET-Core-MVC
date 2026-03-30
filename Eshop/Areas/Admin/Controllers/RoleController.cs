@@ -1,5 +1,5 @@
+using Eshop.Areas.Admin.Models.ViewModels;
 using Eshop.Constants;
-using Eshop.Models;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -21,9 +21,12 @@ namespace Eshop.Areas.Admin.Controllers
             _dataContext = dataContext;
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var roles = (await _roleManager.Roles.ToListAsync())
+            var roles = (await _roleManager.Roles
+                .AsNoTracking()
+                .ToListAsync())
                 .OrderBy(r => RoleNames.GetDisplayOrder(r.Name))
                 .ThenBy(r => r.Name)
                 .ToList();
@@ -32,35 +35,41 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create() => View();
+        public IActionResult Create() => View(new AdminRoleUpsertViewModel());
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name")] IdentityRole input)
+        public async Task<IActionResult> Create(AdminRoleUpsertViewModel model)
         {
-            var roleName = input?.Name?.Trim();
+            model.Name = NormalizeRoleName(model.Name);
 
-            if (string.IsNullOrWhiteSpace(roleName))
+            if (string.IsNullOrWhiteSpace(model.Name))
             {
-                ModelState.AddModelError(nameof(IdentityRole.Name), "Tên vai trò không được để trống!");
-                return View(input);
+                ModelState.AddModelError(nameof(model.Name), "Tên vai trò không được để trống.");
+            }
+            else if (RoleNames.IsSystemRole(model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Vai trò hệ thống được quản lý tự động và không thể tạo thủ công.");
+            }
+            else if (await _roleManager.RoleExistsAsync(model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Vai trò đã tồn tại.");
             }
 
-            if (await _roleManager.RoleExistsAsync(roleName))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(nameof(IdentityRole.Name), "Vai trò đã tồn tại!");
-                return View(input);
+                return View(model);
             }
 
-            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
+            var result = await _roleManager.CreateAsync(new IdentityRole(model.Name));
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Thêm vai trò thành công!";
+                TempData["SuccessMessage"] = "Thêm vai trò thành công.";
                 return RedirectToAction(nameof(Index));
             }
 
             AddErrors(result);
-            return View(input);
+            return View(model);
         }
 
         [HttpGet]
@@ -83,19 +92,23 @@ namespace Eshop.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return View(role);
+            return View(new AdminRoleUpsertViewModel
+            {
+                Id = role.Id,
+                Name = role.Name ?? string.Empty
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Name")] IdentityRole input)
+        public async Task<IActionResult> Edit(AdminRoleUpsertViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(model.Id))
             {
                 return NotFound();
             }
 
-            var existingRole = await _roleManager.FindByIdAsync(id);
+            var existingRole = await _roleManager.FindByIdAsync(model.Id);
             if (existingRole == null)
             {
                 return NotFound();
@@ -107,31 +120,44 @@ namespace Eshop.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var newName = input?.Name?.Trim();
-            if (string.IsNullOrWhiteSpace(newName))
+            model.Name = NormalizeRoleName(model.Name);
+
+            if (string.IsNullOrWhiteSpace(model.Name))
             {
-                ModelState.AddModelError(nameof(IdentityRole.Name), "Tên vai trò không được để trống!");
-                return View(existingRole);
+                ModelState.AddModelError(nameof(model.Name), "Tên vai trò không được để trống.");
+            }
+            else if (RoleNames.IsSystemRole(model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Không thể đổi tên thành vai trò hệ thống.");
+            }
+            else if (!string.Equals(existingRole.Name, model.Name, StringComparison.OrdinalIgnoreCase)
+                && await _roleManager.RoleExistsAsync(model.Name))
+            {
+                ModelState.AddModelError(nameof(model.Name), "Vai trò đã tồn tại.");
             }
 
-            if (!string.Equals(existingRole.Name, newName, StringComparison.OrdinalIgnoreCase)
-                && await _roleManager.RoleExistsAsync(newName))
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError(nameof(IdentityRole.Name), "Vai trò đã tồn tại!");
-                return View(existingRole);
+                return View(model);
             }
 
-            existingRole.Name = newName;
+            if (string.Equals(existingRole.Name, model.Name, StringComparison.Ordinal))
+            {
+                TempData["SuccessMessage"] = "Không có thay đổi nào ở vai trò.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            existingRole.Name = model.Name;
 
             var result = await _roleManager.UpdateAsync(existingRole);
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Cập nhật vai trò thành công!";
+                TempData["SuccessMessage"] = "Cập nhật vai trò thành công.";
                 return RedirectToAction(nameof(Index));
             }
 
             AddErrors(result);
-            return View(existingRole);
+            return View(model);
         }
 
         [HttpPost]
@@ -140,14 +166,14 @@ namespace Eshop.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                TempData["ErrorMessage"] = "Id không hợp lệ!";
+                TempData["ErrorMessage"] = "Id vai trò không hợp lệ.";
                 return RedirectToAction(nameof(Index));
             }
 
             var role = await _roleManager.FindByIdAsync(id);
             if (role == null)
             {
-                TempData["ErrorMessage"] = "Vai trò không tồn tại!";
+                TempData["ErrorMessage"] = "Vai trò không tồn tại.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -157,8 +183,11 @@ namespace Eshop.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var assignedUsers = await _dataContext.UserRoles.CountAsync(x => x.RoleId == role.Id);
-            if (assignedUsers > 0)
+            var hasAssignedUsers =
+                await _dataContext.UserRoles.AsNoTracking().AnyAsync(x => x.RoleId == role.Id) ||
+                await _dataContext.Users.AsNoTracking().AnyAsync(x => x.RoleId == role.Id);
+
+            if (hasAssignedUsers)
             {
                 TempData["ErrorMessage"] = "Không thể xóa vai trò đang được gán cho người dùng.";
                 return RedirectToAction(nameof(Index));
@@ -167,13 +196,16 @@ namespace Eshop.Areas.Admin.Controllers
             var result = await _roleManager.DeleteAsync(role);
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = "Xóa vai trò thành công!";
+                TempData["SuccessMessage"] = "Xóa vai trò thành công.";
                 return RedirectToAction(nameof(Index));
             }
 
             TempData["ErrorMessage"] = string.Join(" | ", result.Errors.Select(e => e.Description));
             return RedirectToAction(nameof(Index));
         }
+
+        private static string NormalizeRoleName(string? roleName) =>
+            roleName?.Trim() ?? string.Empty;
 
         private void AddErrors(IdentityResult result)
         {

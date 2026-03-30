@@ -3,7 +3,7 @@
 }
 
 <div class="col-sm-3">
-    @Html.Partial("_SidebarPartial")
+    <partial name="_SidebarPartial" />
 </div>
 <style>
     product-image-wrapper {
@@ -20,12 +20,20 @@
         <h2 class="title text-center">Features Items</h2>
 @foreach (var item in Model)
 {
+            var imageSrc = ProductImageHelper.ResolveProductImage(item);
             <div class="col-sm-4">
                 <div class="product-image-wrapper">
                     <a>
                         <div class="single-products">
                             <div class="productinfo text-center">
-                                <img src="~/media/products/@item.Image" alt="@item.Name" width="100%" />
+                                @if (!string.IsNullOrWhiteSpace(imageSrc))
+                                {
+                                    <img src="@imageSrc" alt="@item.Name" width="100%" />
+                                }
+                                else
+                                {
+                                    <div class="text-muted"><i class="fa fa-image"></i></div>
+                                }
                                 <h2>@item.Price.ToString("#,##0 VND")</h2>
                                 <p>@item.Name</p>
                                 <p>Thể loại: @item.Category.Name</p>

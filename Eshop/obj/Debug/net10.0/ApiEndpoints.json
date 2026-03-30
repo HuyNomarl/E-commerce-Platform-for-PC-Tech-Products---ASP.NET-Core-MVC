@@ -49,6 +49,38 @@
   },
   {
     "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "ExportExcel",
+    "RelativePath": "api/pc-builder/export-excel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Eshop.Models.ViewModels.SavePcBuildRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "ImportExcel",
+    "RelativePath": "api/pc-builder/import-excel",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
     "Method": "GetProducts",
     "RelativePath": "api/pc-builder/products",
     "HttpMethod": "GET",
@@ -104,6 +136,80 @@
       {
         "Name": "request",
         "Type": "Eshop.Models.ViewModels.SavePcBuildRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "Share",
+    "RelativePath": "api/pc-builder/share",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Eshop.Models.ViewModels.PcBuildShareRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "SearchShareUsers",
+    "RelativePath": "api/pc-builder/share-users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "keyword",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "GetReceivedShares",
+    "RelativePath": "api/pc-builder/shared",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "GetSharedBuild",
+    "RelativePath": "api/pc-builder/shared/{shareCode}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shareCode",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Eshop.Controllers.Api.PcBuilderApiController",
+    "Method": "DownloadSharedBuildExcel",
+    "RelativePath": "api/pc-builder/shared/{shareCode}/excel",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "shareCode",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],

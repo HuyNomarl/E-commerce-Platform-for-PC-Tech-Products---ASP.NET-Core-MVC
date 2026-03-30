@@ -7,6 +7,7 @@ namespace Eshop.Areas.Admin.Models.ViewModels
         public string Email { get; set; } = string.Empty;
         public string PhoneNumber { get; set; } = string.Empty;
         public string RoleName { get; set; } = string.Empty;
+        public string RoleDescription { get; set; } = string.Empty;
         public string AuthMethods { get; set; } = "Local";
         public bool HasPassword { get; set; }
         public bool IsCurrentUser { get; set; }

@@ -1,20 +1,6 @@
 @using Eshop.Views.ViewModels
 @model List<WishlistItemVM>
 
-@functions {
-    public static string ResolveImage(string? image)
-    {
-        if (string.IsNullOrWhiteSpace(image)) return string.Empty;
-        if (image.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-            image.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-        {
-            return image;
-        }
-
-        return "/media/products/" + System.IO.Path.GetFileName(image);
-    }
-}
-
 @{
     ViewData["Title"] = "Wishlist";
 }
@@ -67,7 +53,7 @@
         <div class="wl-grid">
             @foreach (var item in Model)
             {
-                var image = ResolveImage(item.Product.Image);
+                var image = ProductImageHelper.ResolveProductImage(item.Product);
                 <article class="wl-card">
                     <div class="wl-image">
                         @if (!string.IsNullOrWhiteSpace(image))

@@ -3,11 +3,16 @@
 
 @{
     var isLoggedIn = User.Identity?.IsAuthenticated == true;
+    var canCheckout = User.IsCustomerOnly();
 
     var fullName = ViewBag.FullName ?? "";
     var phone = ViewBag.Phone ?? "";
     var email = ViewBag.Email ?? "";
     var address = ViewBag.Address ?? "";
+    var selectedProvinceCode = ViewBag.SelectedProvinceCode ?? "";
+    var selectedWardCode = ViewBag.SelectedWardCode ?? "";
+    var selectedProvinceName = ViewBag.SelectedProvinceName ?? "";
+    var selectedWardName = ViewBag.SelectedWardName ?? "";
 }
 
 <style>
@@ -100,6 +105,7 @@
         align-items: center;
         justify-content: center;
         font-weight: 700;
+        cursor: pointer;
     }
 
     .qty-input {
@@ -115,6 +121,9 @@
         color: #111;
         font-size: 16px;
         text-decoration: none;
+        border: none;
+        background: transparent;
+        padding: 0;
     }
 
     .cart-total-top {
@@ -418,11 +427,19 @@
             <div class="cart-box">
                 @foreach (var item in Model.CartItems)
                 {
+                    var imageSrc = ProductImageHelper.ResolveAssetUrl(item.Image);
                     <div class="cart-item-row">
                         <div class="cart-thumb">
-                            <div class="thumb-placeholder">
-                                <i class="fa fa-image"></i>
-                            </div>
+                            @if (!string.IsNullOrWhiteSpace(imageSrc))
+                            {
+                                <img src="@imageSrc" alt="@item.ProductName" />
+                            }
+                            else
+                            {
+                                <div class="thumb-placeholder">
+                                    <i class="fa fa-image"></i>
+                                </div>
+                            }
                         </div>
 
                         <div>
@@ -436,17 +453,19 @@
 
                         <div>
                             <div class="qty-box">
-                                <a class="qty-btn"
-                                   asp-action="Decrease"
-                                   asp-controller="Cart"
-                                   asp-route-lineKey="@item.LineKey">-</a>
+                                <form asp-action="Decrease" asp-controller="Cart" method="post" style="display:inline-flex;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="lineKey" value="@item.LineKey" />
+                                    <button type="submit" class="qty-btn" title="Giảm số lượng">-</button>
+                                </form>
 
                                 <input class="qty-input" type="text" value="@item.Quantity" readonly />
 
-                                <a class="qty-btn"
-                                   asp-action="Increase"
-                                   asp-controller="Cart"
-                                   asp-route-lineKey="@item.LineKey">+</a>
+                                <form asp-action="Increase" asp-controller="Cart" method="post" style="display:inline-flex;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="lineKey" value="@item.LineKey" />
+                                    <button type="submit" class="qty-btn" title="Tăng số lượng">+</button>
+                                </form>
                             </div>
                         </div>
 
@@ -455,13 +474,13 @@
                         </div>
 
                         <div class="text-end">
-                            <a class="remove-btn"
-                                   asp-action="Remove"
-                                   asp-controller="Cart"
-                                   asp-route-lineKey="@item.LineKey"
-                                   title="Xóa">
-                                <i class="fa fa-trash"></i>
-                            </a>
+                            <form asp-action="Remove" asp-controller="Cart" method="post" style="display:inline-block;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="lineKey" value="@item.LineKey" />
+                                <button type="submit" class="remove-btn" title="Xóa">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 }
@@ -480,16 +499,15 @@
                                 Để tiếp tục đặt hàng, quý khách xin vui lòng nhập thông tin bên dưới
                             </div>
 
-                            <form asp-controller="Checkout" asp-action="Checkout" method="post" id="checkout-form">
-                                @Html.AntiForgeryToken()
+                            @if (canCheckout)
+                            {
+                                <form asp-controller="Checkout" asp-action="Checkout" method="post" id="checkout-form">
+                                    @Html.AntiForgeryToken()
 
-                                <input type="hidden" name="Amount" value="@Model.FinalTotal" />
-                                <input type="hidden" name="OrderDescription" value="Thanh toan don hang qua VNPAY" />
-                                <input type="hidden" name="OrderType" value="other" />
-                                <input type="hidden" name="Name" id="PaymentName" value="@fullName" />
+                                    <input type="hidden" name="tinh" id="ProvinceName" value="@selectedProvinceName" />
+                                    <input type="hidden" name="phuong" id="WardName" value="@selectedWardName" />
+                                    <input type="hidden" name="quan" value="" />
 
-                                @if (isLoggedIn)
-                                {
                                     <div class="mb-3">
                                         <label class="form-label-custom">Họ tên<span class="required-star">*</span></label>
                                         <input type="text" name="FullName" id="FullNameInput" class="form-control-custom" value="@fullName" />
@@ -509,122 +527,114 @@
                                         <label class="form-label-custom">Địa chỉ<span class="required-star">*</span></label>
                                         <textarea name="Address" class="form-textarea-custom">@address</textarea>
                                     </div>
-                                }
-                                else
-                                {
-                                    <div class="mb-3">
-                                        <label class="form-label-custom">Họ tên<span class="required-star">*</span></label>
-                                        <input type="text" name="FullName" id="FullNameInput" class="form-control-custom" />
-                                    </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">SĐT<span class="required-star">*</span></label>
-                                        <input type="text" name="Phone" class="form-control-custom" />
+                                        <label class="form-label-custom">Tỉnh/Thành phố<span class="required-star">*</span></label>
+                                        <select class="form-select-custom" id="tinh" name="ProvinceCode" title="Chọn Tỉnh Thành">
+                                            <option value="0">Chọn Tỉnh/Thành phố</option>
+                                        </select>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">Email<span class="required-star">*</span></label>
-                                        <input type="email" name="Email" class="form-control-custom" />
+                                        <label class="form-label-custom">Phường/Xã<span class="required-star">*</span></label>
+                                        <select class="form-select-custom" id="phuong" name="WardCode" title="Chọn Phường Xã">
+                                            <option value="0">Chọn Phường/Xã</option>
+                                        </select>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label class="form-label-custom">Địa chỉ<span class="required-star">*</span></label>
-                                        <textarea name="Address" class="form-textarea-custom"></textarea>
+                                        <label class="form-label-custom">Ghi chú</label>
+                                        <textarea name="Note" class="form-textarea-custom"></textarea>
                                     </div>
-                                }
 
-                                <div class="mb-3">
-                                    <label class="form-label-custom">Tỉnh/Thành phố<span class="required-star">*</span></label>
-                                    <select class="form-select-custom" id="tinh" name="tinh" title="Chọn Tỉnh Thành">
-                                        <option value="0">Chọn Tỉnh/Thành phố</option>
-                                    </select>
-                                </div>
+                                    <div class="mb-3">
+                                        <label class="form-label-custom">Phương thức thanh toán<span class="required-star">*</span></label>
 
-                                <div class="mb-3 d-none" id="quan-wrapper">
-                                    <label class="form-label-custom">Quận/Huyện<span class="required-star">*</span></label>
-                                    <select class="form-select-custom" id="quan" name="quan" title="Chọn Quận Huyện">
-                                        <option value="0">Chọn Quận/Huyện</option>
-                                    </select>
-                                </div>
+                                        <div class="payment-method-buttons">
+                                            <label>
+                                                <input type="radio" name="PaymentMethod" value="COD" checked />
+                                                <span class="payment-method-btn">
+                                                    <i class="fa fa-money me-2"></i> Thanh toán khi nhận hàng
+                                                </span>
+                                            </label>
 
-                                <div class="mb-3">
-                                    <label class="form-label-custom">Phường/Xã<span class="required-star">*</span></label>
-                                    <select class="form-select-custom" id="phuong" name="phuong" title="Chọn Phường Xã">
-                                        <option value="0">Chọn Phường/Xã</option>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label-custom">Ghi chú</label>
-                                    <textarea name="Note" class="form-textarea-custom"></textarea>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label-custom">Phương thức thanh toán<span class="required-star">*</span></label>
-
-                                    <div class="payment-method-buttons">
-                                        <label>
-                                            <input type="radio" name="PaymentMethod" value="COD" checked />
-                                            <span class="payment-method-btn">
-                                                <i class="fa fa-money me-2"></i> Thanh toán khi nhận hàng
-                                            </span>
-                                        </label>
-
-                                        <label>
-                                            <input type="radio" name="PaymentMethod" value="MOMO" />
-                                            <span class="payment-method-btn">
-                                                <i class="fa fa-wallet me-2"></i> Thanh toán qua MoMo
-                                            </span>
-                                        </label>
-
-                                        <label>
-                                            <input type="radio" name="PaymentMethod" value="VNPAY" />
-                                            <span class="payment-method-btn">
-                                                <i class="fa fa-credit-card me-2"></i> Thanh toán qua VNPAY
-                                            </span>
-                                        </label>
+                                            <label>
+                                                <input type="radio" name="PaymentMethod" value="VNPAY" />
+                                                <span class="payment-method-btn">
+                                                    <i class="fa fa-credit-card me-2"></i> Thanh toán qua VNPAY
+                                                </span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="shipping-calc-wrap">
-                                    <button type="button" class="btn-ship btn-add-shipping">
-                                        <i class="fa fa-truck me-1"></i> Tính phí ship
-                                    </button>
-                                </div>
+                                    <div class="shipping-calc-wrap">
+                                        <button type="button" class="btn-ship btn-add-shipping">
+                                            <i class="fa fa-truck me-1"></i> Tính phí ship
+                                        </button>
+                                    </div>
 
-                                <div class="policy-check">
-                                    <input type="checkbox" id="policyCheck" />
-                                    <label for="policyCheck">Tôi đã đọc và đồng ý với các Điều kiện giao dịch chung của website</label>
-                                </div>
+                                    <div class="policy-check">
+                                        <input type="checkbox" id="policyCheck" />
+                                        <label for="policyCheck">Tôi đã đọc và đồng ý với các Điều kiện giao dịch chung của website</label>
+                                    </div>
 
-                                <div class="action-grid">
-                                    <button type="button" class="btn-darkgreen">
-                                        <i class="fa fa-print me-1"></i> IN BÁO GIÁ
-                                    </button>
+                                    <div class="action-grid">
+                                        <button type="button" class="btn-darkgreen">
+                                            <i class="fa fa-print me-1"></i> IN BÁO GIÁ
+                                        </button>
 
-                                    <button type="button" class="btn-darkgreen">
-                                        <i class="fa fa-file-excel me-1"></i> TẢI FILE EXCEL
-                                    </button>
+                                        <button type="button" class="btn-darkgreen">
+                                            <i class="fa fa-file-excel me-1"></i> TẢI FILE EXCEL
+                                        </button>
 
-                                    @if (isLoggedIn)
-                                    {
                                         <button type="submit" class="btn-submit-order">
                                             <i class="fa fa-credit-card me-1"></i> ĐẶT HÀNG
                                         </button>
+
+                                        <button type="button" class="btn-blue">
+                                            <span><i class="fa fa-credit-card me-1"></i> TRẢ GÓP QUA HỒ SƠ</span>
+                                            <small>CHỈ TỪ 3.690.667 Đ/THÁNG</small>
+                                        </button>
+                                    </div>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info mb-3">
+                                    @if (isLoggedIn)
+                                    {
+                                        <span>Chỉ tài khoản khách hàng mới có thể đặt hàng trên khu vực này.</span>
                                     }
                                     else
                                     {
-                                        <button type="submit" class="btn-submit-order">
-                                            <i class="fa fa-credit-card me-1"></i> ĐẶT HÀNG
-                                        </button>
+                                        <span>Vui lòng đăng nhập bằng tài khoản khách hàng để tiếp tục đặt hàng và thanh toán.</span>
+                                    }
+                                </div>
+
+                                <div class="action-grid">
+                                    @if (isLoggedIn)
+                                    {
+                                        <a asp-area="Admin" asp-controller="Portal" asp-action="Index" class="btn-submit-order text-decoration-none">
+                                            <i class="fa fa-shield me-1"></i> VỀ KHU QUẢN TRỊ
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Account"
+                                           asp-action="Login"
+                                           asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
+                                           class="btn-submit-order text-decoration-none">
+                                            <i class="fa fa-sign-in me-1"></i> ĐĂNG NHẬP ĐỂ ĐẶT HÀNG
+                                        </a>
                                     }
 
-                                    <button type="button" class="btn-blue">
-                                        <span><i class="fa fa-credit-card me-1"></i> TRẢ GÓP QUA HỒ SƠ</span>
-                                        <small>CHỈ TỪ 3.690.667 Đ/THÁNG</small>
-                                    </button>
+                                    <a asp-controller="Account"
+                                       asp-action="Register"
+                                       class="btn-darkgreen text-decoration-none">
+                                        <i class="fa fa-user-plus me-1"></i> TẠO TÀI KHOẢN
+                                    </a>
                                 </div>
-                            </form>
+                            }
                         </div>
                     </div>
                 </div>
@@ -656,11 +666,12 @@
                                     @if (!string.IsNullOrEmpty(Model.CouponCode))
                                     {
                                         <div class="mt-2 text-end">
-                                            <a asp-action="RemoveCoupon"
-                                                   asp-controller="Cart"
-                                                   class="btn btn-sm btn-outline-danger">
-                                                Bỏ mã
-                                            </a>
+                                            <form asp-action="RemoveCoupon" asp-controller="Cart" method="post" style="display:inline-block;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    Bỏ mã
+                                                </button>
+                                            </form>
                                         </div>
                                     }
                                 </form>
@@ -691,11 +702,12 @@
                             <div class="vat-note">(Giá đã bao gồm VAT)</div>
 
                             <div class="mt-3 text-end">
-                                <a class="btn btn-outline-danger"
-                                       asp-action="Clear"
-                                       asp-controller="Cart">
-                                    Xóa toàn bộ giỏ hàng
-                                </a>
+                                <form asp-action="Clear" asp-controller="Cart" method="post" style="display:inline-block;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        Xóa toàn bộ giỏ hàng
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -720,56 +732,70 @@
 
     <script>
         const API = "/Admin/Shipping";
+        const selectedProvinceCode = "@selectedProvinceCode";
+        const selectedWardCode = "@selectedWardCode";
 
         function getAntiForgeryToken() {
             return $('input[name="__RequestVerificationToken"]').val();
         }
 
         $(document).ready(function () {
-            $("#quan-wrapper").hide();
+            const provinceSelect = $("#tinh");
+            const wardSelect = $("#phuong");
 
-            $.getJSON(`${API}/GetProvincesV2`)
-                .done(function (provinces) {
-                    $("#tinh").html('<option value="0">Chọn Tỉnh/Thành phố</option>');
-                    (provinces || []).forEach(p => {
-                        $("#tinh").append(`<option value="${p.code}">${p.name}</option>`);
-                    });
-                })
-                .fail(function (xhr) {
-                    console.error("GetProvincesV2 failed:", xhr.status, xhr.responseText);
-                    Swal.fire("Không load được danh sách Tỉnh/TP!");
-                });
-
-            $("#tinh").on("change", function () {
-                const provinceCode = $(this).val();
-                $("#phuong").html('<option value="0">Chọn Phường/Xã</option>');
-
-                if (provinceCode === "0") return;
-
-                $.getJSON(`${API}/GetWardsByProvinceV2?provinceCode=${provinceCode}`)
-                    .done(function (pDetail) {
-                        const wards = pDetail?.wards || [];
-                        wards.forEach(w => {
-                            $("#phuong").append(`<option value="${w.code}">${w.name}</option>`);
+            if (provinceSelect.length && wardSelect.length) {
+                $.getJSON(`${API}/GetProvincesV2`)
+                    .done(function (provinces) {
+                        provinceSelect.html('<option value="0">Chọn Tỉnh/Thành phố</option>');
+                        (provinces || []).forEach(p => {
+                            provinceSelect.append(`<option value="${p.code}">${p.name}</option>`);
                         });
+
+                        if (selectedProvinceCode) {
+                            provinceSelect.val(selectedProvinceCode).trigger("change");
+                        }
                     })
                     .fail(function (xhr) {
-                        console.error("GetWardsByProvinceV2 failed:", xhr.status, xhr.responseText);
-                        Swal.fire("Không load được danh sách Phường/Xã!");
+                        console.error("GetProvincesV2 failed:", xhr.status, xhr.responseText);
+                        Swal.fire("Không load được danh sách Tỉnh/TP!");
                     });
-            });
+
+                provinceSelect.on("change", function () {
+                    const provinceCode = $(this).val();
+                    wardSelect.html('<option value="0">Chọn Phường/Xã</option>');
+
+                    if (!provinceCode || provinceCode === "0") {
+                        return;
+                    }
+
+                    $.getJSON(`${API}/GetWardsByProvinceV2?provinceCode=${provinceCode}`)
+                        .done(function (pDetail) {
+                            const wards = pDetail?.wards || [];
+                            wards.forEach(w => {
+                                wardSelect.append(`<option value="${w.code}">${w.name}</option>`);
+                            });
+
+                            if (provinceCode === selectedProvinceCode && selectedWardCode) {
+                                wardSelect.val(selectedWardCode);
+                            }
+                        })
+                        .fail(function (xhr) {
+                            console.error("GetWardsByProvinceV2 failed:", xhr.status, xhr.responseText);
+                            Swal.fire("Không load được danh sách Phường/Xã!");
+                        });
+                });
+            }
 
             $(document).on("click", ".btn-add-shipping", function (e) {
                 e.preventDefault();
 
-                const tinhCode = $("#tinh").val();
-                const phuongCode = $("#phuong").val();
+                const tinhCode = provinceSelect.val();
+                const phuongCode = wardSelect.val();
 
                 const tinhName = $("#tinh option:selected").text();
                 const phuongName = $("#phuong option:selected").text();
-                const quanName = "";
 
-                if (tinhCode === "0" || phuongCode === "0") {
+                if (!tinhCode || tinhCode === "0" || !phuongCode || phuongCode === "0") {
                     Swal.fire("Vui lòng chọn Tỉnh/TP và Phường/Xã!");
                     return;
                 }
@@ -781,12 +807,13 @@
                         "RequestVerificationToken": getAntiForgeryToken()
                     },
                     data: {
-                        tinh: tinhName,
-                        quan: quanName,
-                        phuong: phuongName
+                        provinceCode: tinhCode,
+                        wardCode: phuongCode,
+                        provinceName: tinhName,
+                        wardName: phuongName
                     },
                     success: function (result) {
-                        if (result === true || result?.success === true) {
+                        if (result?.success === true) {
                             location.reload();
                             return;
                         }
@@ -820,15 +847,18 @@
                     return false;
                 }
 
-                const fullNameInput = $("#FullNameInput").val();
-                if (fullNameInput) {
-                    $("#PaymentName").val(fullNameInput);
+                if (!provinceSelect.length || !wardSelect.length ||
+                    provinceSelect.val() === "0" || wardSelect.val() === "0") {
+                    e.preventDefault();
+                    Swal.fire("Vui lòng chọn đầy đủ tỉnh/thành và phường/xã.");
+                    return false;
                 }
+
+                $("#ProvinceName").val($("#tinh option:selected").text());
+                $("#WardName").val($("#phuong option:selected").text());
 
                 if (paymentMethod === "COD") {
                     $(this).attr("action", '@Url.Action("Checkout", "Checkout")');
-                } else if (paymentMethod === "MOMO") {
-                    $(this).attr("action", '@Url.Action("CreatePaymentMomo", "Payment")');
                 } else if (paymentMethod === "VNPAY") {
                     $(this).attr("action", '@Url.Action("CreatePaymentUrlVnpay", "Payment")');
                 }

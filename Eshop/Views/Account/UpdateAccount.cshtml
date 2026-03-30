@@ -45,9 +45,13 @@
                     </a>
                 </li>
                 <li>
-                    <a asp-controller="Account" asp-action="Logout">
-                        <i class="fa fa-power-off"></i> Đăng xuất
-                    </a>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="returnURL" value="/" />
+                        <button type="submit" class="btn btn-link" style="padding:0;border:none;background:none;text-align:left;">
+                            <i class="fa fa-power-off"></i> Đăng xuất
+                        </button>
+                    </form>
                 </li>
             </ul>
         </div>

@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     initCategoryMenu();
     initSupportChat();
 });
@@ -30,19 +30,49 @@ function initSupportChat() {
     const input = document.getElementById("supportChatInput");
     const messagesBox = document.getElementById("supportChatMessages");
     const title = document.getElementById("supportChatTitle");
+    const attachmentInput = document.getElementById("supportChatAttachment");
+    const selectionBox = document.getElementById("supportChatSelection");
+    const productPicker = document.getElementById("supportChatProductPicker");
+    const pickProductBtn = document.getElementById("supportChatPickProduct");
+    const productSearchInput = document.getElementById("supportChatProductSearch");
+    const productSearchBtn = document.getElementById("supportChatProductSearchBtn");
+    const productResults = document.getElementById("supportChatProductResults");
 
     if (!toggleBtn || !chatBox || !closeBtn || !sendBtn || !input || !messagesBox || !title) {
         return;
     }
 
-    let adminId = null;
+    let supportUserId = null;
     let started = false;
     let isLoaded = false;
+    let sending = false;
+    let selectedAttachment = null;
+    let selectedProduct = null;
+    const renderedMessageIds = new Set();
+
+    const antiForgeryTokenInput = chatBox.querySelector('input[name="__RequestVerificationToken"]');
+    const antiForgeryToken = antiForgeryTokenInput ? antiForgeryTokenInput.value : "";
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/hubs/chat")
         .withAutomaticReconnect()
         .build();
+
+    function escapeHtml(value) {
+        return (value || "").replace(/[&<>"']/g, function (char) {
+            return ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                "\"": "&quot;",
+                "'": "&#39;"
+            })[char];
+        });
+    }
+
+    function formatPrice(value) {
+        return new Intl.NumberFormat("vi-VN").format(value || 0) + " d";
+    }
 
     function showChat() {
         chatBox.classList.remove("is-hidden");
@@ -58,32 +88,167 @@ function initSupportChat() {
         messagesBox.scrollTop = messagesBox.scrollHeight;
     }
 
+    function renderEmptyState(text) {
+        messagesBox.innerHTML = '<div class="support-chat-empty">' + escapeHtml(text) + "</div>";
+    }
+
     function clearMessages() {
+        renderedMessageIds.clear();
         messagesBox.innerHTML = "";
     }
 
-    function appendMessage(message, isMe) {
+    function clearAttachment() {
+        selectedAttachment = null;
+        if (attachmentInput) {
+            attachmentInput.value = "";
+        }
+    }
+
+    function clearProduct() {
+        selectedProduct = null;
+    }
+
+    function renderSelection() {
+        if (!selectionBox) {
+            return;
+        }
+
+        if (!selectedAttachment && !selectedProduct) {
+            selectionBox.style.display = "none";
+            selectionBox.innerHTML = "";
+            return;
+        }
+
+        selectionBox.style.display = "block";
+
+        if (selectedAttachment) {
+            const mediaLabel = (selectedAttachment.type || "").startsWith("video/") ? "Video" : "Anh";
+            selectionBox.innerHTML = `
+                <button type="button" class="remove-selection" data-clear="attachment">&times;</button>
+                <strong>${mediaLabel}</strong>
+                <div>${escapeHtml(selectedAttachment.name)}</div>
+            `;
+            return;
+        }
+
+        selectionBox.innerHTML = `
+            <button type="button" class="remove-selection" data-clear="product">&times;</button>
+            <strong>San pham da chon</strong>
+            <div>${escapeHtml(selectedProduct.name || "")}</div>
+        `;
+    }
+
+    function toggleProductPicker(forceOpen) {
+        if (!productPicker) {
+            return;
+        }
+
+        const shouldOpen = typeof forceOpen === "boolean"
+            ? forceOpen
+            : productPicker.style.display === "none";
+
+        productPicker.style.display = shouldOpen ? "block" : "none";
+        if (!shouldOpen && productResults) {
+            productResults.innerHTML = "";
+        }
+    }
+
+    function createMessageContent(message) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "support-chat-rich";
+
+        if (message.text) {
+            const text = document.createElement("div");
+            text.textContent = message.text;
+            wrapper.appendChild(text);
+        }
+
+        if (message.attachmentUrl) {
+            const mediaWrap = document.createElement("div");
+            mediaWrap.className = "support-chat-media";
+
+            if ((message.messageType || "").toLowerCase() === "video") {
+                const video = document.createElement("video");
+                video.controls = true;
+                video.preload = "metadata";
+                video.src = message.attachmentUrl;
+                mediaWrap.appendChild(video);
+            } else {
+                const img = document.createElement("img");
+                img.src = message.attachmentUrl;
+                img.alt = message.attachmentName || "chat-media";
+                mediaWrap.appendChild(img);
+            }
+
+            wrapper.appendChild(mediaWrap);
+        }
+
+        if (message.product) {
+            const link = document.createElement("a");
+            link.className = "support-chat-product-card";
+            link.href = message.product.url || "#";
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+
+            const img = document.createElement("img");
+            img.src = message.product.imageUrl || "/images/gallery1.jpg";
+            img.alt = message.product.name || "san-pham";
+
+            const body = document.createElement("div");
+            body.className = "support-chat-product-card-body";
+
+            const name = document.createElement("strong");
+            name.textContent = message.product.name || "San pham";
+
+            const price = document.createElement("span");
+            price.textContent = formatPrice(message.product.price);
+
+            body.appendChild(name);
+            body.appendChild(price);
+            link.appendChild(img);
+            link.appendChild(body);
+            wrapper.appendChild(link);
+        }
+
+        return wrapper;
+    }
+
+    function appendMessage(message) {
+        const messageId = message && message.id ? String(message.id) : null;
+        if (messageId && renderedMessageIds.has(messageId)) {
+            return;
+        }
+
+        if (messageId) {
+            renderedMessageIds.add(messageId);
+        }
+
         const emptyState = messagesBox.querySelector(".support-chat-empty");
         if (emptyState) emptyState.remove();
 
+        const isMe = !message.isFromSupport;
         const item = document.createElement("div");
-        item.className = `support-chat-item ${isMe ? "me" : "other"}`;
+        item.className = "support-chat-item " + (isMe ? "me" : "other");
 
         const bubble = document.createElement("div");
         bubble.className = "support-chat-bubble";
 
-        const content = document.createElement("div");
-        content.textContent = message.content || "";
+        if (!isMe) {
+            const sender = document.createElement("span");
+            sender.className = "support-chat-sender";
+            sender.textContent = message.senderName || "Admin";
+            bubble.appendChild(sender);
+        }
+
+        bubble.appendChild(createMessageContent(message));
 
         const time = document.createElement("small");
         time.className = "support-chat-time";
         time.textContent = message.createdAt || "";
-
-        bubble.appendChild(content);
         bubble.appendChild(time);
+
         item.appendChild(bubble);
         messagesBox.appendChild(item);
-
         scrollToBottom();
     }
 
@@ -93,75 +258,145 @@ function initSupportChat() {
         started = true;
     }
 
-    async function loadAdmin() {
+    async function loadSupportInfo() {
         const response = await fetch("/Chat/GetAdminInfo");
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.message || "Không lấy được thông tin admin.");
+            throw new Error(data.message || "Khong lay duoc thong tin ho tro.");
         }
 
-        adminId = data.adminId;
-        title.textContent = `Chat với ${data.adminName || "Admin"}`;
+        supportUserId = data.adminId || null;
+        title.textContent = data.title || ("Chat voi " + (data.adminName || "Admin"));
     }
 
     async function loadHistory() {
-        if (!adminId) return;
-
-        const response = await fetch(`/Chat/GetSupportMessages?adminId=${encodeURIComponent(adminId)}`);
+        const response = await fetch("/Chat/GetSupportMessages");
         const data = await response.json();
 
         clearMessages();
 
-        if (!data || data.length === 0) {
-            messagesBox.innerHTML = `<div class="support-chat-empty">Chưa có tin nhắn nào.</div>`;
+        if (!data || !data.length) {
+            renderEmptyState("Chua co tin nhan nao.");
             return;
         }
 
-        data.forEach(function (msg) {
-            const isMe = msg.senderId !== adminId;
-            appendMessage({
-                content: msg.content,
-                createdAt: msg.createdAt
-            }, isMe);
+        data.forEach(appendMessage);
+    }
+
+    async function searchProducts() {
+        if (!productResults) {
+            return;
+        }
+
+        const keyword = (productSearchInput && productSearchInput.value || "").trim();
+        const response = await fetch("/Chat/SearchProducts?term=" + encodeURIComponent(keyword));
+        const data = await response.json();
+
+        productResults.innerHTML = "";
+
+        if (!data || !data.length) {
+            productResults.innerHTML = '<div class="support-chat-empty">Khong tim thay san pham phu hop.</div>';
+            return;
+        }
+
+        data.forEach(function (product) {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "support-chat-product-item";
+            item.innerHTML = `
+                <img src="${escapeHtml(product.imageUrl || "/images/gallery1.jpg")}" alt="${escapeHtml(product.name || "san-pham")}" />
+                <div>
+                    <strong>${escapeHtml(product.name || "San pham")}</strong>
+                    <span>${escapeHtml(formatPrice(product.price))}</span>
+                </div>
+            `;
+
+            item.addEventListener("click", function () {
+                clearAttachment();
+                selectedProduct = product;
+                renderSelection();
+                toggleProductPicker(false);
+            });
+
+            productResults.appendChild(item);
         });
     }
 
-    async function openChatFirstTime() {
-        await loadAdmin();
+    async function openChat() {
+        showChat();
+        await loadSupportInfo();
         await ensureStarted();
         await loadHistory();
         isLoaded = true;
     }
 
     async function sendMessage() {
-        const content = input.value.trim();
-        if (!content) return;
-
-        if (!adminId) {
-            Swal.fire("Thông báo", "Chưa tìm thấy admin để chat.", "warning");
+        if (sending) {
             return;
         }
 
+        const content = input.value.trim();
+        if (!content && !selectedAttachment && !selectedProduct) {
+            return;
+        }
+
+        sending = true;
+        sendBtn.disabled = true;
+
         try {
             await ensureStarted();
-            await connection.invoke("SendMessage", adminId, content);
+
+            const formData = new FormData();
+            formData.append("__RequestVerificationToken", antiForgeryToken);
+            if (supportUserId) {
+                formData.append("receiverId", supportUserId);
+            }
+            if (content) {
+                formData.append("content", content);
+            }
+            if (selectedAttachment) {
+                formData.append("attachment", selectedAttachment);
+            }
+            if (selectedProduct && selectedProduct.id) {
+                formData.append("productId", selectedProduct.id);
+            }
+
+            const response = await fetch("/Chat/SendSupportMessage", {
+                method: "POST",
+                body: formData
+            });
+
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload && payload.message ? payload.message : "Gui tin nhan that bai.");
+            }
+
+            appendMessage(payload);
             input.value = "";
+            clearAttachment();
+            clearProduct();
+            renderSelection();
             input.focus();
         } catch (error) {
             console.error(error);
-            Swal.fire("Lỗi", "Gửi tin nhắn thất bại.", "error");
+            Swal.fire("Loi", error.message || "Gui tin nhan that bai.", "error");
+        } finally {
+            sending = false;
+            sendBtn.disabled = false;
         }
     }
 
     connection.on("ReceiveSupportMessage", function (message) {
-        if (!adminId) return;
+        appendMessage(message);
+    });
 
-        const related = message.senderId === adminId || message.receiverId === adminId;
-        if (!related) return;
-
-        const isMe = message.senderId !== adminId;
-        appendMessage(message, isMe);
+    connection.onreconnected(async function () {
+        try {
+            await loadHistory();
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     toggleBtn.addEventListener("click", async function () {
@@ -172,16 +407,17 @@ function initSupportChat() {
             return;
         }
 
-        showChat();
-
         try {
             if (!isLoaded) {
-                await openChatFirstTime();
+                await openChat();
+            } else {
+                showChat();
+                await loadHistory();
             }
         } catch (error) {
             console.error(error);
             hideChat();
-            Swal.fire("Lỗi", error.message || "Không mở được hộp chat.", "error");
+            Swal.fire("Loi", error.message || "Khong mo duoc hop chat.", "error");
         }
     });
 
@@ -193,10 +429,63 @@ function initSupportChat() {
         sendMessage();
     });
 
-    input.addEventListener("keypress", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
             sendMessage();
         }
     });
+
+    if (attachmentInput) {
+        attachmentInput.addEventListener("change", function () {
+            selectedAttachment = this.files && this.files[0] ? this.files[0] : null;
+            if (selectedAttachment) {
+                clearProduct();
+                toggleProductPicker(false);
+            }
+            renderSelection();
+        });
+    }
+
+    if (pickProductBtn) {
+        pickProductBtn.addEventListener("click", function () {
+            if (selectedAttachment) {
+                clearAttachment();
+                renderSelection();
+            }
+            toggleProductPicker();
+        });
+    }
+
+    if (productSearchBtn) {
+        productSearchBtn.addEventListener("click", function () {
+            searchProducts();
+        });
+    }
+
+    if (productSearchInput) {
+        productSearchInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchProducts();
+            }
+        });
+    }
+
+    if (selectionBox) {
+        selectionBox.addEventListener("click", function (event) {
+            const button = event.target.closest("[data-clear]");
+            if (!button) {
+                return;
+            }
+
+            if (button.getAttribute("data-clear") === "attachment") {
+                clearAttachment();
+            } else {
+                clearProduct();
+            }
+
+            renderSelection();
+        });
+    }
 }

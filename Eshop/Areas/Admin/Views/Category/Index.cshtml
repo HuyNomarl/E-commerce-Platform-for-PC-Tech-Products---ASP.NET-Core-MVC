@@ -126,13 +126,21 @@
                                                 <i class="fa fa-pencil-square-o"></i>
                                             </a>
 
-                                            <a asp-action="Delete"
-                                                   asp-controller="Category"
-                                                   asp-route-id="@item.Id"
-                                                   class="icon-btn icon-delete confirmDeletion"
-                                                   title="Xóa">
-                                                <i class="fa fa-trash"></i>
-                                            </a>
+                                            <form asp-action="Delete"
+                                                  asp-controller="Category"
+                                                  method="post"
+                                                  style="display:inline-block;"
+                                                  data-swal-confirm
+                                                  data-swal-title="Xóa danh mục?"
+                                                  data-swal-text="Thao tác này không thể hoàn tác."
+                                                  data-swal-confirm-text="Xóa"
+                                                  data-swal-cancel-text="Hủy">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="icon-btn icon-delete" title="Xóa">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>

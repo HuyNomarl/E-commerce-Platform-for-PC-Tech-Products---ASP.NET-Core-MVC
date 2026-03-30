@@ -54,6 +54,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] | E-Shopper</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -65,10 +69,11 @@
         <link href="//cdn.datatables.net/2.3.6/css/dataTables.dataTables.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.min.css">
 
-        <link href="~/css/price-range.css" rel="stylesheet">
+                <link href="~/css/price-range.css" rel="stylesheet">
             <link href="~/css/animate.css" rel="stylesheet">
                 <link href="~/css/main.css" rel="stylesheet">
                     <link href="~/css/responsive.css" rel="stylesheet">
+                        <link href="~/css/typography.css" rel="stylesheet">
 
                         <link rel="shortcut icon" href="~/images/ico/favicon.ico">
 
@@ -365,6 +370,7 @@
                                     justify-content: center;
                                     background: #f3f4f6;
                                     color: #111827;
+                                    border: none;
                                     text-decoration: none;
                                     transition: background-color .2s ease, color .2s ease, transform .2s ease;
                                 }
@@ -682,15 +688,20 @@
 
                                                 <div class="admin-account-side">
                                                     <span class="admin-role-pill">@adminRoleLabel</span>
-                                                    <a asp-area=""
-                                                       asp-controller="Account"
-                                                       asp-action="Logout"
-                                                       asp-route-returnURL="/Account/Login"
-                                                       class="admin-logout"
-                                                       title="Đăng xuất"
-                                                       aria-label="Đăng xuất">
-                                                        <i class="fa fa-sign-out"></i>
-                                                    </a>
+                                                    <form asp-area=""
+                                                          asp-controller="Account"
+                                                          asp-action="Logout"
+                                                          method="post"
+                                                          style="display:inline-flex;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="returnURL" value="/Account/Login" />
+                                                        <button type="submit"
+                                                                class="admin-logout"
+                                                                title="Đăng xuất"
+                                                                aria-label="Đăng xuất">
+                                                            <i class="fa fa-sign-out"></i>
+                                                        </button>
+                                                    </form>
                                                 </div>
                                             </div>
                                         </div>
@@ -706,11 +717,11 @@
                                                 <div class="sidebar-title">Điều hướng quản trị</div>
 
                                                 <ul class="sidebar-menu">
-                                                    <li>
+                                                    @* <li>
                                                         <a asp-area="" asp-controller="Home" asp-action="Index">
                                                             <i class="fa fa-home"></i> <span>Home</span>
                                                         </a>
-                                                    </li>
+                                                    </li> *@
                                                     @if (canManageAdmin)
                                                     {
                                                         <li>
@@ -812,6 +823,11 @@
                                                                 <i class="fa fa-comments"></i>
                                                                 <span>Chat</span>
                                                                 <span id="chatDot" class="notify-dot" style="display:none;"></span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a asp-controller="Review" asp-action="Index" class="@(currentController == "Review" ? "active" : "")">
+                                                                <i class="fa fa-star-half-o"></i> <span>Review Reply</span>
                                                             </a>
                                                         </li>
                                                     }

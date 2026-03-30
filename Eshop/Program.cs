@@ -54,16 +54,21 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddScoped<IPcCompatibilityService, PcCompatibilityService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICheckoutPricingService, CheckoutPricingService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<ICatalogCacheService, CatalogCacheService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<ISupportChatService, SupportChatService>();
 builder.Services.AddScoped<RecommendationTrainingService>();
 builder.Services.AddScoped<RecommendationPredictService>();
 builder.Services.AddScoped<IBuildRequirementExtractor, BuildRequirementExtractor>();
 builder.Services.AddScoped<IPcBuildRecommendationService, PcBuildRecommendationService>();
 builder.Services.AddScoped<IPcBuildSuggestionService, PcBuildSuggestionService>();
 builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
+builder.Services.AddScoped<IPcBuildStorageService, PcBuildStorageService>();
+builder.Services.AddScoped<IPcBuildWorkbookService, PcBuildWorkbookService>();
+builder.Services.AddScoped<IPcBuildShareService, PcBuildShareService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderStateService, OrderStateService>();
 builder.Services.AddHostedService<InventoryReservationCleanupHostedService>();
@@ -118,7 +123,6 @@ builder.Services.AddSession(options =>
 
 //RAG Client
 builder.Services.AddHttpClient<ILlmChatClient, LlmChatClient>();
-builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
 builder.Services.AddHttpClient<RagClient>(client =>
 {
     client.BaseAddress = new Uri("http://localhost:8001");
