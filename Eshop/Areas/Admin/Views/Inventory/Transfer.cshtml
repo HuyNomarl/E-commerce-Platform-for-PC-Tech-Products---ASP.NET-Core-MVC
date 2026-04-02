@@ -1,51 +1,427 @@
 ﻿@model Eshop.Models.ViewModels.AdminInventoryTransferViewModel
 
-<h2>Chuyển kho</h2>
+@{
+    ViewData["Title"] = "Chuyển kho";
+    var items = Model.Items != null && Model.Items.Count > 0
+        ? Model.Items
+        : new List<Eshop.Models.ViewModels.AdminInventoryTransferItemViewModel> { new() };
+}
 
-<form asp-action="Transfer" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-    <div class="mb-3">
-        <label asp-for="FromWarehouseId">Kho nguồn</label>
-        <select asp-for="FromWarehouseId" asp-items="Model.Warehouses" class="form-control">
-            <option value="">-- Chọn kho nguồn --</option>
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="ToWarehouseId">Kho đích</label>
-        <select asp-for="ToWarehouseId" asp-items="Model.Warehouses" class="form-control">
-            <option value="">-- Chọn kho đích --</option>
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="ReferenceCode">Mã tham chiếu</label>
-        <input asp-for="ReferenceCode" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Note">Ghi chú</label>
-        <textarea asp-for="Note" class="form-control"></textarea>
-    </div>
-
-    @for (int i = 0; i < Model.Items.Count; i++)
-    {
-        <div class="border rounded p-3 mb-3">
-            <div class="mb-2">
-                <label>Sản phẩm</label>
-                <select asp-for="Items[@i].ProductId" asp-items="Model.Products" class="form-control">
-                    <option value="">-- Chọn sản phẩm --</option>
-                </select>
+<div class="row g-3 inventory-transfer-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Chuyển kho</h4>
+                <div class="small page-subtitle">Tạo phiếu chuyển sản phẩm từ kho nguồn sang kho đích</div>
             </div>
 
-            <div class="mb-2">
-                <label>Số lượng</label>
-                <input asp-for="Items[@i].Quantity" class="form-control" />
+            <a asp-action="Index" class="btn-back-soft">
+                <i class="fa fa-arrow-left"></i>
+                <span>Quay lại tổng quan kho</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft">
+            <div class="section-head">
+                <div class="section-title">
+                    <i class="fa fa-exchange"></i>
+                    <span>Tạo phiếu chuyển kho</span>
+                </div>
+            </div>
+
+            <div class="section-body">
+                <form asp-action="Transfer" method="post" id="transfer-form">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="FromWarehouseId" class="field-label">Kho nguồn</label>
+                            <select asp-for="FromWarehouseId" asp-items="Model.Warehouses" class="form-select field-control">
+                                <option value="">-- Chọn kho nguồn --</option>
+                            </select>
+                            <span asp-validation-for="FromWarehouseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="ToWarehouseId" class="field-label">Kho đích</label>
+                            <select asp-for="ToWarehouseId" asp-items="Model.Warehouses" class="form-select field-control">
+                                <option value="">-- Chọn kho đích --</option>
+                            </select>
+                            <span asp-validation-for="ToWarehouseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="ReferenceCode" class="field-label">Mã tham chiếu</label>
+                            <input asp-for="ReferenceCode" class="form-control field-control" placeholder="Ví dụ: TRF-20260331-01" />
+                            <span asp-validation-for="ReferenceCode" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Note" class="field-label">Ghi chú</label>
+                            <textarea asp-for="Note" class="form-control field-control textarea-control" rows="3" placeholder="Mô tả lý do chuyển kho hoặc thông tin bổ sung"></textarea>
+                            <span asp-validation-for="Note" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="sub-toolbar">
+                        <div class="sub-toolbar-title">
+                            <i class="fa fa-cubes"></i>
+                            <span>Danh sách sản phẩm chuyển</span>
+                        </div>
+
+                        <button type="button" class="btn-add-soft" id="add-transfer-row">
+                            <i class="fa fa-plus"></i>
+                            <span>Thêm sản phẩm</span>
+                        </button>
+                    </div>
+
+                    <div id="transfer-items">
+                        @for (int i = 0; i < items.Count; i++)
+                        {
+                            <div class="item-card transfer-row">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-12 col-md-8">
+                                        <label class="field-label">Sản phẩm</label>
+                                        <select name="Items[@i].ProductId" class="form-select field-control">
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                            @foreach (var product in Model.Products)
+                                            {
+                                                if (product.Value == items[i].ProductId.ToString())
+                                                {
+                                                    <option value="@product.Value" selected>@product.Text</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="@product.Value">@product.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12 col-md-3">
+                                        <label class="field-label">Số lượng</label>
+                                        <input name="Items[@i].Quantity"
+                                               value="@(items[i].Quantity > 0 ? items[i].Quantity : null)"
+                                               class="form-control field-control"
+                                               type="number"
+                                               min="1"
+                                               step="1" />
+                                    </div>
+
+                                    <div class="col-12 col-md-1">
+                                        <button type="button" class="icon-btn icon-delete js-remove-row" title="Xóa dòng">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn-submit-blue">
+                            <i class="fa fa-exchange"></i>
+                            <span>Chuyển kho</span>
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
+</div>
+
+<style>
+    .inventory-transfer-page .page-subtitle {
+        opacity: .75;
     }
 
-    <button type="submit" class="btn btn-info">Chuyển kho</button>
-</form>
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
+    }
+
+    .section-head {
+        padding: 16px 18px;
+        border-bottom: 1px solid #eef2f7;
+        background: #fcfcfd;
+    }
+
+    .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .section-body {
+        padding: 18px;
+    }
+
+    .btn-back-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        text-decoration: none !important;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-back-soft:hover {
+            background: #f3f4f6;
+            color: #111827;
+            border-color: #cbd5e1;
+        }
+
+    .field-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .field-control {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+        .field-control:focus {
+            border-color: #9ca3af;
+            box-shadow: none;
+        }
+
+    .textarea-control {
+        height: auto;
+        min-height: 100px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .sub-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 6px 0 14px;
+    }
+
+    .sub-toolbar-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .btn-add-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+        .btn-add-soft:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+    .item-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: #fff;
+        padding: 16px;
+        margin-bottom: 14px;
+    }
+
+    .icon-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-delete {
+        color: #ef4444;
+    }
+
+    .form-footer {
+        margin-top: 16px;
+    }
+
+    .btn-submit-blue {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 1px solid #0ea5e9;
+        background: #0ea5e9;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+        .btn-submit-blue:hover {
+            background: #0284c7;
+            border-color: #0284c7;
+            color: #fff;
+        }
+
+    @@media (max-width: 767px) {
+        .sub-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-add-soft,
+        .btn-submit-blue,
+        .btn-back-soft {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .icon-btn {
+            width: 100%;
+        }
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        (function () {
+            const container = document.getElementById('transfer-items');
+            const addBtn = document.getElementById('add-transfer-row');
+
+            function getProductOptions(selectedValue) {
+                let html = '<option value="">-- Chọn sản phẩm --</option>';
+
+                @foreach (var product in Model.Products)
+                {
+                        <text>
+                                html += `<option value="@product.Value">${`@product.Text`.replace(/`/g, '\\`')}</option>`;
+                        </text>
+                }
+
+                return html;
+            }
+
+            function buildRow(index) {
+                return `
+                    <div class="item-card transfer-row">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-8">
+                                <label class="field-label">Sản phẩm</label>
+                                <select name="Items[${index}].ProductId" class="form-select field-control">
+                                    ${getProductOptions('')}
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-3">
+                                <label class="field-label">Số lượng</label>
+                                <input name="Items[${index}].Quantity"
+                                       class="form-control field-control"
+                                       type="number"
+                                       min="1"
+                                       step="1" />
+                            </div>
+
+                            <div class="col-12 col-md-1">
+                                <button type="button" class="icon-btn icon-delete js-remove-row" title="Xóa dòng">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            function reindexRows() {
+                const rows = container.querySelectorAll('.transfer-row');
+
+                rows.forEach((row, index) => {
+                    row.querySelectorAll('select, input').forEach(el => {
+                        const name = el.getAttribute('name');
+                        if (!name) return;
+                        el.setAttribute('name', name.replace(/Items\[\d+\]/, `Items[${index}]`));
+                    });
+                });
+
+                const disableRemove = rows.length === 1;
+                rows.forEach(row => {
+                    const btn = row.querySelector('.js-remove-row');
+                    if (btn) btn.disabled = disableRemove;
+                });
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', function () {
+                    const nextIndex = container.querySelectorAll('.transfer-row').length;
+                    container.insertAdjacentHTML('beforeend', buildRow(nextIndex));
+                    reindexRows();
+                });
+            }
+
+            if (container) {
+                container.addEventListener('click', function (e) {
+                    const btn = e.target.closest('.js-remove-row');
+                    if (!btn) return;
+
+                    const rows = container.querySelectorAll('.transfer-row');
+                    if (rows.length === 1) {
+                        const row = btn.closest('.transfer-row');
+                        row.querySelectorAll('select, input').forEach(el => el.value = '');
+                        return;
+                    }
+
+                    btn.closest('.transfer-row').remove();
+                    reindexRows();
+                });
+            }
+
+            reindexRows();
+        })();
+    </script>
+}

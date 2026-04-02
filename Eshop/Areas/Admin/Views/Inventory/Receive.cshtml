@@ -20,234 +20,641 @@
 
     string GetStatusClass(InventoryReceiptStatus status) => status switch
     {
-        InventoryReceiptStatus.Pending => "badge bg-warning text-dark",
-        InventoryReceiptStatus.Approved => "badge bg-success",
-        InventoryReceiptStatus.Cancelled => "badge bg-danger",
-        _ => "badge bg-secondary"
+        InventoryReceiptStatus.Pending => "status-badge status-warning",
+        InventoryReceiptStatus.Approved => "status-badge status-success",
+        InventoryReceiptStatus.Cancelled => "status-badge status-danger",
+        _ => "status-badge status-muted"
     };
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <div>
-        <h2 class="mb-1">Phiếu nhập kho</h2>
-        <div class="text-muted">Tạo phiếu nhập theo brand, thêm nhiều sản phẩm và duyệt sau.</div>
+<div class="row g-3 inventory-receive-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Phiếu nhập kho</h4>
+                <div class="small page-subtitle">Tạo phiếu nhập theo brand, thêm nhiều sản phẩm và duyệt sau</div>
+            </div>
+
+            <a asp-action="Index" class="btn-back-soft">
+                <i class="fa fa-arrow-left"></i>
+                <span>Quay lại tổng quan kho</span>
+            </a>
+        </div>
     </div>
-    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại tổng quan kho</a>
-</div>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-header">
-        <strong>Tạo phiếu nhập mới</strong>
-    </div>
-    <div class="card-body">
-        <form asp-action="Receive" method="post" id="receipt-form">
-            @Html.AntiForgeryToken()
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label asp-for="WarehouseId" class="form-label">Kho</label>
-                    <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-select">
-                        <option value="">-- Chọn kho --</option>
-                    </select>
-                    <span asp-validation-for="WarehouseId" class="text-danger small"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label asp-for="PublisherId" class="form-label">Brand</label>
-                    <select asp-for="PublisherId" asp-items="Model.Publishers" class="form-select" id="PublisherId">
-                        <option value="">-- Chọn brand --</option>
-                    </select>
-                    <span asp-validation-for="PublisherId" class="text-danger small"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label asp-for="ReferenceCode" class="form-label">Mã tham chiếu</label>
-                    <input asp-for="ReferenceCode" class="form-control" placeholder="Ví dụ: PO-20260325-01" />
-                    <span asp-validation-for="ReferenceCode" class="text-danger small"></span>
-                </div>
-
-                <div class="col-12">
-                    <label asp-for="Note" class="form-label">Ghi chú</label>
-                    <textarea asp-for="Note" class="form-control" rows="3" placeholder="Thông tin thêm về đợt nhập này"></textarea>
-                    <span asp-validation-for="Note" class="text-danger small"></span>
+    <div class="col-12">
+        <div class="card-soft">
+            <div class="section-head">
+                <div class="section-title">
+                    <i class="fa fa-plus-circle"></i>
+                    <span>Tạo phiếu nhập mới</span>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <h5 class="mb-0">Danh sách sản phẩm</h5>
-                <button type="button" class="btn btn-outline-primary btn-sm" id="add-receipt-row">+ Sản phẩm</button>
+            <div class="section-body">
+                <form asp-action="Receive" method="post" id="receipt-form">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-4">
+                            <label asp-for="WarehouseId" class="field-label">Kho</label>
+                            <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-select field-control">
+                                <option value="">-- Chọn kho --</option>
+                            </select>
+                            <span asp-validation-for="WarehouseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="PublisherId" class="field-label">Brand</label>
+                            <select asp-for="PublisherId" asp-items="Model.Publishers" class="form-select field-control" id="PublisherId">
+                                <option value="">-- Chọn brand --</option>
+                            </select>
+                            <span asp-validation-for="PublisherId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="ReferenceCode" class="field-label">Mã tham chiếu</label>
+                            <input asp-for="ReferenceCode" class="form-control field-control" placeholder="Ví dụ: PO-20260325-01" />
+                            <span asp-validation-for="ReferenceCode" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Note" class="field-label">Ghi chú</label>
+                            <textarea asp-for="Note" class="form-control field-control textarea-control" rows="3" placeholder="Thông tin thêm về đợt nhập này"></textarea>
+                            <span asp-validation-for="Note" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="sub-toolbar">
+                        <div class="sub-toolbar-title">
+                            <i class="fa fa-cubes"></i>
+                            <span>Danh sách sản phẩm</span>
+                        </div>
+
+                        <button type="button" class="btn-add-soft" id="add-receipt-row">
+                            <i class="fa fa-plus"></i>
+                            <span>Thêm sản phẩm</span>
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table modern-table receipt-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 280px;">Sản phẩm</th>
+                                    <th style="width: 140px;">Số lượng</th>
+                                    <th style="width: 180px;">Giá nhập</th>
+                                    <th style="width: 100px;" class="text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="receipt-items">
+                                @for (int i = 0; i < items.Count; i++)
+                                {
+                                    <tr class="receipt-row">
+                                        <td>
+                                            <select name="Items[@i].ProductId" class="form-select field-control js-product-select">
+                                                <option value="">-- Chọn sản phẩm --</option>
+                                                @foreach (var option in Model.ProductOptions)
+                                                {
+                                                    if (option.ProductId == items[i].ProductId)
+                                                    {
+                                                        <option value="@option.ProductId" data-publisher-id="@option.PublisherId" selected>@option.ProductName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@option.ProductId" data-publisher-id="@option.PublisherId">@option.ProductName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input name="Items[@i].Quantity"
+                                                   value="@(items[i].Quantity > 0 ? items[i].Quantity : null)"
+                                                   class="form-control field-control"
+                                                   type="number"
+                                                   min="1"
+                                                   step="1" />
+                                        </td>
+                                        <td>
+                                            <input name="Items[@i].UnitCost"
+                                                   value="@(items[i].UnitCost?.ToString("0.##"))"
+                                                   class="form-control field-control"
+                                                   type="number"
+                                                   min="0"
+                                                   step="0.01" />
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="icon-btn icon-delete js-remove-row" title="Xóa dòng">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn-submit-soft">
+                            <i class="fa fa-check-circle"></i>
+                            <span>Tạo phiếu nhập</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft">
+            <div class="section-head">
+                <div class="section-title">
+                    <i class="fa fa-history"></i>
+                    <span>Phiếu nhập gần đây</span>
+                </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="min-width: 280px;">Sản phẩm</th>
-                            <th style="width: 140px;">Số lượng</th>
-                            <th style="width: 180px;">Giá nhập</th>
-                            <th style="width: 90px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="receipt-items">
-                        @for (int i = 0; i < items.Count; i++)
-                        {
-                            <tr class="receipt-row">
-                                <td>
-                                    <select name="Items[@i].ProductId" class="form-select js-product-select">
-                                        <option value="">-- Chọn sản phẩm --</option>
-                                        @foreach (var option in Model.ProductOptions)
-                                        {
-                                            if (option.ProductId == items[i].ProductId)
+            <div class="section-body">
+                @if (Model.RecentReceipts.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table modern-table recent-receipts-table">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 180px;">Mã phiếu</th>
+                                    <th style="min-width: 120px;">Brand</th>
+                                    <th style="min-width: 120px;">Kho</th>
+                                    <th style="min-width: 120px;">Trạng thái</th>
+                                    <th style="min-width: 220px;">Sản phẩm</th>
+                                    <th style="min-width: 180px;">Ghi chú</th>
+                                    <th style="min-width: 170px;">Ngày tạo</th>
+                                    <th style="min-width: 190px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var receipt in Model.RecentReceipts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="code-main">@receipt.ReceiptCode</div>
+                                            @if (!string.IsNullOrWhiteSpace(receipt.ReferenceCode))
                                             {
-                                                <option value="@option.ProductId" data-publisher-id="@option.PublisherId" selected>@option.ProductName</option>
+                                                <div class="code-sub">Ref: @receipt.ReferenceCode</div>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            <span class="info-pill">@receipt.PublisherName</span>
+                                        </td>
+
+                                        <td>
+                                            <span class="info-pill">@receipt.WarehouseName</span>
+                                        </td>
+
+                                        <td>
+                                            <span class="@GetStatusClass(receipt.Status)">
+                                                @GetStatusText(receipt.Status)
+                                            </span>
+                                        </td>
+
+                                        <td>
+                                            <div class="stack-list">
+                                                @foreach (var item in receipt.Items)
+                                                {
+                                                    <div class="stack-item">@item.ProductName x @item.Quantity</div>
+                                                }
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            @if (string.IsNullOrWhiteSpace(receipt.Note))
+                                            {
+                                                <span class="muted-text">Không có</span>
                                             }
                                             else
                                             {
-                                                <option value="@option.ProductId" data-publisher-id="@option.PublisherId">@option.ProductName</option>
+                                                <div class="note-text">@receipt.Note</div>
                                             }
-                                        }
-                                    </select>
-                                </td>
-                                <td>
-                                    <input name="Items[@i].Quantity"
-                                           value="@(items[i].Quantity > 0 ? items[i].Quantity : null)"
-                                           class="form-control"
-                                           type="number"
-                                           min="1"
-                                           step="1" />
-                                </td>
-                                <td>
-                                    <input name="Items[@i].UnitCost"
-                                           value="@(items[i].UnitCost?.ToString("0.##"))"
-                                           class="form-control"
-                                           type="number"
-                                           min="0"
-                                           step="0.01" />
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-outline-danger btn-sm js-remove-row">Xóa</button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                                        </td>
 
-            <button type="submit" class="btn btn-success">Tạo phiếu nhập</button>
-        </form>
+                                        <td>
+                                            <div class="date-main">@receipt.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                            @if (receipt.ApprovedAt.HasValue)
+                                            {
+                                                <div class="date-sub text-success">Duyệt: @receipt.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                            }
+                                            @if (receipt.CancelledAt.HasValue)
+                                            {
+                                                <div class="date-sub text-danger">Hủy: @receipt.CancelledAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                                            }
+                                        </td>
+
+                                        <td>
+                                            @if (receipt.Status == InventoryReceiptStatus.Pending)
+                                            {
+                                                <div class="action-group">
+                                                    <form asp-action="ApproveReceipt"
+                                                          method="post"
+                                                          class="d-inline"
+                                                          data-swal-confirm
+                                                          data-swal-title="Duyệt phiếu nhập?"
+                                                          data-swal-text="Phiếu nhập sẽ được ghi nhận vào tồn kho."
+                                                          data-swal-confirm-text="Duyệt"
+                                                          data-swal-cancel-text="Hủy">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@receipt.Id" />
+                                                        <button type="submit" class="btn-action-success">Duyệt</button>
+                                                    </form>
+
+                                                    <form asp-action="CancelReceipt"
+                                                          method="post"
+                                                          class="d-inline"
+                                                          data-swal-confirm
+                                                          data-swal-title="Hủy phiếu nhập?"
+                                                          data-swal-text="Phiếu nhập bị hủy sẽ không thể duyệt lại."
+                                                          data-swal-confirm-text="Hủy phiếu"
+                                                          data-swal-cancel-text="Đóng">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@receipt.Id" />
+                                                        <button type="submit" class="btn-action-danger">Hủy</button>
+                                                    </form>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="muted-text small">Không còn thao tác</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-box">
+                        <i class="fa fa-inbox"></i>
+                        <span>Chưa có phiếu nhập nào.</span>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-header">
-        <strong>Phiếu nhập gần đây</strong>
-    </div>
-    <div class="card-body">
-        @if (Model.RecentReceipts.Any())
-        {
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Mã phiếu</th>
-                            <th>Brand</th>
-                            <th>Kho</th>
-                            <th>Trạng thái</th>
-                            <th>Sản phẩm</th>
-                            <th>Ghi chú</th>
-                            <th>Ngày tạo</th>
-                            <th style="width: 170px;">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var receipt in Model.RecentReceipts)
-                        {
-                            <tr>
-                                <td>
-                                    <div class="fw-semibold">@receipt.ReceiptCode</div>
-                                    @if (!string.IsNullOrWhiteSpace(receipt.ReferenceCode))
-                                    {
-                                        <div class="small text-muted">Ref: @receipt.ReferenceCode</div>
-                                    }
-                                </td>
-                                <td>@receipt.PublisherName</td>
-                                <td>@receipt.WarehouseName</td>
-                                <td>
-                                    <span class="@GetStatusClass(receipt.Status)">@GetStatusText(receipt.Status)</span>
-                                </td>
-                                <td>
-                                    @foreach (var item in receipt.Items)
-                                    {
-                                        <div>@item.ProductName x @item.Quantity</div>
-                                    }
-                                </td>
-                                <td>
-                                    @if (string.IsNullOrWhiteSpace(receipt.Note))
-                                    {
-                                        <span class="text-muted">Không có</span>
-                                    }
-                                    else
-                                    {
-                                        @receipt.Note
-                                    }
-                                </td>
-                                <td>
-                                    <div>@receipt.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
-                                    @if (receipt.ApprovedAt.HasValue)
-                                    {
-                                        <div class="small text-success">Duyệt: @receipt.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
-                                    }
-                                    @if (receipt.CancelledAt.HasValue)
-                                    {
-                                        <div class="small text-danger">Hủy: @receipt.CancelledAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
-                                    }
-                                </td>
-                                <td>
-                                    @if (receipt.Status == InventoryReceiptStatus.Pending)
-                                    {
-                                        <form asp-action="ApproveReceipt"
-                                              method="post"
-                                              class="d-inline"
-                                              data-swal-confirm
-                                              data-swal-title="Duyệt phiếu nhập?"
-                                              data-swal-text="Phiếu nhập sẽ được ghi nhận vào tồn kho."
-                                              data-swal-confirm-text="Duyệt"
-                                              data-swal-cancel-text="Hủy">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@receipt.Id" />
-                                            <button type="submit" class="btn btn-success btn-sm">Duyệt</button>
-                                        </form>
-                                        <form asp-action="CancelReceipt"
-                                              method="post"
-                                              class="d-inline"
-                                              data-swal-confirm
-                                              data-swal-title="Hủy phiếu nhập?"
-                                              data-swal-text="Phiếu nhập bị hủy sẽ không thể duyệt lại."
-                                              data-swal-confirm-text="Hủy phiếu"
-                                              data-swal-cancel-text="Đóng">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@receipt.Id" />
-                                            <button type="submit" class="btn btn-outline-danger btn-sm">Hủy</button>
-                                        </form>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted small">Không còn thao tác</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+<style>
+    .inventory-receive-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
+    }
+
+    .section-head {
+        padding: 16px 18px;
+        border-bottom: 1px solid #eef2f7;
+        background: #fcfcfd;
+    }
+
+    .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .section-body {
+        padding: 18px;
+    }
+
+    .btn-back-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        text-decoration: none !important;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-back-soft:hover {
+            background: #f3f4f6;
+            color: #111827;
+            border-color: #cbd5e1;
         }
-        else
-        {
-            <div class="text-muted">Chưa có phiếu nhập nào.</div>
+
+    .field-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .field-control {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+        .field-control:focus {
+            border-color: #9ca3af;
+            box-shadow: none;
         }
-    </div>
-</div>
+
+    .textarea-control {
+        height: auto;
+        min-height: 100px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .sub-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 6px 0 14px;
+    }
+
+    .sub-toolbar-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .btn-add-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+        .btn-add-soft:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+    .modern-table {
+        margin-bottom: 0;
+    }
+
+        .modern-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .modern-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .modern-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-delete {
+        color: #ef4444;
+    }
+
+    .form-footer {
+        margin-top: 16px;
+    }
+
+    .btn-submit-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 1px solid #16a34a;
+        background: #16a34a;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+        .btn-submit-soft:hover {
+            background: #15803d;
+            border-color: #15803d;
+            color: #fff;
+        }
+
+    .code-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .code-sub {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+
+    .info-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+        color: #374151;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .status-warning {
+        background: #fffbeb;
+        color: #b45309;
+        border-color: #fde68a;
+    }
+
+    .status-success {
+        background: #ecfdf3;
+        color: #15803d;
+        border-color: #bbf7d0;
+    }
+
+    .status-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .status-muted {
+        background: #f8fafc;
+        color: #475569;
+        border-color: #dbe3ee;
+    }
+
+    .stack-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .stack-item {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.45;
+    }
+
+    .note-text {
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.5;
+    }
+
+    .muted-text {
+        color: #6b7280;
+    }
+
+    .date-main {
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .date-sub {
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    .action-group {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn-action-success,
+    .btn-action-danger {
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        transition: all .2s ease;
+    }
+
+    .btn-action-success {
+        background: #16a34a;
+        color: #fff;
+        border-color: #16a34a;
+    }
+
+        .btn-action-success:hover {
+            background: #15803d;
+            border-color: #15803d;
+        }
+
+    .btn-action-danger {
+        background: #fff;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+        .btn-action-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+    .empty-box {
+        min-height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    @@media (max-width: 767px) {
+        .sub-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-add-soft,
+        .btn-submit-soft,
+        .btn-back-soft {
+            justify-content: center;
+            width: 100%;
+        }
+
+        .action-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .btn-action-success,
+        .btn-action-danger {
+            width: 100%;
+        }
+    }
+</style>
 
 @section Scripts {
     @{
@@ -296,18 +703,20 @@
                 return `
                     <tr class="receipt-row">
                         <td>
-                            <select name="Items[${index}].ProductId" class="form-select js-product-select">
+                            <select name="Items[${index}].ProductId" class="form-select field-control js-product-select">
                                 ${buildProductOptions(selectedProductId)}
                             </select>
                         </td>
                         <td>
-                            <input name="Items[${index}].Quantity" class="form-control" type="number" min="1" step="1" value="${escapeHtml(quantity)}" />
+                            <input name="Items[${index}].Quantity" class="form-control field-control" type="number" min="1" step="1" value="${escapeHtml(quantity)}" />
                         </td>
                         <td>
-                            <input name="Items[${index}].UnitCost" class="form-control" type="number" min="0" step="0.01" value="${escapeHtml(unitCost)}" />
+                            <input name="Items[${index}].UnitCost" class="form-control field-control" type="number" min="0" step="0.01" value="${escapeHtml(unitCost)}" />
                         </td>
                         <td class="text-center">
-                            <button type="button" class="btn btn-outline-danger btn-sm js-remove-row">Xóa</button>
+                            <button type="button" class="icon-btn icon-delete js-remove-row" title="Xóa dòng">
+                                <i class="fa fa-trash"></i>
+                            </button>
                         </td>
                     </tr>`;
             }
@@ -327,9 +736,7 @@
                 rows.each(function (index) {
                     $(this).find('select, input').each(function () {
                         const currentName = $(this).attr('name');
-                        if (!currentName) {
-                            return;
-                        }
+                        if (!currentName) return;
 
                         const newName = currentName.replace(/Items\[\d+\]/, `Items[${index}]`);
                         $(this).attr('name', newName);

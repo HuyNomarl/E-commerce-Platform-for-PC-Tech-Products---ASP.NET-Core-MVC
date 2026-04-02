@@ -1,47 +1,694 @@
 ﻿@model IEnumerable<dynamic>
 
-<h2>Tổng quan tồn kho</h2>
+@{
+    ViewData["Title"] = "Tổng quan tồn kho";
+    var stockList = Model?.ToList() ?? new List<dynamic>();
+}
 
-<p class="mb-3">
-    <a asp-action="Receive" class="btn btn-success">Phiếu nhập kho</a>
-    <a asp-action="Adjust" class="btn btn-warning">Điều chỉnh</a>
-    <a asp-action="Transfer" class="btn btn-info">Chuyển kho</a>
-    <a asp-action="History" class="btn btn-secondary">Lịch sử kho</a>
-</p>
+<div class="row g-3 inventory-overview-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Tổng quan tồn kho</h4>
+                <div class="small page-subtitle">Quản lý số lượng tồn, giữ chỗ và khả dụng của sản phẩm</div>
+            </div>
 
-<form asp-action="BootstrapLegacyStock" method="post" class="mb-3">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-dark">
-        Khởi tạo tồn kho từ Product.Quantity cũ
-    </button>
-</form>
+            <form asp-action="BootstrapLegacyStock" method="post" class="m-0">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn action-btn btn-dark-soft">
+                    <i class="fa fa-database me-1"></i>
+                    Khởi tạo tồn kho cũ
+                </button>
+            </form>
+        </div>
+    </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>SP</th>
-            <th>Tồn thực tế</th>
-            <th>Giữ chỗ</th>
-            <th>Khả dụng</th>
-            <th>Cache Product.Quantity</th>
-            <th>Đã bán</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Name</td>
-                <td>@item.TotalOnHand</td>
-                <td>@item.TotalReserved</td>
-                <td>@(item.TotalOnHand - item.TotalReserved)</td>
-                <td>@item.CachedQuantity</td>
-                <td>@item.Sold</td>
-                <td>
-                    <a asp-action="ProductStock" asp-route-productId="@item.Id" class="btn btn-info btn-sm">Chi tiết kho</a>
-                </td>
-            </tr>
+    <div class="col-12">
+        <div class="card-soft quick-action-card">
+            <div class="quick-action-wrap">
+                <a asp-action="Receive" class="quick-action action-green">
+                    <i class="fa fa-download"></i>
+                    <span>Phiếu nhập kho</span>
+                </a>
+
+                <a asp-action="Adjust" class="quick-action action-yellow">
+                    <i class="fa fa-sliders"></i>
+                    <span>Điều chỉnh</span>
+                </a>
+
+                <a asp-action="Transfer" class="quick-action action-blue">
+                    <i class="fa fa-exchange"></i>
+                    <span>Chuyển kho</span>
+                </a>
+
+                <a asp-action="History" class="quick-action action-gray">
+                    <i class="fa fa-history"></i>
+                    <span>Lịch sử kho</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft toolbar-card">
+            <div class="toolbar-inner">
+                <div class="toolbar-left">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm theo tên sản phẩm..." />
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@stockList.Count</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft filter-card">
+            <div class="filter-top">
+                <div class="filter-title">
+                    <i class="fa fa-filter"></i>
+                    <span>Bộ lọc nâng cao</span>
+                </div>
+
+                <button type="button" id="resetFilters" class="btn-reset-filter">
+                    Xóa bộ lọc
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Tồn thực tế</label>
+                    <select id="filterOnHandStatus" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="positive">Còn hàng</option>
+                        <option value="zero">Hết hàng</option>
+                        <option value="negative">Âm kho</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Khả dụng</label>
+                    <select id="filterAvailableStatus" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="positive">Khả dụng</option>
+                        <option value="zero">Hết khả dụng</option>
+                        <option value="negative">Âm khả dụng</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Giữ chỗ</label>
+                    <select id="filterReservedStatus" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="has">Có giữ chỗ</option>
+                        <option value="none">Không giữ chỗ</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">So với cache</label>
+                    <select id="filterCacheDiff" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        <option value="same">Khớp cache</option>
+                        <option value="diff">Chênh lệch cache</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="filter-label">Tồn tối thiểu</label>
+                    <input type="text" id="filterMinOnHand" class="form-control filter-control" placeholder="Ví dụ: 10" />
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="filter-label">Giữ chỗ tối thiểu</label>
+                    <input type="text" id="filterMinReserved" class="form-control filter-control" placeholder="Ví dụ: 1" />
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="filter-label">Đã bán tối thiểu</label>
+                    <input type="text" id="filterMinSold" class="form-control filter-control" placeholder="Ví dụ: 5" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-responsive">
+                <table class="table inventory-table" id="myTable">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th style="width: 140px;">Tồn thực tế</th>
+                            <th style="width: 130px;">Giữ chỗ</th>
+                            <th style="width: 130px;">Khả dụng</th>
+                            <th style="width: 170px;">Cache Product.Quantity</th>
+                            <th style="width: 110px;">Đã bán</th>
+                            <th style="width: 140px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in stockList)
+                        {
+                            var onHand = (int)item.TotalOnHand;
+                            var reserved = (int)item.TotalReserved;
+                            var available = onHand - reserved;
+                            var cached = (int)item.CachedQuantity;
+                            var sold = (int)item.Sold;
+
+                            <tr>
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="name-main">@item.Name</div>
+                                        <div class="name-sub text-muted">SP#@item.Id</div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="metric-badge metric-onhand">@onHand</span>
+                                </td>
+
+                                <td>
+                                    <span class="metric-badge metric-reserved">@reserved</span>
+                                </td>
+
+                                <td>
+                                    @if (available > 0)
+                                    {
+                                        <span class="metric-badge metric-available">@available</span>
+                                    }
+                                    else if (available == 0)
+                                    {
+                                        <span class="metric-badge metric-zero">0</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="metric-badge metric-danger">@available</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    <span class="metric-badge metric-cache">@cached</span>
+                                </td>
+
+                                <td>
+                                    <span class="metric-badge metric-sold">@sold</span>
+                                </td>
+
+                                <td class="text-right">
+                                    <div class="action-group">
+                                        <a asp-action="ProductStock"
+                                               asp-route-productId="@item.Id"
+                                               class="icon-btn icon-detail"
+                                               title="Chi tiết kho">
+                                            <i class="fa fa-cubes"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .inventory-overview-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .toolbar-card,
+    .quick-action-card,
+    .filter-card {
+        padding: 16px 18px;
+    }
+
+    .toolbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+        flex: 1;
+        min-width: 260px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 420px;
+    }
+
+        .search-box .form-control {
+            height: 42px;
+            border-radius: 12px;
+            padding-left: 40px;
+            border: 1px solid #d1d5db;
+            box-shadow: none;
         }
-    </tbody>
-</table>
+
+            .search-box .form-control:focus,
+            .filter-control:focus {
+                border-color: #9ca3af;
+                box-shadow: none;
+            }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .quick-action-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .quick-action {
+        min-width: 170px;
+        height: 46px;
+        padding: 0 16px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none !important;
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        transition: all .2s ease;
+    }
+
+        .quick-action:hover {
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+    .action-green {
+        background: #ecfdf3;
+        color: #15803d;
+        border-color: #bbf7d0;
+    }
+
+    .action-yellow {
+        background: #fffbeb;
+        color: #b45309;
+        border-color: #fde68a;
+    }
+
+    .action-blue {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .action-gray {
+        background: #f8fafc;
+        color: #475569;
+        border-color: #dbe3ee;
+    }
+
+    .action-btn {
+        height: 42px;
+        border-radius: 12px;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        box-shadow: none !important;
+    }
+
+    .btn-dark-soft {
+        background: #111827;
+        border-color: #111827;
+        color: #fff;
+    }
+
+        .btn-dark-soft:hover {
+            background: #1f2937;
+            border-color: #1f2937;
+            color: #fff;
+        }
+
+    .filter-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+
+    .filter-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .filter-control {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+    .btn-reset-filter {
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        border-radius: 12px;
+        height: 42px;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-reset-filter:hover {
+            background: #f3f4f6;
+            border-color: #cbd5e1;
+        }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .inventory-table {
+        margin-bottom: 0;
+    }
+
+        .inventory-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .inventory-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .inventory-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .name-main {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .name-sub {
+        font-size: 12px;
+    }
+
+    .metric-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .metric-onhand {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .metric-reserved {
+        background: #fff7ed;
+        color: #c2410c;
+        border-color: #fed7aa;
+    }
+
+    .metric-available {
+        background: #ecfdf3;
+        color: #15803d;
+        border-color: #bbf7d0;
+    }
+
+    .metric-zero {
+        background: #f8fafc;
+        color: #475569;
+        border-color: #dbe3ee;
+    }
+
+    .metric-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .metric-cache {
+        background: #f5f3ff;
+        color: #7c3aed;
+        border-color: #ddd6fe;
+    }
+
+    .metric-sold {
+        background: #fdf2f8;
+        color: #be185d;
+        border-color: #fbcfe8;
+    }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-detail {
+        color: #2563eb;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
+    }
+
+    @@media (max-width: 767px) {
+        .toolbar-inner,
+        .filter-top {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-left,
+        .search-box {
+            max-width: 100%;
+        }
+
+        .quick-action {
+            width: 100%;
+        }
+
+        .btn-reset-filter {
+            width: 100%;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+            },
+            order: []
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        const totalEl = document.getElementById('totalRows');
+
+        const filterOnHandStatus = document.getElementById('filterOnHandStatus');
+        const filterAvailableStatus = document.getElementById('filterAvailableStatus');
+        const filterReservedStatus = document.getElementById('filterReservedStatus');
+        const filterCacheDiff = document.getElementById('filterCacheDiff');
+        const filterMinOnHand = document.getElementById('filterMinOnHand');
+        const filterMinReserved = document.getElementById('filterMinReserved');
+        const filterMinSold = document.getElementById('filterMinSold');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+
+        function parseNumber(value) {
+            if (value === null || value === undefined) return 0;
+            const cleaned = value.toString().replace(/[^\d\-]/g, '');
+            return cleaned ? parseInt(cleaned, 10) : 0;
+        }
+
+        DataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'myTable') return true;
+
+            const onHand = parseNumber(data[1]);
+            const reserved = parseNumber(data[2]);
+            const available = parseNumber(data[3]);
+            const cached = parseNumber(data[4]);
+            const sold = parseNumber(data[5]);
+
+            const onHandStatus = (filterOnHandStatus?.value || '').trim();
+            const availableStatus = (filterAvailableStatus?.value || '').trim();
+            const reservedStatus = (filterReservedStatus?.value || '').trim();
+            const cacheDiff = (filterCacheDiff?.value || '').trim();
+
+            const minOnHandRaw = (filterMinOnHand?.value || '').trim();
+            const minReservedRaw = (filterMinReserved?.value || '').trim();
+            const minSoldRaw = (filterMinSold?.value || '').trim();
+
+            const minOnHand = parseNumber(minOnHandRaw);
+            const minReserved = parseNumber(minReservedRaw);
+            const minSold = parseNumber(minSoldRaw);
+
+            if (onHandStatus === 'positive' && onHand <= 0) return false;
+            if (onHandStatus === 'zero' && onHand !== 0) return false;
+            if (onHandStatus === 'negative' && onHand >= 0) return false;
+
+            if (availableStatus === 'positive' && available <= 0) return false;
+            if (availableStatus === 'zero' && available !== 0) return false;
+            if (availableStatus === 'negative' && available >= 0) return false;
+
+            if (reservedStatus === 'has' && reserved <= 0) return false;
+            if (reservedStatus === 'none' && reserved !== 0) return false;
+
+            if (cacheDiff === 'same' && onHand !== cached) return false;
+            if (cacheDiff === 'diff' && onHand === cached) return false;
+
+            if (minOnHandRaw !== '' && onHand < minOnHand) return false;
+            if (minReservedRaw !== '' && reserved < minReserved) return false;
+            if (minSoldRaw !== '' && sold < minSold) return false;
+
+            return true;
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        [
+            filterOnHandStatus,
+            filterAvailableStatus,
+            filterReservedStatus,
+            filterCacheDiff
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('change', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        [
+            filterMinOnHand,
+            filterMinReserved,
+            filterMinSold
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('input', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                if (filterOnHandStatus) filterOnHandStatus.value = '';
+                if (filterAvailableStatus) filterAvailableStatus.value = '';
+                if (filterReservedStatus) filterReservedStatus.value = '';
+                if (filterCacheDiff) filterCacheDiff.value = '';
+                if (filterMinOnHand) filterMinOnHand.value = '';
+                if (filterMinReserved) filterMinReserved.value = '';
+                if (filterMinSold) filterMinSold.value = '';
+
+                table.search('').draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
+            }
+        });
+    </script>
+}

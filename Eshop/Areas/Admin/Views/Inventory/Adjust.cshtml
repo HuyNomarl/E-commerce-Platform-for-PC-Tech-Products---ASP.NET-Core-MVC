@@ -1,34 +1,232 @@
 ﻿@model Eshop.Models.ViewModels.AdminInventoryAdjustViewModel
 
-<h2>Điều chỉnh kho</h2>
+@{
+    ViewData["Title"] = "Điều chỉnh kho";
+}
 
-<form asp-action="Adjust" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="row g-3 inventory-adjust-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Điều chỉnh kho</h4>
+                <div class="small page-subtitle">Cập nhật lại số lượng tồn kho thực tế của sản phẩm</div>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="WarehouseId">Kho</label>
-        <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-control">
-            <option value="">-- Chọn kho --</option>
-        </select>
+            <a asp-action="Index" class="btn-back-soft">
+                <i class="fa fa-arrow-left"></i>
+                <span>Quay lại tổng quan kho</span>
+            </a>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="ProductId">Sản phẩm</label>
-        <select asp-for="ProductId" asp-items="Model.Products" class="form-control">
-            <option value="">-- Chọn sản phẩm --</option>
-        </select>
+    <div class="col-12 col-lg-8">
+        <div class="card-soft">
+            <div class="section-head">
+                <div class="section-title">
+                    <i class="fa fa-sliders"></i>
+                    <span>Phiếu điều chỉnh kho</span>
+                </div>
+            </div>
+
+            <div class="section-body">
+                <form asp-action="Adjust" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="WarehouseId" class="field-label">Kho</label>
+                            <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-select field-control">
+                                <option value="">-- Chọn kho --</option>
+                            </select>
+                            <span asp-validation-for="WarehouseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="ProductId" class="field-label">Sản phẩm</label>
+                            <select asp-for="ProductId" asp-items="Model.Products" class="form-select field-control">
+                                <option value="">-- Chọn sản phẩm --</option>
+                            </select>
+                            <span asp-validation-for="ProductId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="NewQuantity" class="field-label">Số lượng mới</label>
+                            <input asp-for="NewQuantity" class="form-control field-control" type="number" min="0" step="1" placeholder="Nhập số lượng mới" />
+                            <span asp-validation-for="NewQuantity" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Note" class="field-label">Lý do</label>
+                            <textarea asp-for="Note" class="form-control field-control textarea-control" rows="4" placeholder="Ví dụ: kiểm kê lại kho, cập nhật chênh lệch thực tế..."></textarea>
+                            <span asp-validation-for="Note" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-footer">
+                        <button type="submit" class="btn-submit-warning">
+                            <i class="fa fa-check-circle"></i>
+                            <span>Điều chỉnh kho</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="NewQuantity">Số lượng mới</label>
-        <input asp-for="NewQuantity" class="form-control" />
-    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card-soft info-card">
+            <div class="section-head">
+                <div class="section-title">
+                    <i class="fa fa-info-circle"></i>
+                    <span>Lưu ý</span>
+                </div>
+            </div>
 
-    <div class="mb-3">
-        <label asp-for="Note">Lý do</label>
-        <textarea asp-for="Note" class="form-control"></textarea>
+            <div class="section-body">
+                <ul class="info-list">
+                    <li>Chọn đúng kho cần điều chỉnh.</li>
+                    <li>Nhập số lượng tồn kho mới sau khi kiểm kê.</li>
+                    <li>Nên ghi rõ lý do để dễ tra cứu lịch sử.</li>
+                    <li>Thao tác này ảnh hưởng trực tiếp đến tồn kho hiện tại.</li>
+                </ul>
+            </div>
+        </div>
     </div>
+</div>
 
-    <button type="submit" class="btn btn-warning">Điều chỉnh</button>
-</form>
+<style>
+    .inventory-adjust-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
+    }
+
+    .section-head {
+        padding: 16px 18px;
+        border-bottom: 1px solid #eef2f7;
+        background: #fcfcfd;
+    }
+
+    .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .section-body {
+        padding: 18px;
+    }
+
+    .btn-back-soft {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        text-decoration: none !important;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all .2s ease;
+    }
+
+        .btn-back-soft:hover {
+            background: #f3f4f6;
+            color: #111827;
+            border-color: #cbd5e1;
+        }
+
+    .field-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .field-control {
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+        .field-control:focus {
+            border-color: #9ca3af;
+            box-shadow: none;
+        }
+
+    .textarea-control {
+        height: auto;
+        min-height: 120px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .form-footer {
+        margin-top: 18px;
+    }
+
+    .btn-submit-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 1px solid #f59e0b;
+        background: #f59e0b;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+        .btn-submit-warning:hover {
+            background: #d97706;
+            border-color: #d97706;
+            color: #fff;
+        }
+
+    .info-list {
+        margin: 0;
+        padding-left: 18px;
+        color: #374151;
+    }
+
+        .info-list li {
+            margin-bottom: 10px;
+            line-height: 1.55;
+        }
+
+            .info-list li:last-child {
+                margin-bottom: 0;
+            }
+
+    @@media (max-width: 767px) {
+        .btn-back-soft,
+        .btn-submit-warning {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

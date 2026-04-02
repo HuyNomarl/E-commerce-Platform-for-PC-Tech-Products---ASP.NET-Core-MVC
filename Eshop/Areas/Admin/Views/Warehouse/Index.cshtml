@@ -1,35 +1,348 @@
 ﻿@model IEnumerable<Eshop.Models.WarehouseModel>
 
-<h2>Danh sách kho</h2>
+@{
+    ViewData["Title"] = "Danh sách kho";
+    var warehouseList = Model?.ToList() ?? new List<Eshop.Models.WarehouseModel>();
+}
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Thêm kho</a>
-</p>
+<div class="row g-3 warehouse-index-page">
+    <div class="col-12">
+        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Kho hàng</h4>
+                <div class="small page-subtitle">Quản lý danh sách kho trong hệ thống</div>
+            </div>
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã</th>
-            <th>Tên kho</th>
-            <th>Địa chỉ</th>
-            <th>Mặc định</th>
-            <th>Hoạt động</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Code</td>
-                <td>@item.Name</td>
-                <td>@item.Address</td>
-                <td>@(item.IsDefault ? "Có" : "Không")</td>
-                <td>@(item.IsActive ? "Có" : "Không")</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
-                </td>
-            </tr>
+            <a asp-action="Create"
+                   class="icon-btn icon-add"
+                   title="Thêm kho">
+                <i class="fa fa-plus-circle"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft toolbar-card">
+            <div class="toolbar-inner">
+                <div class="toolbar-left">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm theo mã kho, tên kho..." />
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@warehouseList.Count</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card-soft table-card">
+            <div class="table-responsive">
+                <table class="table warehouse-table" id="myTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 130px;">Mã kho</th>
+                            <th style="width: 220px;">Tên kho</th>
+                            <th>Địa chỉ</th>
+                            <th style="width: 140px;">Mặc định</th>
+                            <th style="width: 140px;">Hoạt động</th>
+                            <th style="width: 120px;" class="text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in warehouseList)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="code-pill">@item.Code</span>
+                                </td>
+
+                                <td>
+                                    <div class="name-cell">
+                                        <div class="name-main">@item.Name</div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="address-text">@(string.IsNullOrWhiteSpace(item.Address) ? "-" : item.Address)</span>
+                                </td>
+
+                                <td>
+                                    @if (item.IsDefault)
+                                    {
+                                        <span class="status-badge status-success">Mặc định</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-muted">Không</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="status-badge status-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-danger">Ngưng hoạt động</span>
+                                    }
+                                </td>
+
+                                <td class="text-right">
+                                    <div class="action-group">
+                                        <a asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="icon-btn icon-edit"
+                                               title="Chỉnh sửa">
+                                            <i class="fa fa-pencil-square-o"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .warehouse-index-page .page-subtitle {
+        opacity: .75;
+    }
+
+    .card-soft {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    }
+
+    .toolbar-card {
+        padding: 16px 18px;
+    }
+
+    .toolbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .toolbar-left {
+        flex: 1;
+        min-width: 260px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .search-box {
+        position: relative;
+        max-width: 420px;
+    }
+
+        .search-box .form-control {
+            height: 42px;
+            border-radius: 12px;
+            padding-left: 40px;
+            border: 1px solid #d1d5db;
+            box-shadow: none;
         }
-    </tbody>
-</table>
+
+            .search-box .form-control:focus {
+                border-color: #9ca3af;
+                box-shadow: none;
+            }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
+    }
+
+    .total-badge {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid #d1d5db;
+        background: #f9fafb;
+        color: #374151;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .warehouse-table {
+        margin-bottom: 0;
+    }
+
+        .warehouse-table thead th {
+            background: #f8fafc;
+            color: #374151;
+            font-weight: 700;
+            border-bottom: 1px solid #e5e7eb !important;
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+        }
+
+        .warehouse-table tbody td {
+            vertical-align: middle !important;
+            padding: 14px 12px !important;
+            border-top: 1px solid #eef2f7 !important;
+        }
+
+        .warehouse-table tbody tr:hover {
+            background: #fafafa;
+        }
+
+    .code-pill {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #111827;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .name-main {
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 2px;
+    }
+
+    .address-text {
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.5;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .status-success {
+        background: #ecfdf3;
+        color: #15803d;
+        border-color: #bbf7d0;
+    }
+
+    .status-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .status-muted {
+        background: #f8fafc;
+        color: #475569;
+        border-color: #dbe3ee;
+    }
+
+    .action-group {
+        display: inline-flex;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        text-decoration: none !important;
+        transition: all .2s ease;
+    }
+
+        .icon-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+    .icon-add {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        color: #16a34a;
+    }
+
+    .icon-edit {
+        color: #f59e0b;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
+    }
+
+    @@media (max-width: 767px) {
+        .toolbar-inner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .toolbar-left,
+        .search-box {
+            max-width: 100%;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+            },
+            order: []
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        const totalEl = document.getElementById('totalRows');
+
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
+            }
+        });
+    </script>
+}

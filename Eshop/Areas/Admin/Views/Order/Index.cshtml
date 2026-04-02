@@ -1,6 +1,17 @@
-@model IEnumerable<Eshop.Models.OrderModel>
+@using System.Globalization
+@using Eshop.Helpers
+@using Eshop.Models
+@model IEnumerable<OrderModel>
 @{
     ViewData["Title"] = "Orders";
+
+    var orderList = Model?.ToList() ?? new List<OrderModel>();
+    var paymentOptions = new[] { "COD", "VNPAY", "MOMO", "BANK_TRANSFER", "CARD" }
+        .Concat(orderList.Select(x => OrderDisplayHelper.NormalizePaymentMethod(x.PaymentMethod)))
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .OrderBy(x => OrderDisplayHelper.GetPaymentMethodLabel(x))
+        .ToList();
 }
 
 <div class="row g-3 orders-index-page">
@@ -9,7 +20,7 @@
             <div class="table-toolbar">
                 <div>
                     <div class="section-title mb-0">Danh sách đơn hàng</div>
-                    <div class="section-subtitle">Theo dõi khách hàng, thanh toán, trạng thái vận hành và tổng tiền đơn</div>
+                    <div class="section-subtitle">Theo dõi khách hàng, thanh toán, trạng thái vận hành và tổng tiền đơn.</div>
                 </div>
 
                 <div class="toolbar-right">
@@ -17,11 +28,11 @@
                         <span class="search-icon">
                             <i class="fa fa-search"></i>
                         </span>
-                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm kiếm đơn hàng..." />
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm theo mã đơn, khách hàng, email..." />
                     </div>
 
                     <span class="total-badge">
-                        Tổng: <span id="totalRows">@Model.Count()</span>
+                        Tổng: <span id="totalRows">@orderList.Count</span>
                     </span>
                 </div>
             </div>
@@ -34,6 +45,66 @@
                 <button type="button" id="reloadOrdersBtn" class="btn btn-sm btn-primary">
                     Tải lại
                 </button>
+            </div>
+
+            <div class="filter-card">
+                <div class="filter-top">
+                    <div>
+                        <div class="filter-title">
+                            <i class="fa fa-filter"></i>
+                            <span>Bộ lọc nâng cao</span>
+                        </div>
+                        <div class="filter-hint">Kết hợp nhiều điều kiện để thu hẹp nhanh danh sách đơn hàng cần xử lý.</div>
+                    </div>
+
+                    <button type="button" id="resetFilters" class="btn-reset-filter">
+                        Xóa bộ lọc
+                    </button>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterStatus">Trạng thái</label>
+                        <select id="filterStatus" class="form-select filter-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var status in Enum.GetValues<OrderStatus>())
+                            {
+                                <option value="@((int)status)">@OrderDisplayHelper.GetStatusLabel(status)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterPayment">Thanh toán</label>
+                        <select id="filterPayment" class="form-select filter-control">
+                            <option value="">Tất cả</option>
+                            @foreach (var payment in paymentOptions)
+                            {
+                                <option value="@payment">@OrderDisplayHelper.GetPaymentMethodLabel(payment)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterDateFrom">Ngày đặt từ</label>
+                        <input type="date" id="filterDateFrom" class="form-control filter-control" />
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterDateTo">Ngày đặt đến</label>
+                        <input type="date" id="filterDateTo" class="form-control filter-control" />
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterMinTotal">Tổng tiền từ</label>
+                        <input type="text" id="filterMinTotal" class="form-control filter-control" placeholder="Ví dụ: 500000" />
+                    </div>
+
+                    <div class="col-12 col-md-6 col-xl-3">
+                        <label class="filter-label" for="filterMaxTotal">Tổng tiền đến</label>
+                        <input type="text" id="filterMaxTotal" class="form-control filter-control" placeholder="Ví dụ: 5000000" />
+                    </div>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -50,11 +121,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (orderList.Any())
                         {
-                            foreach (var item in Model)
+                            foreach (var item in orderList)
                             {
-                                <tr>
+                                <tr data-order-status="@item.Status"
+                                    data-order-payment="@OrderDisplayHelper.NormalizePaymentMethod(item.PaymentMethod)"
+                                    data-order-date="@item.CreatedTime.ToString("yyyy-MM-dd")"
+                                    data-order-total="@item.TotalAmount.ToString(CultureInfo.InvariantCulture)">
                                     <td>
                                         <span class="code-pill">@item.OrderCode</span>
                                     </td>
@@ -166,6 +240,14 @@
         overflow: hidden;
     }
 
+    .filter-card {
+        margin: 0 22px 18px 22px;
+        padding: 18px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #fcfdff 0%, #f8fafc 100%);
+    }
+
     .table-toolbar {
         display: flex;
         justify-content: space-between;
@@ -188,6 +270,51 @@
         margin-bottom: 18px;
     }
 
+    .filter-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .filter-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .filter-hint {
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 13px;
+    }
+
+    .filter-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .filter-control {
+        min-height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+    }
+
+    .filter-control:focus,
+    .filter-control:active {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.12);
+    }
+
     .toolbar-right {
         display: flex;
         align-items: center;
@@ -197,7 +324,7 @@
 
     .search-box {
         position: relative;
-        min-width: 260px;
+        min-width: 280px;
     }
 
     .search-box .form-control {
@@ -227,6 +354,23 @@
         padding: 8px 14px;
         font-size: 13px;
         font-weight: 600;
+    }
+
+    .btn-reset-filter {
+        min-height: 42px;
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        padding: 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .btn-reset-filter:hover {
+        background: #f3f4f6;
+        border-color: #cbd5e1;
     }
 
     .order-table {
@@ -409,11 +553,24 @@
             align-items: stretch;
         }
 
+        .filter-top {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-card {
+            margin: 0 18px 18px 18px;
+        }
+
         .search-box {
             min-width: 100%;
         }
 
         .toolbar-right {
+            width: 100%;
+        }
+
+        .btn-reset-filter {
             width: 100%;
         }
     }
@@ -451,15 +608,99 @@
         });
 
         const searchInput = document.getElementById('tableSearch');
+        const totalEl = document.getElementById('totalRows');
+        const filterStatus = document.getElementById('filterStatus');
+        const filterPayment = document.getElementById('filterPayment');
+        const filterDateFrom = document.getElementById('filterDateFrom');
+        const filterDateTo = document.getElementById('filterDateTo');
+        const filterMinTotal = document.getElementById('filterMinTotal');
+        const filterMaxTotal = document.getElementById('filterMaxTotal');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+
+        function parseAmount(value) {
+            if (value === null || value === undefined || value === '') return 0;
+
+            const cleaned = value.toString().replace(/,/g, '').replace(/[^\d.-]/g, '');
+            const parsed = Number.parseFloat(cleaned);
+            return Number.isNaN(parsed) ? 0 : parsed;
+        }
+
+        DataTable.ext.search.push(function (settings, data, dataIndex) {
+            if (settings.nTable.id !== 'myTable') return true;
+
+            const rowNode = settings.aoData[dataIndex]?.nTr;
+            if (!rowNode) return true;
+
+            const rowStatus = rowNode.dataset.orderStatus || '';
+            const rowPayment = rowNode.dataset.orderPayment || '';
+            const rowDate = rowNode.dataset.orderDate || '';
+            const rowTotal = parseAmount(rowNode.dataset.orderTotal || '');
+
+            const selectedStatus = (filterStatus?.value || '').trim();
+            const selectedPayment = (filterPayment?.value || '').trim();
+            const selectedDateFrom = (filterDateFrom?.value || '').trim();
+            const selectedDateTo = (filterDateTo?.value || '').trim();
+            const minTotalRaw = (filterMinTotal?.value || '').trim();
+            const maxTotalRaw = (filterMaxTotal?.value || '').trim();
+            const minTotal = parseAmount(minTotalRaw);
+            const maxTotal = parseAmount(maxTotalRaw);
+
+            if (selectedStatus && rowStatus !== selectedStatus) return false;
+            if (selectedPayment && rowPayment !== selectedPayment) return false;
+            if (selectedDateFrom && (!rowDate || rowDate < selectedDateFrom)) return false;
+            if (selectedDateTo && (!rowDate || rowDate > selectedDateTo)) return false;
+            if (minTotalRaw !== '' && rowTotal < minTotal) return false;
+            if (maxTotalRaw !== '' && rowTotal > maxTotal) return false;
+
+            return true;
+        });
+
         if (searchInput) {
             searchInput.addEventListener('keyup', function () {
                 table.search(this.value).draw();
             });
         }
 
+        [
+            filterStatus,
+            filterPayment,
+            filterDateFrom,
+            filterDateTo
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('change', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        [
+            filterMinTotal,
+            filterMaxTotal
+        ].forEach(el => {
+            if (el) {
+                el.addEventListener('input', function () {
+                    table.draw();
+                });
+            }
+        });
+
+        if (resetFiltersBtn) {
+            resetFiltersBtn.addEventListener('click', function () {
+                if (searchInput) searchInput.value = '';
+                if (filterStatus) filterStatus.value = '';
+                if (filterPayment) filterPayment.value = '';
+                if (filterDateFrom) filterDateFrom.value = '';
+                if (filterDateTo) filterDateTo.value = '';
+                if (filterMinTotal) filterMinTotal.value = '';
+                if (filterMaxTotal) filterMaxTotal.value = '';
+
+                table.search('').draw();
+            });
+        }
+
         table.on('draw', function () {
             const info = table.page.info();
-            const totalEl = document.getElementById('totalRows');
             if (totalEl) {
                 totalEl.textContent = info.recordsDisplay;
             }
