@@ -15,25 +15,25 @@ namespace Eshop.Services
         public async Task<BuildRequirementProfile> ExtractAsync(string userMessage)
         {
             var systemPrompt = """
-Ban la bo phan trich xuat nhu cau build PC.
-Hay tra ve JSON hop le theo schema:
+                    Ban la bo phan trich xuat nhu cau build PC.
+                    Hay tra ve JSON hop le theo schema:
 
-{
-  "PrimaryPurpose": "",
-  "GameTitle": "",
-  "ResolutionTarget": "",
-  "PerformancePriority": "",
-  "BudgetMin": null,
-  "BudgetMax": null,
-  "NeedsMonitorHighRefresh": false,
-  "NeedsStreaming": false,
-  "NeedsEditing": false,
-  "PreferredBrand": "",
-  "Notes": ""
-}
+                    {
+                      "PrimaryPurpose": "",
+                      "GameTitle": "",
+                      "ResolutionTarget": "",
+                      "PerformancePriority": "",
+                      "BudgetMin": null,
+                      "BudgetMax": null,
+                      "NeedsMonitorHighRefresh": false,
+                      "NeedsStreaming": false,
+                      "NeedsEditing": false,
+                      "PreferredBrand": "",
+                      "Notes": ""
+                    }
 
-Chi tra ve JSON, khong giai thich.
-""";
+                    Chi tra ve JSON, khong giai thich.
+                    """;
 
             try
             {

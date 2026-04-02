@@ -46,6 +46,8 @@ namespace Eshop.Repository
         public DbSet<InventoryReservationDetailModel> InventoryReservationDetails { get; set; }
         public DbSet<InventoryReceiptModel> InventoryReceipts { get; set; }
         public DbSet<InventoryReceiptDetailModel> InventoryReceiptDetails { get; set; }
+        public DbSet<UserCartItemModel> UserCartItems { get; set; }
+        public DbSet<UserCartItemOptionModel> UserCartItemOptions { get; set; }
 
 
 
@@ -334,6 +336,60 @@ namespace Eshop.Repository
                 .WithMany()
                 .HasForeignKey(x => x.WarehouseId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<ShippingModel>()
+                .Property(x => x.ShippingCost)
+                .HasPrecision(18, 2);
+
+            builder.Entity<UserCartItemModel>()
+                .HasIndex(x => new { x.UserId, x.LineKey })
+                .IsUnique();
+
+            builder.Entity<UserCartItemModel>()
+                .Property(x => x.BasePrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<UserCartItemModel>()
+                .Property(x => x.OptionPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<UserCartItemModel>()
+                .Property(x => x.UserId)
+                .IsRequired()
+                .HasMaxLength(450);
+
+            builder.Entity<UserCartItemModel>()
+                .Property(x => x.ProductName)
+                .IsRequired();
+
+            builder.Entity<UserCartItemModel>()
+                .Property(x => x.LineKey)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            builder.Entity<UserCartItemModel>()
+                .HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<UserCartItemOptionModel>()
+                .Property(x => x.AdditionalPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<UserCartItemOptionModel>()
+                .Property(x => x.GroupName)
+                .IsRequired();
+
+            builder.Entity<UserCartItemOptionModel>()
+                .Property(x => x.ValueName)
+                .IsRequired();
+
+            builder.Entity<UserCartItemOptionModel>()
+                .HasOne(x => x.UserCartItem)
+                .WithMany(x => x.SelectedOptions)
+                .HasForeignKey(x => x.UserCartItemId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
         }

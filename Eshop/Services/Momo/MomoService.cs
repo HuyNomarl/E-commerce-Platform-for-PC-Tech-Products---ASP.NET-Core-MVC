@@ -20,7 +20,9 @@ namespace Eshop.Services.Momo
 
         public async Task<MomoCreatePaymentResponseModel> CreatePaymentAsync(OrderInfoModel model)
         {
-            model.OrderId = DateTime.UtcNow.Ticks.ToString();
+            model.OrderId = string.IsNullOrWhiteSpace(model.OrderId)
+                ? DateTime.UtcNow.Ticks.ToString()
+                : model.OrderId.Trim();
             model.OrderInfomation = "Khách hàng: " + (model.FullName ?? "") + ". Nội dung: " + (model.OrderInfomation ?? "");
 
             if (_options.Value.UseMock)

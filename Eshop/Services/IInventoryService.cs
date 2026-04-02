@@ -1,4 +1,5 @@
-﻿using Eshop.Models.ViewModels;
+using Eshop.Models;
+using Eshop.Models.ViewModels;
 using System.Security.Claims;
 
 namespace Eshop.Services
@@ -20,7 +21,12 @@ namespace Eshop.Services
         Task RevertOrderInventoryAsync(string orderCode, string? reservationCode, string? userId, string? note = null);
 
         Task CleanupExpiredReservationsAsync(string? userId = null);
-        Task<string> ReserveCartAsync(HttpContext httpContext, ClaimsPrincipal user, string paymentMethod, int expireMinutes = 20);
+        Task<string> ReserveCartAsync(
+            HttpContext httpContext,
+            ClaimsPrincipal user,
+            string paymentMethod,
+            IReadOnlyCollection<CartItemModel>? cartItems = null,
+            int expireMinutes = 20);
         Task CommitReservationAsync(string reservationCode, string orderCode, string? userId);
         Task ReleaseReservationAsync(string reservationCode, string? userId, string? note = null, bool expired = false);
     }

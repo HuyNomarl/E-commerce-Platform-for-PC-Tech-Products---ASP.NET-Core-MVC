@@ -10,10 +10,12 @@ namespace Eshop.Services
     public class InventoryService : IInventoryService
     {
         private readonly DataContext _context;
+        private readonly ICartService _cartService;
 
-        public InventoryService(DataContext context)
+        public InventoryService(DataContext context, ICartService cartService)
         {
             _context = context;
+            _cartService = cartService;
         }
 
         public async Task<int> GetAvailableStockAsync(int productId)
@@ -324,12 +326,21 @@ namespace Eshop.Services
             }
         }
 
-        public async Task<string> ReserveCartAsync(HttpContext httpContext, ClaimsPrincipal user, string paymentMethod, int expireMinutes = 20)
+        public async Task<string> ReserveCartAsync(
+            HttpContext httpContext,
+            ClaimsPrincipal user,
+            string paymentMethod,
+            IReadOnlyCollection<CartItemModel>? cartItems = null,
+            int expireMinutes = 20)
         {
             await CleanupExpiredReservationsAsync(user.FindFirstValue(ClaimTypes.NameIdentifier));
 
-            var cartItems = httpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-            if (!cartItems.Any())
+            var currentCart = cartItems?
+                .Where(x => x != null && x.ProductId > 0 && x.Quantity > 0)
+                .ToList()
+                ?? await _cartService.GetCartAsync(httpContext);
+
+            if (!currentCart.Any())
                 throw new InvalidOperationException("Giỏ hàng đang trống.");
 
             var sessionId = httpContext.Session.Id;
@@ -345,7 +356,7 @@ namespace Eshop.Services
                 await ReleaseReservationAsync(code, userId, "Giữ chỗ cũ bị thay thế.");
             }
 
-            var requestedQtyByProduct = cartItems
+            var requestedQtyByProduct = currentCart
                 .GroupBy(x => (int)x.ProductId)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
 

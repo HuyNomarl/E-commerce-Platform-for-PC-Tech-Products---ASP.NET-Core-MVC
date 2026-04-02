@@ -19,6 +19,7 @@ namespace Eshop.Services
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly IInventoryService _inventoryService;
         private readonly ICheckoutPricingService _checkoutPricingService;
+        private readonly ICartService _cartService;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
@@ -27,6 +28,7 @@ namespace Eshop.Services
             IHubContext<NotificationHub> notificationHub,
             IInventoryService inventoryService,
             ICheckoutPricingService checkoutPricingService,
+            ICartService cartService,
             ILogger<OrderService> logger)
         {
             _dataContext = dataContext;
@@ -34,21 +36,49 @@ namespace Eshop.Services
             _notificationHub = notificationHub;
             _inventoryService = inventoryService;
             _checkoutPricingService = checkoutPricingService;
+            _cartService = cartService;
             _logger = logger;
         }
 
-        public async Task<string?> CreateOrderFromSessionAsync(HttpContext httpContext, ClaimsPrincipal user, CheckoutInputViewModel model)
+        public async Task<string?> CreateOrderFromCartAsync(HttpContext httpContext, ClaimsPrincipal user, CheckoutInputViewModel model)
         {
             var paymentMethod = (model.PaymentMethod ?? "COD").Trim().ToUpperInvariant();
 
             if (paymentMethod == "VNPAY" || paymentMethod == "MOMO")
                 throw new InvalidOperationException("Thanh toán online phải đi qua luồng giữ chỗ trước khi tạo đơn.");
 
-            var reservationCode = await _inventoryService.ReserveCartAsync(httpContext, user, paymentMethod);
+            var pricingSummary = await _checkoutPricingService.BuildSummaryAsync(httpContext, model);
+            if (!pricingSummary.CartItems.Any())
+            {
+                return null;
+            }
+
+            var pendingState = new PendingCheckoutStateViewModel
+            {
+                UserId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                UserEmail = user.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+                UserName = user.Identity?.Name,
+                CheckoutInfo = model,
+                CartItems = pricingSummary.CartItems,
+                ExpectedTotal = pricingSummary.TotalAmount,
+                SubTotal = pricingSummary.SubTotal,
+                ShippingCost = pricingSummary.ShippingCost,
+                DiscountAmount = pricingSummary.DiscountAmount,
+                CouponCode = pricingSummary.CouponCode,
+                CouponId = pricingSummary.CouponId
+            };
+
+            var reservationCode = await _inventoryService.ReserveCartAsync(
+                httpContext,
+                user,
+                paymentMethod,
+                pricingSummary.CartItems);
+
+            pendingState.ReservationCode = reservationCode;
 
             try
             {
-                return await CreateOrderFromReservationAsync(httpContext, user, model, reservationCode);
+                return await CreateOrderFromReservationAsync(httpContext, user, model, reservationCode, pendingState);
             }
             catch
             {
@@ -74,9 +104,8 @@ namespace Eshop.Services
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
                 return null;
 
-            var cartItems = httpContext.Session.GetJson<List<CartItemModel>>("Cart")
-                ?? pendingState?.CartItems
-                ?? new List<CartItemModel>();
+            var cartItems = pendingState?.CartItems
+                ?? await _cartService.GetCartAsync(httpContext, userId);
 
             if (cartItems.Count == 0)
                 return null;
@@ -192,9 +221,10 @@ namespace Eshop.Services
                 await _dataContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                httpContext.Session.Remove("Cart");
+                await _cartService.RemovePurchasedItemsAsync(httpContext, cartItems, userId);
                 httpContext.Session.Remove("Coupon");
                 httpContext.Session.Remove("CheckoutInfo");
+                httpContext.Session.Remove("PendingCheckoutState");
                 httpContext.Session.Remove("ActiveReservationCode");
                 _checkoutPricingService.ClearShippingSelection(httpContext);
 

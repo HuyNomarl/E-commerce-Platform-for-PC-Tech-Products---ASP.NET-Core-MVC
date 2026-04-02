@@ -10,15 +10,17 @@ namespace Eshop.Services
         private const string ShippingSessionKey = "CheckoutShippingSelection";
 
         private readonly DataContext _dataContext;
+        private readonly ICartService _cartService;
 
-        public CheckoutPricingService(DataContext dataContext)
+        public CheckoutPricingService(DataContext dataContext, ICartService cartService)
         {
             _dataContext = dataContext;
+            _cartService = cartService;
         }
 
         public async Task<CheckoutPricingSummaryViewModel> BuildSummaryAsync(HttpContext httpContext, CheckoutInputViewModel? checkoutModel = null)
         {
-            var cartItems = httpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var cartItems = await _cartService.GetCartAsync(httpContext);
             var subTotal = cartItems.Sum(x => x.Total);
             var shippingSelection = await ResolveShippingSelectionAsync(httpContext, checkoutModel);
             var shippingCost = await ResolveShippingCostAsync(shippingSelection);

@@ -55,6 +55,7 @@ builder.Services.AddScoped<IPcCompatibilityService, PcCompatibilityService>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICheckoutPricingService, CheckoutPricingService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<ICatalogCacheService, CatalogCacheService>();
