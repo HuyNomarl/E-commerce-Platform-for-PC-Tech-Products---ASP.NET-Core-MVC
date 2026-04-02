@@ -23,6 +23,7 @@ namespace Eshop.Controllers
         private readonly IEmailSender _emailSender;
         private readonly IInventoryService _inventoryService;
         private readonly IOrderStateService _orderStateService;
+        private readonly ICartService _cartService;
 
         public AccountController(
                 UserManager<AppUserModel> userManager,
@@ -31,7 +32,8 @@ namespace Eshop.Controllers
                 IEmailSender emailSender,
                 DataContext context,
                 IInventoryService inventoryService,
-                IOrderStateService orderStateService)
+                IOrderStateService orderStateService,
+                ICartService cartService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -40,6 +42,7 @@ namespace Eshop.Controllers
             _dataContext = context;
             _inventoryService = inventoryService;
             _orderStateService = orderStateService;
+            _cartService = cartService;
         }
 
 
@@ -663,6 +666,18 @@ namespace Eshop.Controllers
             AppUserModel? user,
             string? returnUrl = null)
         {
+            if (user != null)
+            {
+                try
+                {
+                    await _cartService.MergeSessionCartAsync(HttpContext, user.Id);
+                }
+                catch
+                {
+                    TempData["error"] = "Đăng nhập thành công nhưng chưa thể đồng bộ giỏ hàng lúc này.";
+                }
+            }
+
             var roles = user != null
                 ? await _userManager.GetRolesAsync(user)
                 : Array.Empty<string>();

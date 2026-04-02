@@ -16,18 +16,21 @@ namespace Eshop.Controllers
         private readonly UserManager<AppUserModel> _userManager;
         private readonly IInventoryService _inventoryService;
         private readonly ICheckoutPricingService _checkoutPricingService;
+        private readonly ICartService _cartService;
 
 
         public CartController(
                  DataContext dataContext,
                  UserManager<AppUserModel> userManager,
                  IInventoryService inventoryService,
-                 ICheckoutPricingService checkoutPricingService)
+                 ICheckoutPricingService checkoutPricingService,
+                 ICartService cartService)
         {
             _dataContext = dataContext;
             _userManager = userManager;
             _inventoryService = inventoryService;
             _checkoutPricingService = checkoutPricingService;
+            _cartService = cartService;
         }
 
 
@@ -95,7 +98,7 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            List<CartItemModel> cart = await _cartService.GetCartAsync(HttpContext);
 
             var newCartItem = new CartItemModel(product)
             {
@@ -169,7 +172,7 @@ namespace Eshop.Controllers
                 }
             }
 
-            HttpContext.Session.SetJson("Cart", cart);
+            await _cartService.SaveCartAsync(HttpContext, cart);
 
             return RedirectToAction("Index");
         }
@@ -180,7 +183,7 @@ namespace Eshop.Controllers
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: giảm số lượng.");
 
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            List<CartItemModel> cart = await _cartService.GetCartAsync(HttpContext);
 
             CartItemModel? cartItem = FindCartItem(cart, lineKey);
 
@@ -201,13 +204,13 @@ namespace Eshop.Controllers
 
             if (cart.Count == 0)
             {
-                HttpContext.Session.Remove("Cart");
+                await _cartService.ClearCartAsync(HttpContext);
                 HttpContext.Session.Remove("Coupon");
                 _checkoutPricingService.ClearShippingSelection(HttpContext);
             }
             else
             {
-                HttpContext.Session.SetJson("Cart", cart);
+                await _cartService.SaveCartAsync(HttpContext, cart);
             }
 
             TempData["Success"] = "Cập nhật giỏ hàng thành công.";
@@ -220,7 +223,7 @@ namespace Eshop.Controllers
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: tăng số lượng.");
 
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            List<CartItemModel> cart = await _cartService.GetCartAsync(HttpContext);
             CartItemModel? cartItem = FindCartItem(cart, lineKey);
 
             if (cartItem == null)
@@ -251,7 +254,7 @@ namespace Eshop.Controllers
                 TempData["Error"] = "Không đủ tồn kho để tăng thêm.";
             }
 
-            HttpContext.Session.SetJson("Cart", cart);
+            await _cartService.SaveCartAsync(HttpContext, cart);
             return RedirectToAction("Index");
         }
 
@@ -261,7 +264,7 @@ namespace Eshop.Controllers
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa sản phẩm.");
 
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            List<CartItemModel> cart = await _cartService.GetCartAsync(HttpContext);
 
             var cartItem = FindCartItem(cart, lineKey);
             if (cartItem != null)
@@ -271,13 +274,13 @@ namespace Eshop.Controllers
 
             if (cart.Count == 0)
             {
-                HttpContext.Session.Remove("Cart");
+                await _cartService.ClearCartAsync(HttpContext);
                 HttpContext.Session.Remove("Coupon");
                 _checkoutPricingService.ClearShippingSelection(HttpContext);
             }
             else
             {
-                HttpContext.Session.SetJson("Cart", cart);
+                await _cartService.SaveCartAsync(HttpContext, cart);
             }
 
             TempData["Success"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
@@ -290,7 +293,7 @@ namespace Eshop.Controllers
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: xóa toàn bộ.");
 
-            HttpContext.Session.Remove("Cart");
+            await _cartService.ClearCartAsync(HttpContext);
             HttpContext.Session.Remove("Coupon");
             _checkoutPricingService.ClearShippingSelection(HttpContext);
             TempData["Success"] = "Đã xóa toàn bộ giỏ hàng.";
@@ -342,7 +345,7 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
-            var cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var cartItems = await _cartService.GetCartAsync(HttpContext);
 
             if (cartItems.Count == 0)
             {
@@ -408,30 +411,9 @@ namespace Eshop.Controllers
             return RedirectToAction("Index");
         }
 
-        private static bool IsSameOptions(List<CartItemOptionModel> oldOptions, List<CartItemOptionModel> newOptions)
-        {
-            if (oldOptions.Count != newOptions.Count) return false;
-
-            var oldList = oldOptions
-                .OrderBy(x => x.OptionGroupId)
-                .ThenBy(x => x.OptionValueId)
-                .Select(x => $"{x.OptionGroupId}-{x.OptionValueId}");
-
-            var newList = newOptions
-                .OrderBy(x => x.OptionGroupId)
-                .ThenBy(x => x.OptionValueId)
-                .Select(x => $"{x.OptionGroupId}-{x.OptionValueId}");
-
-            return oldList.SequenceEqual(newList);
-        }
-
         private static bool IsSameCartLine(CartItemModel left, CartItemModel right)
         {
-            return left.ProductId == right.ProductId
-                && string.Equals(left.BuildGroupKey, right.BuildGroupKey, StringComparison.Ordinal)
-                && left.PcBuildId == right.PcBuildId
-                && string.Equals(left.ComponentType, right.ComponentType, StringComparison.OrdinalIgnoreCase)
-                && IsSameOptions(left.SelectedOptions, right.SelectedOptions);
+            return string.Equals(left.LineKey, right.LineKey, StringComparison.Ordinal);
         }
 
         private static CartItemModel? FindCartItem(List<CartItemModel> cart, string? lineKey)
@@ -460,6 +442,7 @@ namespace Eshop.Controllers
 
             HttpContext.Session.Remove("ActiveReservationCode");
             HttpContext.Session.Remove("CheckoutInfo");
+            HttpContext.Session.Remove("PendingCheckoutState");
         }
 
 

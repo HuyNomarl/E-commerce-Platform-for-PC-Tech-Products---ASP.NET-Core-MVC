@@ -19,6 +19,7 @@ namespace Eshop.Controllers.Api
         private readonly DataContext _context;
         private readonly IPcBuildChatService _pcBuildChatService;
         private readonly IInventoryService _inventoryService;
+        private readonly ICartService _cartService;
         private readonly IPcBuildStorageService _pcBuildStorageService;
         private readonly IPcBuildWorkbookService _pcBuildWorkbookService;
         private readonly IPcBuildShareService _pcBuildShareService;
@@ -27,6 +28,7 @@ namespace Eshop.Controllers.Api
             DataContext context,
             IPcBuildChatService pcBuildChatService,
             IInventoryService inventoryService,
+            ICartService cartService,
             IPcBuildStorageService pcBuildStorageService,
             IPcBuildWorkbookService pcBuildWorkbookService,
             IPcBuildShareService pcBuildShareService)
@@ -34,6 +36,7 @@ namespace Eshop.Controllers.Api
             _context = context;
             _pcBuildChatService = pcBuildChatService;
             _inventoryService = inventoryService;
+            _cartService = cartService;
             _pcBuildStorageService = pcBuildStorageService;
             _pcBuildWorkbookService = pcBuildWorkbookService;
             _pcBuildShareService = pcBuildShareService;
@@ -182,7 +185,7 @@ namespace Eshop.Controllers.Api
                     });
                 }
 
-                var cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+                var cart = await _cartService.GetCartAsync(HttpContext);
                 var requestedQtyByProduct = detail.Items
                     .GroupBy(x => x.ProductId)
                     .ToDictionary(g => g.Key, g => g.Sum(x => x.Quantity));
@@ -246,7 +249,7 @@ namespace Eshop.Controllers.Api
                     });
                 }
 
-                HttpContext.Session.SetJson("Cart", cart);
+                await _cartService.SaveCartAsync(HttpContext, cart);
 
                 return Ok(new
                 {
@@ -444,6 +447,7 @@ namespace Eshop.Controllers.Api
 
             HttpContext.Session.Remove("ActiveReservationCode");
             HttpContext.Session.Remove("CheckoutInfo");
+            HttpContext.Session.Remove("PendingCheckoutState");
         }
     }
 }

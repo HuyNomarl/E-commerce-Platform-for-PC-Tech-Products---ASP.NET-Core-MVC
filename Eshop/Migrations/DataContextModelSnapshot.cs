@@ -131,7 +131,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Eshop.Models.CompareModel", b =>
@@ -160,7 +160,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("Compares", (string)null);
+                    b.ToTable("Compares");
                 });
 
             modelBuilder.Entity("Eshop.Models.ContactModel", b =>
@@ -189,7 +189,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Contact", (string)null);
+                    b.ToTable("Contact");
                 });
 
             modelBuilder.Entity("Eshop.Models.CouponModel", b =>
@@ -235,7 +235,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coupons", (string)null);
+                    b.ToTable("Coupons");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReceiptDetailModel", b =>
@@ -264,7 +264,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryReceiptDetails", (string)null);
+                    b.ToTable("InventoryReceiptDetails");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReceiptModel", b =>
@@ -329,7 +329,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryReceipts", (string)null);
+                    b.ToTable("InventoryReceipts");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReservationDetailModel", b =>
@@ -360,7 +360,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryReservationDetails", (string)null);
+                    b.ToTable("InventoryReservationDetails");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryReservationModel", b =>
@@ -420,7 +420,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SessionId", "Status");
 
-                    b.ToTable("InventoryReservations", (string)null);
+                    b.ToTable("InventoryReservations");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryStockModel", b =>
@@ -450,7 +450,7 @@ namespace Eshop.Migrations
                     b.HasIndex("ProductId", "WarehouseId")
                         .IsUnique();
 
-                    b.ToTable("InventoryStocks", (string)null);
+                    b.ToTable("InventoryStocks");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryTransactionDetailModel", b =>
@@ -485,7 +485,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryTransactionDetails", (string)null);
+                    b.ToTable("InventoryTransactionDetails");
                 });
 
             modelBuilder.Entity("Eshop.Models.InventoryTransactionModel", b =>
@@ -531,7 +531,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("InventoryTransactions", (string)null);
+                    b.ToTable("InventoryTransactions");
                 });
 
             modelBuilder.Entity("Eshop.Models.MessageModel", b =>
@@ -569,7 +569,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SenderId", "ReceiverId");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Eshop.Models.OrderDetails", b =>
@@ -617,7 +617,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderDetails", (string)null);
+                    b.ToTable("OrderDetails");
                 });
 
             modelBuilder.Entity("Eshop.Models.OrderModel", b =>
@@ -710,7 +710,7 @@ namespace Eshop.Migrations
                     b.HasIndex("OrderCode")
                         .IsUnique();
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Eshop.Models.PcBuildItemModel", b =>
@@ -739,7 +739,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PcBuildItems", (string)null);
+                    b.ToTable("PcBuildItems");
                 });
 
             modelBuilder.Entity("Eshop.Models.PcBuildModel", b =>
@@ -769,7 +769,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PcBuilds", (string)null);
+                    b.ToTable("PcBuilds");
                 });
 
             modelBuilder.Entity("Eshop.Models.PcBuildShareModel", b =>
@@ -819,7 +819,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ReceiverUserId", "CreatedAt");
 
-                    b.ToTable("PcBuildShares", (string)null);
+                    b.ToTable("PcBuildShares");
                 });
 
             modelBuilder.Entity("Eshop.Models.PrebuiltPcComponentModel", b =>
@@ -851,7 +851,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PrebuiltPcComponents", (string)null);
+                    b.ToTable("PrebuiltPcComponents");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductImageModel", b =>
@@ -883,7 +883,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductImages", (string)null);
+                    b.ToTable("ProductImages");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductModel", b =>
@@ -941,7 +941,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("PublisherId");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionGroupModel", b =>
@@ -969,7 +969,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ProductOptionGroups", (string)null);
+                    b.ToTable("ProductOptionGroups");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductOptionValueModel", b =>
@@ -1006,7 +1006,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductOptionGroupId");
 
-                    b.ToTable("ProductOptionValues", (string)null);
+                    b.ToTable("ProductOptionValues");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductQuantityModel", b =>
@@ -1033,7 +1033,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("ProductModelId");
 
-                    b.ToTable("productQuantityModels", (string)null);
+                    b.ToTable("productQuantityModels");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductSpecificationModel", b =>
@@ -1068,7 +1068,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("SpecificationDefinitionId");
 
-                    b.ToTable("ProductSpecifications", (string)null);
+                    b.ToTable("ProductSpecifications");
                 });
 
             modelBuilder.Entity("Eshop.Models.ProductTechnicalAssetModel", b =>
@@ -1105,7 +1105,7 @@ namespace Eshop.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("ProductTechnicalAssets", (string)null);
+                    b.ToTable("ProductTechnicalAssets");
                 });
 
             modelBuilder.Entity("Eshop.Models.PublisherModel", b =>
@@ -1132,7 +1132,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Publishers", (string)null);
+                    b.ToTable("Publishers");
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingMediaModel", b =>
@@ -1176,7 +1176,7 @@ namespace Eshop.Migrations
 
                     b.HasIndex("RatingId", "SortOrder");
 
-                    b.ToTable("RatingMedia", (string)null);
+                    b.ToTable("RatingMedia");
                 });
 
             modelBuilder.Entity("Eshop.Models.RatingModel", b =>
@@ -1238,7 +1238,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("RatingModels", (string)null);
+                    b.ToTable("RatingModels");
                 });
 
             modelBuilder.Entity("Eshop.Models.ShippingModel", b =>
@@ -1262,6 +1262,7 @@ namespace Eshop.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("ShippingCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Ward")
@@ -1272,7 +1273,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shippings", (string)null);
+                    b.ToTable("Shippings");
                 });
 
             modelBuilder.Entity("Eshop.Models.SliderModel", b =>
@@ -1299,7 +1300,7 @@ namespace Eshop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sliders", (string)null);
+                    b.ToTable("Sliders");
                 });
 
             modelBuilder.Entity("Eshop.Models.SpecificationDefinitionModel", b =>
@@ -1341,7 +1342,7 @@ namespace Eshop.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("SpecificationDefinitions", (string)null);
+                    b.ToTable("SpecificationDefinitions");
 
                     b.HasData(
                         new
@@ -1769,6 +1770,110 @@ namespace Eshop.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Eshop.Models.UserCartItemModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("BasePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("BuildGroupKey")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BuildName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ComponentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPcBuildItem")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LineKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<decimal>("OptionPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PcBuildId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LineKey")
+                        .IsUnique();
+
+                    b.ToTable("UserCartItems");
+                });
+
+            modelBuilder.Entity("Eshop.Models.UserCartItemOptionModel", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AdditionalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OptionGroupId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("OptionValueId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserCartItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ValueName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserCartItemId");
+
+                    b.ToTable("UserCartItemOptions");
+                });
+
             modelBuilder.Entity("Eshop.Models.WarehouseModel", b =>
                 {
                     b.Property<int>("Id")
@@ -1805,7 +1910,7 @@ namespace Eshop.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Warehouses", (string)null);
+                    b.ToTable("Warehouses");
                 });
 
             modelBuilder.Entity("Eshop.Models.WishlistModel", b =>
@@ -1834,7 +1939,7 @@ namespace Eshop.Migrations
                     b.HasIndex("UserId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("Wishlists", (string)null);
+                    b.ToTable("Wishlists");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -2327,6 +2432,28 @@ namespace Eshop.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Eshop.Models.UserCartItemModel", b =>
+                {
+                    b.HasOne("Eshop.Models.AppUserModel", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Eshop.Models.UserCartItemOptionModel", b =>
+                {
+                    b.HasOne("Eshop.Models.UserCartItemModel", "UserCartItem")
+                        .WithMany("SelectedOptions")
+                        .HasForeignKey("UserCartItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserCartItem");
+                });
+
             modelBuilder.Entity("Eshop.Models.WishlistModel", b =>
                 {
                     b.HasOne("Eshop.Models.ProductModel", "Product")
@@ -2453,6 +2580,11 @@ namespace Eshop.Migrations
             modelBuilder.Entity("Eshop.Models.SpecificationDefinitionModel", b =>
                 {
                     b.Navigation("ProductSpecifications");
+                });
+
+            modelBuilder.Entity("Eshop.Models.UserCartItemModel", b =>
+                {
+                    b.Navigation("SelectedOptions");
                 });
 
             modelBuilder.Entity("Eshop.Models.WarehouseModel", b =>

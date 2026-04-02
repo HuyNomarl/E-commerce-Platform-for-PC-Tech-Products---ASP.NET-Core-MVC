@@ -28,7 +28,7 @@ namespace Eshop.Controllers
 
             try
             {
-                var orderCode = await _orderService.CreateOrderFromSessionAsync(HttpContext, User, model);
+                var orderCode = await _orderService.CreateOrderFromCartAsync(HttpContext, User, model);
 
                 if (string.IsNullOrEmpty(orderCode))
                 {
