@@ -2,49 +2,62 @@
 
 @{
     ViewData["title"] = "Danh sách danh mục";
-
-    Paginate pager = new Paginate();
-    int pageNo = 0;
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
+    var categoryList = Model?.ToList() ?? new List<Eshop.Models.CategoryModel>();
+    var rootCount = categoryList.Count(x => x.ParentCategoryId == null);
 }
 
-<div class="row g-3 category-index-page">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-start flex-column flex-md-row gap-2">
-            <div>
-                <h4 class="mb-1">Danh mục</h4>
-                <div class="small page-subtitle">Quản lý danh sách danh mục sản phẩm</div>
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Categories</span>
+            <h4>Quản lý danh mục</h4>
+            <p class="admin-ui-hero__desc">
+                Sắp xếp danh mục gốc và danh mục con theo một bố cục rõ ràng hơn để việc quản trị sản phẩm và điều hướng storefront được đồng bộ hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@categoryList.Count danh mục</span>
+                <span class="admin-ui-chip">@rootCount danh mục gốc</span>
+                <span class="admin-ui-chip">Hỗ trợ cấu trúc phân cấp</span>
             </div>
+        </div>
 
+        <div class="admin-ui-actions">
             <a asp-area="Admin"
-                   asp-action="Create"
-                   asp-controller="Category"
-                   class="icon-btn icon-add"
-                   title="Thêm danh mục">
+               asp-action="Create"
+               asp-controller="Category"
+               class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Thêm danh mục
             </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 category-index-page">
 
     <div class="col-12">
         <div class="card-soft table-card">
             <div class="table-toolbar">
                 <div>
                     <div class="section-title mb-0">Danh sách danh mục</div>
-                    <div class="section-subtitle">Hiển thị danh mục cha, danh mục con và trạng thái hoạt động</div>
+                    <div class="section-subtitle">Xem, tìm kiếm, chỉnh sửa và quản lý trạng thái danh mục</div>
                 </div>
 
-                <span class="total-badge">
-                    Tổng: @(Model?.Count() ?? 0)
-                </span>
+                <div class="toolbar-right">
+                    <div class="search-box">
+                        <span class="search-icon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="tableSearch" class="form-control" placeholder="Tìm kiếm danh mục..." />
+                    </div>
+
+                    <span class="total-badge">
+                        Tổng: <span id="totalRows">@categoryList.Count</span>
+                    </span>
+                </div>
             </div>
 
             <div class="table-responsive">
-                <table class="table category-table">
+                <table class="table category-table" id="myTable">
                     <thead>
                         <tr>
                             <th style="width: 80px;">ID</th>
@@ -58,9 +71,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (categoryList.Any())
                         {
-                            @foreach (var item in Model)
+                            @foreach (var item in categoryList)
                             {
                                 <tr>
                                     <td>
@@ -71,7 +84,7 @@
                                         @if (item.ParentCategoryId != null)
                                         {
                                             <div class="cell-main child-name">
-                                                <span class="child-arrow">↳</span> @item.Name
+                                                <span class="child-arrow">↳</span>@item.Name
                                             </div>
                                         }
                                         else
@@ -126,6 +139,19 @@
                                                 <i class="fa fa-pencil-square-o"></i>
                                             </a>
 
+                                            <form asp-action="ToggleVisibility"
+                                                  asp-controller="Category"
+                                                  method="post"
+                                                  style="display:inline-block;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit"
+                                                        class="icon-btn @(item.Status == 1 ? "icon-hide" : "icon-show")"
+                                                        title="@(item.Status == 1 ? "Ẩn danh mục" : "Hiển thị danh mục")">
+                                                    <i class="fa @(item.Status == 1 ? "fa-eye-slash" : "fa-eye")"></i>
+                                                </button>
+                                            </form>
+
                                             <form asp-action="Delete"
                                                   asp-controller="Category"
                                                   method="post"
@@ -160,12 +186,9 @@
                     </tbody>
                 </table>
             </div>
-
-            <div class="paging-wrap">
-                <partial name="../Shared/_Paging" model="pager" />
-            </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -204,6 +227,35 @@
         color: #6b7280;
         font-size: 13px;
         margin-bottom: 18px;
+    }
+
+    .toolbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 260px;
+    }
+
+        .search-box .form-control {
+            height: 42px;
+            border-radius: 12px;
+            padding-left: 40px;
+            border: 1px solid #d1d5db;
+            box-shadow: none;
+        }
+
+    .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        z-index: 2;
     }
 
     .total-badge {
@@ -272,7 +324,7 @@
 
     .desc-text {
         color: #4b5563;
-        max-width: 280px;
+        max-width: 320px;
         line-height: 1.45;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -349,6 +401,14 @@
         color: #f59e0b;
     }
 
+    .icon-show {
+        color: #15803d;
+    }
+
+    .icon-hide {
+        color: #b91c1c;
+    }
+
     .icon-delete {
         color: #ef4444;
     }
@@ -367,9 +427,12 @@
         display: block;
     }
 
-    .paging-wrap {
-        padding: 16px 22px 22px 22px;
-        border-top: 1px solid #eef2f7;
+    div.dt-container .dt-search {
+        display: none;
+    }
+
+    div.dt-container .dt-layout-row {
+        padding: 12px 16px;
     }
 
     @@media (max-width: 767px) {
@@ -379,8 +442,38 @@
             align-items: stretch;
         }
 
-        .paging-wrap {
-            padding: 14px 18px 18px 18px;
+        .search-box {
+            min-width: 100%;
+        }
+
+        .toolbar-right {
+            width: 100%;
         }
     }
 </style>
+
+@section Scripts {
+    <script>
+        const table = new DataTable('#myTable', {
+            layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] },
+                topEnd: null
+            }
+        });
+
+        const searchInput = document.getElementById('tableSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
+
+        table.on('draw', function () {
+            const info = table.page.info();
+            const totalEl = document.getElementById('totalRows');
+            if (totalEl) {
+                totalEl.textContent = info.recordsDisplay;
+            }
+        });
+    </script>
+}

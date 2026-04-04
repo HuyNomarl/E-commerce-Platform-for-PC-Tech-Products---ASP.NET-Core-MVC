@@ -4,7 +4,28 @@
     ViewData["Title"] = "Edit Brand";
 }
 
-<div class="row g-3 publisher-edit-page">
+<div class="admin-ui-page admin-ui-page--rose">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Brands</span>
+            <h4>Chỉnh sửa thương hiệu</h4>
+            <p class="admin-ui-hero__desc">
+                Cập nhật thông tin nhận diện thương hiệu và trạng thái hiển thị trong một luồng quản trị nhất quán hơn với toàn bộ admin.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Tên và mô tả thương hiệu</span>
+                <span class="admin-ui-chip">Hiển thị hoặc ẩn linh hoạt</span>
+                <span class="admin-ui-chip">Không đổi logic cập nhật</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <div class="row g-3 publisher-edit-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
@@ -63,6 +84,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

@@ -2,25 +2,37 @@
 
 @{
     ViewData["title"] = "Brand Index";
+    var publisherList = Model?.ToList() ?? new List<Eshop.Models.PublisherModel>();
+    var visibleCount = publisherList.Count(x => x.status == 1);
 }
 
-<div class="row g-3 publisher-index-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Thương hiệu</h4>
-                <div class="small page-subtitle">Quản lý danh sách thương hiệu sản phẩm</div>
+<div class="admin-ui-page admin-ui-page--rose">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Brands</span>
+            <h4>Quản lý thương hiệu</h4>
+            <p class="admin-ui-hero__desc">
+                Gom danh sách thương hiệu, trạng thái hiển thị và mô tả nhận diện về cùng một giao diện rõ ràng hơn để quản trị catalog đồng bộ hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@publisherList.Count thương hiệu</span>
+                <span class="admin-ui-chip">@visibleCount thương hiệu đang hiển thị</span>
+                <span class="admin-ui-chip">Đồng bộ với sản phẩm và inventory</span>
             </div>
+        </div>
 
+        <div class="admin-ui-actions">
             <a asp-area="Admin"
-                   asp-action="Create"
-                   asp-controller="Publisher"
-                   class="icon-btn icon-add"
-                   title="Thêm thương hiệu">
+               asp-action="Create"
+               asp-controller="Publisher"
+               class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Thêm thương hiệu
             </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 publisher-index-page">
 
     <div class="col-12">
         <div class="card-soft table-card">
@@ -39,7 +51,7 @@
                     </div>
 
                     <span class="total-badge">
-                        Tổng: <span id="totalRows">@Model.Count()</span>
+                        Tổng: <span id="totalRows">@publisherList.Count</span>
                     </span>
                 </div>
             </div>
@@ -57,9 +69,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (publisherList.Any())
                         {
-                            @foreach (var item in Model)
+                            @foreach (var item in publisherList)
                             {
                                 <tr>
                                     <td>
@@ -135,6 +147,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

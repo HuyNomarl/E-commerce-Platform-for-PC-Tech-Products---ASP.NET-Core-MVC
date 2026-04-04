@@ -1,70 +1,165 @@
-﻿@model IEnumerable<Eshop.Models.ContactModel>
+@model IEnumerable<Eshop.Models.ContactModel>
+@using System.Linq
+
 @{
-    ViewData["title"] = "Contact";
+    ViewData["Title"] = "Contact";
+    var contacts = Model?.ToList() ?? new List<Eshop.Models.ContactModel>();
+    var contactsWithMap = contacts.Count(x => !string.IsNullOrWhiteSpace(x.Map));
+    var contactsWithImage = contacts.Count(x => !string.IsNullOrWhiteSpace(x.LogoImg));
 }
 
-<h3>Contact Index View</h3>
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th scope="col">Id</th>
-            <th scope="col"> Name</th>
-            <th scope="col"> Description</th>
-            <th scope="col"> Map</th>
-            <th scope="col"> Phone</th>
-            <th scope="col"> Email</th>
-            <th scope="col"> Image</th>
-            <th scope="col">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Contact Information</span>
+            <h4>Quản lý thông tin liên hệ</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi nhanh nội dung liên hệ, bản đồ, email và hình ảnh nhận diện trong một giao diện gọn hơn để dễ kiểm tra trước khi cập nhật.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@contacts.Count bản ghi</span>
+                <span class="admin-ui-chip">@contactsWithMap có bản đồ</span>
+                <span class="admin-ui-chip">@contactsWithImage có hình ảnh</span>
+            </div>
+        </div>
+    </section>
 
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>#</td>
-                <td>@item.Name</td>
-                <td>@Html.Raw(item.Description)</td>
-                <td style="min-width:300px">
-                    @{
-                        var mapUrl = item.Map ?? "";
-                        if (!string.IsNullOrWhiteSpace(mapUrl) && mapUrl.Contains("google.com/maps") && !mapUrl.Contains("output=embed"))
-                        {
-                            mapUrl += mapUrl.Contains("?") ? "&output=embed" : "?output=embed";
-                        }
-                    }
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-address-card"></i>Tổng thông tin</div>
+            <div class="admin-ui-stat__value">@contacts.Count</div>
+            <div class="admin-ui-stat__hint">Số bản ghi liên hệ hiện có trong hệ thống.</div>
+        </article>
 
-                    @if (!string.IsNullOrWhiteSpace(mapUrl))
-                    {
-                        <iframe src="@mapUrl"
-                                width="300"
-                                height="180"
-                                style="border:0;"
-                                loading="lazy"
-                                allowfullscreen>
-                        </iframe>
-                    }
-                </td>
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-map-marker"></i>Có bản đồ</div>
+            <div class="admin-ui-stat__value">@contactsWithMap</div>
+            <div class="admin-ui-stat__hint">Những bản ghi đang gắn link vị trí hiển thị.</div>
+        </article>
 
-                <td>@item.Phone</td>
-                <td>@item.Email</td>
-                <td><img src="~/media/contact/@item.LogoImg" width="100" height="80" /></td>
-                <td>
-                    <a asp-action="Edit" asp-controller="Contact"  class="btn btn-primary">Edit</a>
-                </td>
-            </tr>
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-image"></i>Có hình ảnh</div>
+            <div class="admin-ui-stat__value">@contactsWithImage</div>
+            <div class="admin-ui-stat__hint">Các bản ghi đã có logo hoặc ảnh đại diện.</div>
+        </article>
+    </div>
 
-        }
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-table"></i>
+                    Danh sách liên hệ
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Xem nhanh nội dung mô tả, bản đồ và thao tác chỉnh sửa từ cùng một bảng quản lý.
+                </div>
+            </div>
+            <span class="admin-ui-total">Tổng: @contacts.Count</span>
+        </div>
 
+        <div class="admin-ui-panel__body">
+            @if (contacts.Any())
+            {
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table" id="myTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">ID</th>
+                                    <th style="width: 180px;">Tên</th>
+                                    <th>Mô tả</th>
+                                    <th style="width: 340px;">Bản đồ</th>
+                                    <th style="width: 150px;">Điện thoại</th>
+                                    <th style="width: 220px;">Email</th>
+                                    <th style="width: 150px;">Hình ảnh</th>
+                                    <th style="width: 150px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var rowNumber = 1;
+                                }
+                                @foreach (var item in contacts)
+                                {
+                                    <tr>
+                                        <td>#@rowNumber</td>
+                                        <td>
+                                            <div class="admin-ui-stack">
+                                                <div class="admin-ui-stack__title">@item.Name</div>
+                                                <div class="admin-ui-stack__line">Thông tin liên hệ website</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="admin-ui-html">@Html.Raw(item.Description)</div>
+                                        </td>
+                                        <td>
+                                            @{
+                                                var mapUrl = item.Map ?? "";
+                                                if (!string.IsNullOrWhiteSpace(mapUrl) && mapUrl.Contains("google.com/maps") && !mapUrl.Contains("output=embed"))
+                                                {
+                                                    mapUrl += mapUrl.Contains("?") ? "&output=embed" : "?output=embed";
+                                                }
+                                            }
 
-    </tbody>
-</table>
+                                            @if (!string.IsNullOrWhiteSpace(mapUrl))
+                                            {
+                                                <iframe src="@mapUrl"
+                                                        class="admin-ui-map"
+                                                        loading="lazy"
+                                                        allowfullscreen>
+                                                </iframe>
+                                            }
+                                            else
+                                            {
+                                                <span class="admin-ui-muted">Chưa có bản đồ</span>
+                                            }
+                                        </td>
+                                        <td>@item.Phone</td>
+                                        <td>@item.Email</td>
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(item.LogoImg))
+                                            {
+                                                <img src="~/media/contact/@item.LogoImg" alt="@item.Name" class="admin-ui-thumb" />
+                                            }
+                                            else
+                                            {
+                                                <span class="admin-ui-muted">Chưa có ảnh</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="Edit" asp-controller="Contact" class="admin-ui-btn admin-ui-btn--soft">
+                                                <i class="fa fa-pencil"></i>
+                                                Chỉnh sửa
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    rowNumber++;
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="admin-ui-empty">
+                    Chưa có dữ liệu liên hệ nào để hiển thị.
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
 @section Scripts {
-    <script>
-        new DataTable('#myTable', {
-          layout: {
-            topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
-          }
-        });
-    </script>
+    @if (contacts.Any())
+    {
+        <script>
+            new DataTable('#myTable', {
+              layout: {
+                topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+              }
+            });
+        </script>
+    }
 }

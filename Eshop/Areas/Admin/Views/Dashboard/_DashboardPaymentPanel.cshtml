@@ -8,6 +8,13 @@
         </div>
     </div>
 
+    @if (Model.Any())
+    {
+        <div class="dash-chart dash-chart--compact">
+            <canvas id="paymentMixChart"></canvas>
+        </div>
+    }
+
     <div class="dash-breakdowns custom-scroll">
         @if (Model.Any())
         {

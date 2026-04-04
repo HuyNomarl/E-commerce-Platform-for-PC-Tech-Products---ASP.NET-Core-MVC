@@ -47,6 +47,34 @@
 
 <link rel="stylesheet" href="~/css/admin-dashboard.css" />
 
+<div class="admin-ui-page admin-ui-page--slate dashboard-admin-page">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Dashboard</span>
+            <h4>Trung tâm điều hành admin</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi doanh thu, đơn hàng, tồn kho, hỗ trợ khách hàng và hiệu suất vận hành trong cùng một bức tranh tổng quan đồng bộ hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Khoảng thời gian: @Model.RangeDays ngày</span>
+                <span class="admin-ui-chip">@Model.OrdersInRange đơn trong kỳ</span>
+                <span class="admin-ui-chip">@Model.PendingOrders chờ xử lý</span>
+                <span class="admin-ui-chip">@Model.UnreadMessages tin chưa đọc</span>
+            </div>
+        </div>
+
+        <div class="admin-ui-actions">
+            <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="admin-ui-btn admin-ui-btn--primary">
+                <i class="fa fa-shopping-bag"></i>
+                Đơn hàng
+            </a>
+            <a asp-area="Admin" asp-controller="Inventory" asp-action="Index" class="admin-ui-btn">
+                <i class="fa fa-cubes"></i>
+                Tồn kho
+            </a>
+        </div>
+    </section>
+
 <div class="dash">
     <div class="dash-toolbar">
         <div class="dash-toolbar__left">
@@ -77,6 +105,52 @@
         @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardOpsCards.cshtml", Model)
     </div>
 
+    <div class="dash-section">
+        <div class="dash-section__title">Biểu đồ tổng hợp</div>
+
+        <div class="dash-grid dash-grid--2">
+            <div class="dash-card">
+                <div class="dash-card__head">
+                    <div>
+                        <h4>Danh mục đóng góp doanh thu</h4>
+                        <p>So sánh các nhóm sản phẩm bán tốt trong @Model.RangeDays ngày gần nhất</p>
+                    </div>
+                </div>
+
+                @if (topCategories.Any())
+                {
+                    <div class="dash-chart dash-chart--tall dash-chart--flush">
+                        <canvas id="categoryRevenueChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="dash-empty">Chưa có dữ liệu danh mục để vẽ biểu đồ.</div>
+                }
+            </div>
+
+            <div class="dash-card">
+                <div class="dash-card__head">
+                    <div>
+                        <h4>Phân bổ tồn kho theo kho</h4>
+                        <p>Theo dõi hàng khả dụng và số lượng đang được giữ chỗ</p>
+                    </div>
+                </div>
+
+                @if (warehouseStocks.Any())
+                {
+                    <div class="dash-chart dash-chart--tall dash-chart--flush">
+                        <canvas id="warehouseStockChart"></canvas>
+                    </div>
+                }
+                else
+                {
+                    <div class="dash-empty">Chưa có dữ liệu kho để vẽ biểu đồ.</div>
+                }
+            </div>
+        </div>
+    </div>
+
     <div class="dash-grid dash-grid--2">
         @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardTopProductsTable.cshtml", topProducts)
         @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardCategoriesTable.cshtml", topCategories)
@@ -94,11 +168,24 @@
 
     @await Html.PartialAsync("~/Areas/Admin/Views/Dashboard/_DashboardRecentOrdersTable.cshtml", recentOrders)
 </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     window.dashboardRevenueLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.Label).Reverse().ToList()));
     window.dashboardRevenueData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.Revenue).Reverse().ToList()));
     window.dashboardOrderData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(revenueTrend.Select(x => x.OrderCount).Reverse().ToList()));
+    window.dashboardStatusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusBreakdown.Select(x => x.Label).ToList()));
+    window.dashboardStatusCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusBreakdown.Select(x => x.Count).ToList()));
+    window.dashboardStatusAmounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusBreakdown.Select(x => x.Amount).ToList()));
+    window.dashboardPaymentLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(paymentBreakdown.Select(x => x.Label).ToList()));
+    window.dashboardPaymentCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(paymentBreakdown.Select(x => x.Count).ToList()));
+    window.dashboardPaymentAmounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(paymentBreakdown.Select(x => x.Amount).ToList()));
+    window.dashboardCategoryLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topCategories.Select(x => x.CategoryName).ToList()));
+    window.dashboardCategoryRevenue = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topCategories.Select(x => x.Revenue).ToList()));
+    window.dashboardCategoryQuantity = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(topCategories.Select(x => x.QuantitySold).ToList()));
+    window.dashboardWarehouseLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(warehouseStocks.Select(x => x.WarehouseName).ToList()));
+    window.dashboardWarehouseAvailable = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(warehouseStocks.Select(x => x.AvailableQuantity).ToList()));
+    window.dashboardWarehouseReserved = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(warehouseStocks.Select(x => x.ReservedQuantity).ToList()));
 </script>
 <script src="~/js/admin-dashboard.js"></script>

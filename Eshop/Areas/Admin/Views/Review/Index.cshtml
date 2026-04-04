@@ -1,7 +1,11 @@
 @model IEnumerable<Eshop.Models.RatingModel>
+@using System.Linq
 
 @{
-    ViewData["Title"] = "Phan hoi danh gia";
+    ViewData["Title"] = "Phản hồi đánh giá";
+    var reviews = Model?.ToList() ?? new List<Eshop.Models.RatingModel>();
+    var repliedCount = reviews.Count(x => !string.IsNullOrWhiteSpace(x.AdminReply));
+    var mediaCount = reviews.Sum(x => x.MediaItems?.Count ?? 0);
 }
 
 @functions {
@@ -11,19 +15,31 @@
     }
 }
 
-<div class="review-admin-page">
-    <div class="review-admin-head">
-        <div>
-            <h2>Phan hoi danh gia</h2>
-            <p>Theo doi review cua khach hang va tra loi truc tiep tu trang quan tri.</p>
+<div class="admin-ui-page admin-ui-page--amber review-admin-page">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Reviews</span>
+            <h4>Phản hồi đánh giá</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi đánh giá của khách hàng, phản hồi từ admin và media đính kèm trong một khu vực quản trị gọn gàng, dễ quét hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@reviews.Count review</span>
+                <span class="admin-ui-chip">@repliedCount đã phản hồi</span>
+                <span class="admin-ui-chip">@mediaCount media đính kèm</span>
+            </div>
         </div>
-        <div class="review-admin-stats">@Model.Count() review</div>
-    </div>
+
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Về dashboard
+        </a>
+    </section>
 
     <div class="review-admin-list">
-        @if (Model.Any())
+        @if (reviews.Any())
         {
-            @foreach (var review in Model)
+            @foreach (var review in reviews)
             {
                 <article class="review-admin-card">
                     <div class="review-admin-main">
@@ -31,12 +47,13 @@
                         <div class="review-admin-body">
                             <div class="review-admin-top">
                                 <div>
-                                    <strong>@(string.IsNullOrWhiteSpace(review.Name) ? "Khach hang" : review.Name)</strong>
+                                    <strong>@(string.IsNullOrWhiteSpace(review.Name) ? "Khách hàng" : review.Name)</strong>
                                     <div class="review-admin-meta">
-                                        <span>San pham: @(review.Product?.Name ?? "Khong xac dinh")</span>
+                                        <span>Sản phẩm: @(review.Product?.Name ?? "Không xác định")</span>
                                         <span>@((review.UpdatedAt ?? review.CreatedAt).ToString("dd/MM/yyyy HH:mm"))</span>
                                     </div>
                                 </div>
+
                                 <div class="review-admin-stars">
                                     @for (int i = 1; i <= 5; i++)
                                     {
@@ -73,10 +90,10 @@
                             {
                                 <div class="review-admin-replied">
                                     <div class="review-admin-reply-label">
-                                        Phan hoi hien tai
+                                        Phản hồi hiện tại
                                         @if (!string.IsNullOrWhiteSpace(review.AdminReplyByName))
                                         {
-                                            <span>boi @review.AdminReplyByName</span>
+                                            <span>bởi @review.AdminReplyByName</span>
                                         }
                                     </div>
                                     <div class="review-admin-reply-text">@review.AdminReply</div>
@@ -92,14 +109,14 @@
                                 <input type="hidden" name="id" value="@review.Id" />
                                 <textarea name="adminReply"
                                           rows="4"
-                                          placeholder="Nhap phan hoi cua admin cho review nay...">@review.AdminReply</textarea>
+                                          placeholder="Nhập phản hồi của admin cho review này...">@review.AdminReply</textarea>
                                 <div class="review-admin-actions">
                                     <button type="submit" class="btn btn-dark">
-                                        @(string.IsNullOrWhiteSpace(review.AdminReply) ? "Luu phan hoi" : "Cap nhat phan hoi")
+                                        @(string.IsNullOrWhiteSpace(review.AdminReply) ? "Lưu phản hồi" : "Cập nhật phản hồi")
                                     </button>
                                     @if (!string.IsNullOrWhiteSpace(review.AdminReply))
                                     {
-                                        <span class="review-admin-hint">Xoa noi dung va luu lai neu ban muon go bo phan hoi.</span>
+                                        <span class="review-admin-hint">Xóa nội dung và lưu lại nếu bạn muốn bỏ phản hồi hiện tại.</span>
                                     }
                                 </div>
                             </form>
@@ -110,47 +127,12 @@
         }
         else
         {
-            <div class="review-admin-empty">Chua co review nao de phan hoi.</div>
+            <div class="review-admin-empty">Chưa có review nào để phản hồi.</div>
         }
     </div>
 </div>
 
 <style>
-    .review-admin-page {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
-    }
-
-    .review-admin-head {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 4px 4px 0;
-    }
-
-    .review-admin-head h2 {
-        margin: 0 0 6px;
-        font-size: 28px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .review-admin-head p {
-        margin: 0;
-        color: #6b7280;
-    }
-
-    .review-admin-stats {
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: #eff6ff;
-        color: #1d4ed8;
-        font-weight: 700;
-        white-space: nowrap;
-    }
-
     .review-admin-list {
         display: flex;
         flex-direction: column;
@@ -158,11 +140,7 @@
     }
 
     .review-admin-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        background: #ffffff;
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-        padding: 20px;
+        padding: 22px;
     }
 
     .review-admin-main {
@@ -171,9 +149,9 @@
     }
 
     .review-admin-avatar {
-        width: 52px;
-        height: 52px;
-        border-radius: 16px;
+        width: 54px;
+        height: 54px;
+        border-radius: 18px;
         background: linear-gradient(135deg, #f97316, #fb7185);
         color: #ffffff;
         display: inline-flex;
@@ -228,7 +206,7 @@
 
     .review-admin-media-item {
         overflow: hidden;
-        border-radius: 14px;
+        border-radius: 16px;
         border: 1px solid #e5e7eb;
         background: #f8fafc;
     }
@@ -242,9 +220,7 @@
     }
 
     .review-admin-replied {
-        border: 1px solid #bfdbfe;
-        background: #eff6ff;
-        border-radius: 14px;
+        border-radius: 16px;
         padding: 14px;
         margin-bottom: 14px;
     }
@@ -258,62 +234,51 @@
 
     .review-admin-reply-label span {
         margin-left: 8px;
-        font-weight: 600;
+        font-weight: 500;
+        color: #64748b;
     }
 
     .review-admin-reply-text {
-        color: #1e3a8a;
-        white-space: pre-line;
+        color: #1e293b;
         line-height: 1.7;
+        white-space: pre-line;
     }
 
     .review-admin-reply-time {
         margin-top: 8px;
-        color: #64748b;
         font-size: 12px;
+        color: #64748b;
     }
 
     .review-admin-form textarea {
         width: 100%;
-        border-radius: 14px;
-        border: 1px solid #d1d5db;
         padding: 12px 14px;
-        resize: vertical;
-        min-height: 110px;
-    }
-
-    .review-admin-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-top: 12px;
-        flex-wrap: wrap;
     }
 
     .review-admin-hint {
-        color: #6b7280;
-        font-size: 13px;
+        font-size: 12px;
+        color: #64748b;
     }
 
     .review-admin-empty {
-        padding: 34px 18px;
-        border-radius: 18px;
-        border: 1px dashed #cbd5e1;
+        min-height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed #d1d5db;
+        border-radius: 20px;
+        background: #fafafa;
+        color: #6b7280;
         text-align: center;
-        color: #64748b;
-        background: #f8fafc;
+        padding: 20px;
     }
 
     @@media (max-width: 767px) {
-        .review-admin-head,
+        .review-admin-main,
         .review-admin-top,
-        .review-admin-main {
+        .review-admin-actions {
             flex-direction: column;
             align-items: stretch;
-        }
-
-        .review-admin-stats {
-            align-self: flex-start;
         }
     }
 </style>

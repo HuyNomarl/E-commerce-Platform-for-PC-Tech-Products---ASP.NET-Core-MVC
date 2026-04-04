@@ -6,6 +6,17 @@
     ViewData["Title"] = "Orders";
 
     var orderList = Model?.ToList() ?? new List<OrderModel>();
+    var pendingCount = orderList.Count(x =>
+    {
+        var status = OrderDisplayHelper.ToOrderStatus(x.Status);
+        return status == OrderStatus.Pending || status == OrderStatus.Processing;
+    });
+    var completedCount = orderList.Count(x =>
+    {
+        var status = OrderDisplayHelper.ToOrderStatus(x.Status);
+        return status == OrderStatus.Completed || status == OrderStatus.Delivered;
+    });
+    var totalRevenue = orderList.Sum(x => x.TotalAmount);
     var paymentOptions = new[] { "COD", "VNPAY", "MOMO", "BANK_TRANSFER", "CARD" }
         .Concat(orderList.Select(x => OrderDisplayHelper.NormalizePaymentMethod(x.PaymentMethod)))
         .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -13,6 +24,28 @@
         .OrderBy(x => OrderDisplayHelper.GetPaymentMethodLabel(x))
         .ToList();
 }
+
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Orders</span>
+            <h4>Quản lý đơn hàng</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi toàn bộ vòng đời đơn hàng, tình trạng thanh toán và tiến độ xử lý trong cùng một khu vực quản trị đồng bộ hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@orderList.Count đơn hàng</span>
+                <span class="admin-ui-chip">@pendingCount cần xử lý</span>
+                <span class="admin-ui-chip">@completedCount hoàn tất</span>
+                <span class="admin-ui-chip">@totalRevenue.ToString("N0") đ</span>
+            </div>
+        </div>
+
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Về dashboard
+        </a>
+    </section>
 
 <div class="row g-3 orders-index-page">
     <div class="col-12">
@@ -203,6 +236,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

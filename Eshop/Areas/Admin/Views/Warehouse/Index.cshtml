@@ -3,23 +3,38 @@
 @{
     ViewData["Title"] = "Danh sách kho";
     var warehouseList = Model?.ToList() ?? new List<Eshop.Models.WarehouseModel>();
+    var activeCount = warehouseList.Count(x => x.IsActive);
+    var defaultCount = warehouseList.Count(x => x.IsDefault);
 }
 
-<div class="row g-3 warehouse-index-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Kho hàng</h4>
-                <div class="small page-subtitle">Quản lý danh sách kho trong hệ thống</div>
+<div class="admin-ui-page admin-ui-page--emerald">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Warehouse</span>
+            <h4>Quản lý kho hàng</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi danh sách kho, trạng thái hoạt động và kho mặc định trong một bố cục đồng nhất hơn với toàn bộ phân hệ inventory.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@warehouseList.Count kho</span>
+                <span class="admin-ui-chip">@activeCount kho đang hoạt động</span>
+                <span class="admin-ui-chip">@defaultCount kho mặc định</span>
             </div>
+        </div>
 
-            <a asp-action="Create"
-                   class="icon-btn icon-add"
-                   title="Thêm kho">
+        <div class="admin-ui-actions">
+            <a asp-area="Admin" asp-controller="Inventory" asp-action="Index" class="admin-ui-btn admin-ui-btn--soft">
+                <i class="fa fa-cubes"></i>
+                Tồn kho
+            </a>
+            <a asp-action="Create" class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Thêm kho
             </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 warehouse-index-page">
 
     <div class="col-12">
         <div class="card-soft toolbar-card">
@@ -113,6 +128,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

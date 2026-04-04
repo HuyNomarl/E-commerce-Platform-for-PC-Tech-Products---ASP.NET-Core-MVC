@@ -4,7 +4,28 @@
     ViewData["Title"] = "Create Brand";
 }
 
-<div class="row g-3 publisher-create-page">
+<div class="admin-ui-page admin-ui-page--rose">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Brands</span>
+            <h4>Tạo thương hiệu</h4>
+            <p class="admin-ui-hero__desc">
+                Khởi tạo thương hiệu mới với tên, mô tả và trạng thái hiển thị trong cùng hệ giao diện với product và category.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Đồng bộ catalog sản phẩm</span>
+                <span class="admin-ui-chip">Trạng thái hiển thị rõ ràng</span>
+                <span class="admin-ui-chip">Không đổi logic tạo thương hiệu</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <div class="row g-3 publisher-create-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
@@ -63,6 +84,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

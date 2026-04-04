@@ -1,158 +1,98 @@
-﻿@model Eshop.Models.ProductOptionGroupModel
+@model Eshop.Models.ProductOptionGroupModel
 
 @{
     ViewData["Title"] = "Thêm nhóm tùy chọn";
     var product = ViewBag.Product as Eshop.Models.ProductModel;
 }
 
-<div class="row g-3 option-page">
-    <!-- Header -->
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Product Options</span>
+            <h4>Thêm nhóm tùy chọn</h4>
+            <p class="admin-ui-hero__desc">
+                Tạo một nhóm tùy chọn mới cho sản phẩm để gom các lựa chọn như màu sắc, bộ nhớ hoặc phiên bản theo cách dễ theo dõi hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@product?.Name</span>
+                <span class="admin-ui-chip">Product #@Model.ProductId</span>
+                <span class="admin-ui-chip">Thiết lập linh hoạt</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" asp-route-productId="@Model.ProductId" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại
+        </a>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
             <div>
-                <h4 class="mb-1">Thêm nhóm tùy chọn</h4>
-                <div class="small opacity-75">
-                    Tạo nhóm tùy chọn cho sản phẩm: <strong>@product?.Name</strong>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-th-large"></i>
+                    Cấu hình nhóm tùy chọn
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Đặt tên nhóm và quy tắc chọn để sản phẩm có cấu trúc tùy chọn rõ ràng hơn trong admin.
                 </div>
             </div>
-
-            <a asp-action="Index" asp-route-productId="@Model.ProductId" class="btn btn-outline-secondary">
-                <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
-            </a>
         </div>
-    </div>
 
-    <!-- Form -->
-    <div class="col-12">
-        <div class="card card-soft">
-            <div class="card-body p-4">
-                <form asp-action="CreateGroup" method="post">
-                    @Html.AntiForgeryToken()
+        <div class="admin-ui-panel__body">
+            <form asp-action="CreateGroup" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ProductId" />
 
-                    <input type="hidden" asp-for="ProductId" />
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
 
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-12">
+                        <label asp-for="Name" class="admin-ui-label">Tên nhóm</label>
+                        <input asp-for="Name" class="admin-ui-control" placeholder="Ví dụ: RAM, SSD, Màu sắc" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label asp-for="Name" class="form-label">Tên nhóm</label>
-                            <input asp-for="Name"
-                                   class="form-control bg-transparent"
-                                   placeholder="Ví dụ: RAM, SSD, VGA" />
-                            <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-check custom-check">
+                    <div class="admin-ui-col-12">
+                        <div class="admin-ui-check-grid">
+                            <label class="admin-ui-check-card">
                                 <input asp-for="IsRequired" class="form-check-input" />
-                                <label asp-for="IsRequired" class="form-check-label">
-                                    Bắt buộc phải chọn
-                                </label>
-                            </div>
-                            <div class="form-text opacity-75">
-                                Người dùng phải chọn ít nhất một giá trị trong nhóm này.
-                            </div>
-                        </div>
+                                <span>
+                                    <span class="admin-ui-check-title">Bắt buộc phải chọn</span>
+                                    <span class="admin-ui-check-desc">Người dùng phải chọn ít nhất một giá trị trong nhóm này trước khi thêm sản phẩm vào giỏ.</span>
+                                </span>
+                            </label>
 
-                        <div class="col-12 col-md-6">
-                            <div class="form-check custom-check">
+                            <label class="admin-ui-check-card">
                                 <input asp-for="AllowMultiple" class="form-check-input" />
-                                <label asp-for="AllowMultiple" class="form-check-label">
-                                    Cho chọn nhiều giá trị
-                                </label>
-                            </div>
-                            <div class="form-text opacity-75">
-                                Cho phép chọn nhiều giá trị cùng lúc trong nhóm.
-                            </div>
+                                <span>
+                                    <span class="admin-ui-check-title">Cho phép chọn nhiều</span>
+                                    <span class="admin-ui-check-desc">Bật khi nhóm cần cho phép chọn nhiều giá trị cùng lúc trong cùng một sản phẩm.</span>
+                                </span>
+                            </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="d-flex gap-2 mt-4 flex-wrap">
-                        <button type="submit" class="btn btn-accent">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> Lưu
-                        </button>
+                <div class="admin-ui-note" style="margin-top: 18px;">
+                    Nhóm tùy chọn nên ngắn gọn, dễ hiểu và phản ánh đúng các biến thể mà người dùng sẽ nhìn thấy khi mua hàng.
+                </div>
 
-                        <a asp-action="Index" asp-route-productId="@Model.ProductId" class="btn btn-outline-secondary">
-                            <i class="fa-solid fa-arrow-left me-1"></i> Quay lại
-                        </a>
-                    </div>
-                </form>
-            </div>
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-floppy-o"></i>
+                        Lưu nhóm
+                    </button>
+
+                    <a asp-action="Index" asp-route-productId="@Model.ProductId" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Quay lại
+                    </a>
+                </div>
+            </form>
         </div>
-    </div>
+    </section>
 </div>
-
-<style>
-    .option-page .card-soft {
-        background: var(--main-extra-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 1rem;
-        color: var(--font-color);
-        box-shadow: 0 0.125rem 0.5rem rgba(0,0,0,.04);
-    }
-
-    .option-page .form-label {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--font-color);
-    }
-
-    .option-page .form-control,
-    .option-page .form-select {
-        background: transparent !important;
-        color: var(--font-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        min-height: 44px;
-    }
-
-        .option-page .form-control:focus,
-        .option-page .form-select:focus {
-            border-color: var(--main-color);
-            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.12);
-            background: transparent !important;
-            color: var(--font-color);
-        }
-
-        .option-page .form-control::placeholder {
-            color: rgba(255,255,255,0.45);
-        }
-
-    .option-page .custom-check {
-        padding: 0.9rem 1rem;
-        border: 1px solid var(--border-color);
-        border-radius: 0.85rem;
-        background: rgba(255,255,255,0.02);
-    }
-
-        .option-page .custom-check .form-check-input {
-            margin-top: 0.2rem;
-        }
-
-        .option-page .custom-check .form-check-label {
-            color: var(--font-color);
-            font-weight: 500;
-        }
-
-    .option-page .btn-accent {
-        background: var(--main-color);
-        border: 1px solid var(--hover-border-color);
-        color: var(--dark);
-    }
-
-        .option-page .btn-accent:hover {
-            filter: var(--brightness);
-        }
-
-    .option-page .opacity-75 {
-        color: var(--font-color);
-        opacity: 0.75;
-    }
-
-    .option-page .text-danger {
-        font-size: 0.875rem;
-    }
-</style>
 
 @section Scripts {
     @{

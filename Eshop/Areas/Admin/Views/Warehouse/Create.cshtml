@@ -1,37 +1,101 @@
-﻿@model Eshop.Models.WarehouseModel
+@model Eshop.Models.WarehouseModel
 
-<h2>Tạo kho</h2>
+@{
+    ViewData["Title"] = "Tạo kho";
+}
 
-<form asp-action="Create" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="admin-ui-page admin-ui-page--emerald">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Warehouse</span>
+            <h4>Tạo kho mới</h4>
+            <p class="admin-ui-hero__desc">
+                Thiết lập nhanh một kho mới với mã nhận diện rõ ràng, tên hiển thị dễ quản lý và trạng thái hoạt động phù hợp cho các luồng nhập, chuyển và điều chỉnh.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Quản lý mã kho</span>
+                <span class="admin-ui-chip">Đồng bộ inventory</span>
+                <span class="admin-ui-chip">Giữ nguyên logic hiện tại</span>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Code"></label>
-        <input asp-for="Code" class="form-control" />
-        <span asp-validation-for="Code" class="text-danger"></span>
-    </div>
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
 
-    <div class="mb-3">
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-building-o"></i>
+                    Thông tin kho
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Điền các trường cơ bản để kho có thể xuất hiện nhất quán trong toàn bộ khu vực quản trị.
+                </div>
+            </div>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Address"></label>
-        <input asp-for="Address" class="form-control" />
-    </div>
+        <div class="admin-ui-panel__body">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
 
-    <div class="form-check mb-2">
-        <input asp-for="IsDefault" class="form-check-input" />
-        <label asp-for="IsDefault" class="form-check-label"></label>
-    </div>
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
 
-    <div class="form-check mb-3">
-        <input asp-for="IsActive" class="form-check-input" />
-        <label asp-for="IsActive" class="form-check-label"></label>
-    </div>
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Code" class="admin-ui-label">Mã kho</label>
+                        <input asp-for="Code" class="admin-ui-control" placeholder="Ví dụ: HCM-01" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
+                    </div>
 
-    <button type="submit" class="btn btn-primary">Lưu</button>
-</form>
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Name" class="admin-ui-label">Tên kho</label>
+                        <input asp-for="Name" class="admin-ui-control" placeholder="Ví dụ: Kho trung tâm TP.HCM" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-12">
+                        <label asp-for="Address" class="admin-ui-label">Địa chỉ</label>
+                        <input asp-for="Address" class="admin-ui-control" placeholder="Nhập địa chỉ kho" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-12">
+                        <div class="admin-ui-check-grid">
+                            <label class="admin-ui-check-card">
+                                <input asp-for="IsDefault" class="form-check-input" />
+                                <span>
+                                    <span class="admin-ui-check-title">Đặt làm kho mặc định</span>
+                                    <span class="admin-ui-check-desc">Kho này sẽ được ưu tiên trong các thao tác tạo mới nếu hệ thống cần kho mặc định.</span>
+                                </span>
+                            </label>
+
+                            <label class="admin-ui-check-card">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <span>
+                                    <span class="admin-ui-check-title">Kích hoạt kho</span>
+                                    <span class="admin-ui-check-desc">Bật để kho sẵn sàng xuất hiện trong các luồng nghiệp vụ quản lý tồn kho.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-floppy-o"></i>
+                        Lưu kho
+                    </button>
+
+                    <a asp-action="Index" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Xem danh sách
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>

@@ -28,6 +28,13 @@
         </div>
     </div>
 
+    @if (items.Any())
+    {
+        <div class="dash-chart dash-chart--compact">
+            <canvas id="orderStatusChart"></canvas>
+        </div>
+    }
+
     <div class="dash-breakdowns custom-scroll">
         @if (items.Any())
         {

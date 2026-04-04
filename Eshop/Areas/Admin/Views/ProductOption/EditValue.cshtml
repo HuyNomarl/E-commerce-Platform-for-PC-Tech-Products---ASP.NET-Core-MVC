@@ -1,60 +1,114 @@
-﻿@model Eshop.Models.ProductOptionValueModel
+@model Eshop.Models.ProductOptionValueModel
 
 @{
     ViewData["Title"] = "Sửa giá trị tùy chọn";
 }
 
-<h3>Sửa giá trị tùy chọn</h3>
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Product Options</span>
+            <h4>Sửa giá trị tùy chọn</h4>
+            <p class="admin-ui-hero__desc">
+                Cập nhật giá trị, tồn kho, giá cộng thêm và trạng thái hiển thị cho tùy chọn hiện có trong giao diện đồng bộ hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Value #@Model.Id</span>
+                <span class="admin-ui-chip">@Model.Value</span>
+                <span class="admin-ui-chip">Group #@Model.ProductOptionGroupId</span>
+            </div>
+        </div>
 
-<form asp-action="EditValue" asp-route-id="@Model.Id" method="post">
-    @Html.AntiForgeryToken()
+        <a asp-action="Index" asp-route-productId="0" onclick="history.back(); return false;" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại
+        </a>
+    </section>
 
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="ProductOptionGroupId" />
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-pencil"></i>
+                    Chỉnh sửa giá trị
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Điều chỉnh các thông số hiển thị và bán hàng của option value mà không thay đổi logic xử lý dữ liệu.
+                </div>
+            </div>
+        </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="admin-ui-panel__body">
+            <form asp-action="EditValue" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
 
-    <div class="form-group mb-3">
-        <label asp-for="Value">Giá trị</label>
-        <input asp-for="Value" class="form-control" />
-        <span asp-validation-for="Value" class="text-danger"></span>
-    </div>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ProductOptionGroupId" />
 
-    <div class="form-group mb-3">
-        <label asp-for="AdditionalPrice">Giá cộng thêm</label>
-        <input asp-for="AdditionalPrice" class="form-control" />
-        <span asp-validation-for="AdditionalPrice" class="text-danger"></span>
-    </div>
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Stock">Tồn kho</label>
-        <input asp-for="Stock" class="form-control" />
-        <span asp-validation-for="Stock" class="text-danger"></span>
-    </div>
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Value" class="admin-ui-label">Giá trị</label>
+                        <input asp-for="Value" class="admin-ui-control" placeholder="Ví dụ: 8GB, 16GB, 1TB" />
+                        <span asp-validation-for="Value" class="text-danger"></span>
+                    </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="SortOrder">Thứ tự hiển thị</label>
-        <input asp-for="SortOrder" class="form-control" />
-        <span asp-validation-for="SortOrder" class="text-danger"></span>
-    </div>
+                    <div class="admin-ui-col-6">
+                        <label asp-for="AdditionalPrice" class="admin-ui-label">Giá cộng thêm</label>
+                        <input asp-for="AdditionalPrice" class="admin-ui-control" placeholder="Nhập giá cộng thêm" />
+                        <span asp-validation-for="AdditionalPrice" class="text-danger"></span>
+                    </div>
 
-    <div class="form-check mb-2">
-        <input asp-for="IsDefault" class="form-check-input" />
-        <label asp-for="IsDefault" class="form-check-label">Là giá trị mặc định</label>
-    </div>
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Stock" class="admin-ui-label">Tồn kho</label>
+                        <input asp-for="Stock" class="admin-ui-control" placeholder="Nhập số lượng tồn" />
+                        <span asp-validation-for="Stock" class="text-danger"></span>
+                    </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="Status">Trạng thái</label>
-        <select asp-for="Status" class="form-control">
-            <option value="1">Hiển thị</option>
-            <option value="0">Ẩn</option>
-        </select>
-        <span asp-validation-for="Status" class="text-danger"></span>
-    </div>
+                    <div class="admin-ui-col-6">
+                        <label asp-for="SortOrder" class="admin-ui-label">Thứ tự hiển thị</label>
+                        <input asp-for="SortOrder" class="admin-ui-control" placeholder="Ví dụ: 1, 2, 3" />
+                        <span asp-validation-for="SortOrder" class="text-danger"></span>
+                    </div>
 
-    <button type="submit" class="btn btn-primary">Cập nhật</button>
-    <a asp-action="Index" asp-route-productId="0" class="btn btn-secondary" onclick="history.back(); return false;">Quay lại</a>
-</form>
+                    <div class="admin-ui-col-6">
+                        <div class="admin-ui-check-grid">
+                            <label class="admin-ui-check-card">
+                                <input asp-for="IsDefault" class="form-check-input" />
+                                <span>
+                                    <span class="admin-ui-check-title">Giá trị mặc định</span>
+                                    <span class="admin-ui-check-desc">Bật nếu đây là lựa chọn mặc định khi hiển thị sản phẩm ra ngoài giao diện.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Status" class="admin-ui-label">Trạng thái</label>
+                        <select asp-for="Status" class="admin-ui-control">
+                            <option value="1">Hiển thị</option>
+                            <option value="0">Ẩn</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-save"></i>
+                        Cập nhật
+                    </button>
+
+                    <a asp-action="Index" asp-route-productId="0" onclick="history.back(); return false;" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     @{

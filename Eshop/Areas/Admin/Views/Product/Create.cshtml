@@ -4,13 +4,34 @@
     ViewData["Title"] = "Tạo sản phẩm";
 }
 
-<div class="row g-3 product-create-page">
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Products</span>
+            <h4>Tạo sản phẩm</h4>
+            <p class="admin-ui-hero__desc">
+                Nhập thông tin sản phẩm, ảnh, danh mục và tài liệu kỹ thuật trong một luồng tạo mới gọn hơn nhưng vẫn đầy đủ.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Ảnh và thư viện media</span>
+                <span class="admin-ui-chip">Danh mục và thương hiệu</span>
+                <span class="admin-ui-chip">Không đổi logic binding</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <div class="row g-3 product-create-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            @* <div>
+            <div>
                 <h4 class="mb-1">Tạo sản phẩm</h4>
-                <div class="small page-subtitle">Nhập thông tin sản phẩm, ảnh và tài liệu kỹ thuật</div>
-            </div> *@
+                <div class="small page-subtitle">Nhập thông tin sản phẩm, ảnh và tài liệu kỹ thuật trong một giao diện đồng bộ hơn</div>
+            </div>
 
             <a asp-action="Index" class="btn btn-outline-secondary">
                 <i class="fa fa-arrow-left me-1"></i> Quay lại      
@@ -69,6 +90,15 @@
                                     <option value="">-- Chọn thương hiệu --</option>
                                 </select>
                                 <span asp-validation-for="Product.PublisherId" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-12 col-md-6 form-col">
+                                <label asp-for="Product.Status" class="form-label">Trạng thái hiển thị</label>
+                                <select asp-for="Product.Status" class="form-select input-soft">
+                                    <option value="1">Hiển thị</option>
+                                    <option value="0">Ẩn tạm</option>
+                                </select>
+                                <span asp-validation-for="Product.Status" class="text-danger small d-block mt-1"></span>
                             </div>
 
                             <div class="col-12 form-col">
@@ -153,6 +183,7 @@
             </div>
         </div>
     </form>
+</div>
 </div>
 
 <style>

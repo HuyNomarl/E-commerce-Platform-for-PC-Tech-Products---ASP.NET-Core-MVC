@@ -4,12 +4,33 @@
     var currentAdminId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 }
 
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Support Chat</span>
+            <h4>Hỗ trợ khách hàng trực tuyến</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi hội thoại theo thời gian thực, gửi media và gợi ý sản phẩm trong một giao diện đồng bộ với toàn bộ khu vực admin.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Realtime chat</span>
+                <span class="admin-ui-chip">Media upload</span>
+                <span class="admin-ui-chip">Gợi ý sản phẩm</span>
+            </div>
+        </div>
+
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Về dashboard
+        </a>
+    </section>
+
 <div class="admin-chat-shell">
     <div class="admin-chat-users">
         <div class="admin-chat-panel-head">
             <div>
-                <div class="section-title mb-0">Khach hang</div>
-                <div class="section-subtitle">Hoi thoai ho tro va tin nhan moi nhat</div>
+                <div class="section-title mb-0">Khách hàng</div>
+                <div class="section-subtitle">Hội thoại hỗ trợ và tin nhắn mới nhất</div>
             </div>
         </div>
         <div id="userList" class="admin-chat-user-list"></div>
@@ -18,8 +39,8 @@
     <div class="admin-chat-main">
         <div class="admin-chat-panel-head">
             <div>
-                <div class="section-title mb-0">Hoi thoai</div>
-                <div id="chatTitle" class="section-subtitle">Chon khach hang de bat dau</div>
+                <div class="section-title mb-0">Hội thoại</div>
+                <div id="chatTitle" class="section-subtitle">Chọn khách hàng để bắt đầu</div>
             </div>
             <div id="chatLiveBanner" class="admin-chat-banner" style="display:none;"></div>
         </div>
@@ -27,7 +48,7 @@
         <div id="chatMessages" class="admin-chat-messages empty-state">
             <div class="empty-wrap">
                 <i class="fa fa-comments-o empty-icon"></i>
-                <div>Chua co cuoc tro chuyen nao duoc chon.</div>
+                <div>Chưa có cuộc trò chuyện nào được chọn.</div>
             </div>
         </div>
 
@@ -38,7 +59,7 @@
 
             <div id="chatProductPicker" class="admin-chat-product-picker" style="display:none;">
                 <div class="admin-chat-product-search">
-                    <input type="text" id="chatProductSearch" class="form-control input-soft" placeholder="Tim san pham de goi y..." />
+                    <input type="text" id="chatProductSearch" class="form-control input-soft" placeholder="Tìm sản phẩm để gợi ý..." />
                     <button type="button" id="chatProductSearchBtn" class="btn btn-default">Tim</button>
                 </div>
                 <div id="chatProductResults" class="admin-chat-product-results"></div>
@@ -47,7 +68,7 @@
             <textarea id="messageInput"
                       class="form-control input-soft"
                       rows="3"
-                      placeholder="Nhap tin nhan ho tro..."></textarea>
+                      placeholder="Nhập tin nhắn hỗ trợ..."></textarea>
 
             <div class="admin-chat-toolbar">
                 <div class="admin-chat-tools">
@@ -57,16 +78,17 @@
                     <input type="file" id="chatAttachment" accept="image/*,video/*" />
 
                     <button type="button" id="chatPickProduct" class="admin-chat-tool">
-                        <i class="fa fa-cube"></i> San pham
+                        <i class="fa fa-cube"></i> Sản phẩm
                     </button>
                 </div>
 
                 <button id="sendBtn" class="btn btn-accent" type="button">
-                    <i class="fa fa-paper-plane me-1"></i> Gui
+                    <i class="fa fa-paper-plane me-1"></i> Gửi
                 </button>
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -714,12 +736,12 @@
                     item.dataset.userId = user.id;
                     item.innerHTML = `
                         <div class="admin-chat-user-head">
-                            <div class="admin-chat-user-name">${escapeHtml(user.userName || "Khach hang")}</div>
+                            <div class="admin-chat-user-name">${escapeHtml(user.userName || "Khách hàng")}</div>
                             <div class="admin-chat-user-time">${escapeHtml(user.lastMessageAt || "")}</div>
                         </div>
                         <div class="admin-chat-user-email">${escapeHtml(user.email || "")}</div>
                         <div class="admin-chat-user-foot">
-                            <div class="admin-chat-user-preview">${escapeHtml(user.lastMessagePreview || "Chua co tin nhan")}</div>
+                            <div class="admin-chat-user-preview">${escapeHtml(user.lastMessagePreview || "Chưa có tin nhắn")}</div>
                             ${user.unreadCount > 0 ? `<span class="admin-chat-unread">${escapeHtml(String(user.unreadCount))}</span>` : ""}
                         </div>
                     `;
@@ -731,7 +753,7 @@
                     item.addEventListener("click", async function () {
                         selectedUserId = user.id;
                         selectedUserName = user.userName || "Khach hang";
-                        chatTitle.textContent = "Dang chat voi: " + selectedUserName;
+                        chatTitle.textContent = "Đang chat với: " + selectedUserName;
                         if (chatLiveBanner) {
                             chatLiveBanner.style.display = "none";
                         }
@@ -831,7 +853,7 @@
 
                     const payload = await response.json();
                     if (!response.ok) {
-                        throw new Error(payload && payload.message ? payload.message : "Gui tin nhan that bai.");
+                        throw new Error(payload && payload.message ? payload.message : "Gửi tin nhắn thất bại.");
                     }
 
                     appendMessage(payload);
@@ -844,7 +866,7 @@
                 } catch (error) {
                     console.error(error);
                     if (typeof Swal !== "undefined") {
-                        Swal.fire("Loi", error.message || "Gui tin nhan that bai.", "error");
+        Swal.fire("Loi", error.message || "Gửi tin nhắn thất bại.", "error");
                     }
                 } finally {
                     sending = false;

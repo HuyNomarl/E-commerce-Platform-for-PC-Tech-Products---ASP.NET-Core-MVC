@@ -1,45 +1,107 @@
-﻿@model SliderModel
+@model SliderModel
 @{
-    ViewData["Title"] = "Create Slider";
+    ViewData["Title"] = "Tạo slider";
 }
-<div>
-    <form asp-action="Create" asp-controller="Slider" enctype="multipart/form-data">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="form-group">
-            <label>Name</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger" />
-        </div>
 
-        <div class="form-group">
-            <label asp-for="Description"></label>
-            <textarea asp-for="Description" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-
-        <div class="form-group">
-            <label>Status</label>
-            <select asp-for="Status" class="form-control">
-                <option value="1">Hiển thị</option>
-                <option value="0">Ẩn</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Image</label>
-            <input asp-for="ImageUpload" type="file" class="form-control" accept="image/*" />
-            <span asp-validation-for="ImageUpload" class="text-danger"></span>
-            <div class="mt-3">
-                <img id="imgpreview" src="#" alt="Preview" style="max-width: auto; max-height: auto;" class="img-thumbnail" />
+<div class="admin-ui-page admin-ui-page--rose">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Homepage Slider</span>
+            <h4>Tạo slider mới</h4>
+            <p class="admin-ui-hero__desc">
+                Tạo nhanh một banner nổi bật cho trang chủ với nội dung rõ ràng, trạng thái hiển thị và hình ảnh xem trước ngay trong cùng một màn hình.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Tên slider</span>
+                <span class="admin-ui-chip">Mô tả ngắn</span>
+                <span class="admin-ui-chip">Preview hình ảnh</span>
             </div>
         </div>
 
-        <div class="form-group">
-            <button type="submit" class="btn btn-primary">Create</button>
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-plus-circle"></i>
+                    Thông tin slider
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Điền nội dung và tải ảnh lên để hoàn thiện slider trước khi đưa vào danh sách quản lý.
+                </div>
+            </div>
         </div>
 
-    </form>
-    <a asp-action="Index">Back to Index Slider</a>
+        <div class="admin-ui-panel__body">
+            <form asp-action="Create" asp-controller="Slider" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
+
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Name" class="admin-ui-label">Tên slider</label>
+                        <input asp-for="Name" class="admin-ui-control" placeholder="Nhập tên slider" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Status" class="admin-ui-label">Trạng thái</label>
+                        <select asp-for="Status" class="admin-ui-control">
+                            <option value="1">Hiển thị</option>
+                            <option value="0">Ẩn</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-12">
+                        <label asp-for="Description" class="admin-ui-label">Mô tả</label>
+                        <textarea asp-for="Description" class="admin-ui-control admin-ui-control--textarea" placeholder="Mô tả ngắn cho slider"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <label asp-for="ImageUpload" class="admin-ui-label">Hình ảnh</label>
+                        <input asp-for="ImageUpload" type="file" class="admin-ui-control admin-ui-file" accept="image/*" />
+                        <span asp-validation-for="ImageUpload" class="text-danger"></span>
+                        <div class="admin-ui-note" style="margin-top: 12px;">
+                            Ưu tiên ảnh ngang, sắc nét và có bố cục phù hợp với banner đầu trang để hiển thị đẹp hơn.
+                        </div>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <div class="admin-ui-preview-card admin-ui-preview">
+                            <div class="admin-ui-preview-card__label">Xem trước ảnh</div>
+                            <div class="admin-ui-muted">Ảnh mới sẽ xuất hiện ngay sau khi bạn chọn file.</div>
+                            <img id="imgpreview"
+                                 src="#"
+                                 alt="Preview"
+                                 class="admin-ui-thumb admin-ui-thumb--large"
+                                 style="display: none;" />
+                            <div id="imgpreview-empty" class="admin-ui-empty">
+                                Chưa có ảnh nào được chọn.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-floppy-o"></i>
+                        Tạo slider
+                    </button>
+
+                    <a asp-action="Index" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Danh sách slider
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
 </div>
 
 @section Scripts {
@@ -48,27 +110,24 @@
     }
     <script>
         function readURL(input) {
+            const preview = $("#imgpreview");
+            const emptyState = $("#imgpreview-empty");
+
             if (input.files && input.files[0]) {
                 let reader = new FileReader();
                 reader.onload = function (e) {
-                    $("#imgpreview")
-                        .attr("src", e.target.result)
-                        .width(300)   // hoặc để CSS lo
-                        .height(300)
-                        .show();      // hiện img nếu đang ẩn
+                    preview.attr("src", e.target.result).show();
+                    emptyState.hide();
                 };
                 reader.readAsDataURL(input.files[0]);
             } else {
-                $("#imgpreview").attr("src", "#").hide(); // reset khi không có file
+                preview.attr("src", "#").hide();
+                emptyState.show();
             }
         }
 
-        $("#ImageUpload").change(function(){
+        $("#ImageUpload").change(function () {
             readURL(this);
         });
     </script>
-    @*      <script src="//cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
-<script>
-    CKEDITOR.replace('Description');
-</script> *@
 }

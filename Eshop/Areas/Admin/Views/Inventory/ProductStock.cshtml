@@ -1,58 +1,187 @@
-﻿@using Eshop.Models
+@using Eshop.Models
+@using System.Linq
 @{
+    ViewData["Title"] = "Chi tiết kho sản phẩm";
     var product = ViewBag.Product as ProductModel;
     var stocks = ViewBag.Stocks as List<InventoryStockModel> ?? new();
     var history = ViewBag.History as List<InventoryTransactionDetailModel> ?? new();
+    var totalOnHand = stocks.Sum(x => x.OnHandQuantity);
+    var totalReserved = stocks.Sum(x => x.ReservedQuantity);
+    var totalAvailable = stocks.Sum(x => x.AvailableQuantity);
+
+    string GetTypeClass(object transactionType)
+    {
+        var value = transactionType?.ToString()?.ToLowerInvariant() ?? string.Empty;
+
+        if (value.Contains("receive") || value.Contains("nhập"))
+        {
+            return "admin-ui-status admin-ui-status--success";
+        }
+
+        if (value.Contains("transfer") || value.Contains("chuyển"))
+        {
+            return "admin-ui-status admin-ui-status--info";
+        }
+
+        if (value.Contains("adjust") || value.Contains("điều chỉnh"))
+        {
+            return "admin-ui-status admin-ui-status--warning";
+        }
+
+        return "admin-ui-status";
+    }
 }
 
-<h2>Chi tiết kho: @product?.Name</h2>
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Inventory Detail</span>
+            <h4>Chi tiết kho: @product?.Name</h4>
+            <p class="admin-ui-hero__desc">
+                Xem nhanh tồn thực tế, lượng giữ chỗ và lịch sử biến động của sản phẩm theo từng kho trong một bố cục gọn gàng hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">SP#@product?.Id</span>
+                <span class="admin-ui-chip">@stocks.Count kho</span>
+                <span class="admin-ui-chip">@history.Count dòng lịch sử</span>
+            </div>
+        </div>
 
-<h4>Tồn theo kho</h4>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Kho</th>
-            <th>Tồn thực tế</th>
-            <th>Giữ chỗ</th>
-            <th>Khả dụng</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in stocks)
-        {
-            <tr>
-                <td>@item.Warehouse.Name</td>   
-                <td>@item.OnHandQuantity</td>
-                <td>@item.ReservedQuantity</td>
-                <td>@item.AvailableQuantity</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Tổng quan tồn kho
+        </a>
+    </section>
 
-<h4>Lịch sử kho</h4>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã phiếu</th>
-            <th>Loại</th>
-            <th>SL thay đổi</th>
-            <th>Trước</th>
-            <th>Sau</th>
-            <th>Ngày</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in history)
-        {
-            <tr>
-                <td>@item.InventoryTransaction.TransactionCode</td>
-                <td>@item.InventoryTransaction.TransactionType</td>
-                <td>@item.Quantity</td>
-                <td>@item.BeforeQuantity</td>
-                <td>@item.AfterQuantity</td>
-                <td>@item.InventoryTransaction.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-cubes"></i>Tồn thực tế</div>
+            <div class="admin-ui-stat__value">@totalOnHand</div>
+            <div class="admin-ui-stat__hint">Tổng số lượng hiện có trên tất cả các kho.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-lock"></i>Giữ chỗ</div>
+            <div class="admin-ui-stat__value">@totalReserved</div>
+            <div class="admin-ui-stat__hint">Số lượng đang được reservation giữ lại.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-check-circle"></i>Khả dụng</div>
+            <div class="admin-ui-stat__value">@totalAvailable</div>
+            <div class="admin-ui-stat__hint">Số lượng còn có thể bán hoặc phân bổ ngay.</div>
+        </article>
+    </div>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-building-o"></i>
+                    Tồn theo kho
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Thông tin tồn, giữ chỗ và khả dụng của sản phẩm tại từng kho.
+                </div>
+            </div>
+            <span class="admin-ui-total">Kho: @stocks.Count</span>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            @if (stocks.Any())
+            {
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table">
+                            <thead>
+                                <tr>
+                                    <th>Kho</th>
+                                    <th style="width: 150px;">Tồn thực tế</th>
+                                    <th style="width: 130px;">Giữ chỗ</th>
+                                    <th style="width: 130px;">Khả dụng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in stocks)
+                                {
+                                    <tr>
+                                        <td>@item.Warehouse.Name</td>
+                                        <td>@item.OnHandQuantity</td>
+                                        <td>@item.ReservedQuantity</td>
+                                        <td>@item.AvailableQuantity</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="admin-ui-empty">
+                    Chưa có dữ liệu tồn kho cho sản phẩm này.
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-history"></i>
+                    Lịch sử biến động
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Theo dõi các lần thay đổi số lượng của sản phẩm này trong kho.
+                </div>
+            </div>
+            <span class="admin-ui-total">Dòng: @history.Count</span>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            @if (history.Any())
+            {
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 150px;">Mã phiếu</th>
+                                    <th style="width: 150px;">Loại</th>
+                                    <th style="width: 120px;">SL thay đổi</th>
+                                    <th style="width: 100px;">Trước</th>
+                                    <th style="width: 100px;">Sau</th>
+                                    <th style="width: 170px;">Ngày</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in history)
+                                {
+                                    <tr>
+                                        <td>@item.InventoryTransaction.TransactionCode</td>
+                                        <td>
+                                            <span class="@GetTypeClass(item.InventoryTransaction.TransactionType)">
+                                                @item.InventoryTransaction.TransactionType
+                                            </span>
+                                        </td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.BeforeQuantity</td>
+                                        <td>@item.AfterQuantity</td>
+                                        <td>@item.InventoryTransaction.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="admin-ui-empty">
+                    Chưa có lịch sử biến động nào cho sản phẩm này.
+                </div>
+            }
+        </div>
+    </section>
+</div>

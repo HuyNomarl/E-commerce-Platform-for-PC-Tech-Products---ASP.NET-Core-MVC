@@ -1,71 +1,160 @@
-﻿@model ProductQuantityModel
+@model ProductQuantityModel
 @using System.Linq
 
 @{
-    ViewData["Title"] = "Create Quantity";
-    var key = 1;
-
-    // tránh null ViewBag
-    var logs = ViewBag.ProductQuantityLogs as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    ViewData["Title"] = "Cập nhật số lượng";
+    var logs = (ViewBag.ProductQuantityLogs as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>()).ToList();
     var totalQuantities = logs.Sum(x => (int)x.Quantity);
 }
 
-<h4>Create Quantity</h4>
+<div class="admin-ui-page admin-ui-page--emerald">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Product Quantity</span>
+            <h4>Cập nhật số lượng sản phẩm</h4>
+            <p class="admin-ui-hero__desc">
+                Nhập nhanh số lượng bổ sung và theo dõi lịch sử tăng tồn của sản phẩm trong cùng một giao diện gọn gàng hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">SP#@ViewBag.Id</span>
+                <span class="admin-ui-chip">@logs.Count lượt nhập</span>
+                <span class="admin-ui-chip">Tổng cộng @totalQuantities</span>
+            </div>
+        </div>
 
-<form asp-area="Admin"
-      asp-controller="Product"
-      asp-action="StoreProductQuantity"
-      asp-route-id="@ViewBag.Id"
-      method="post">
-    @Html.AntiForgeryToken()
+        <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại sản phẩm
+        </a>
+    </section>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-plus-square"></i>Lượt cập nhật</div>
+            <div class="admin-ui-stat__value">@logs.Count</div>
+            <div class="admin-ui-stat__hint">Số lần đã thêm số lượng cho sản phẩm này.</div>
+        </article>
 
-    <label asp-for="Quantity"></label>
-    <input asp-for="Quantity" type="number" min="1" step="1" class="form-control" />
-    <span asp-validation-for="Quantity" class="text-danger"></span>
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-cubes"></i>Tổng đã thêm</div>
+            <div class="admin-ui-stat__value">@totalQuantities</div>
+            <div class="admin-ui-stat__hint">Tổng số lượng đã được ghi vào lịch sử bổ sung.</div>
+        </article>
+    </div>
 
-    <button type="submit" class="btn btn-primary">Create</button>
-</form>
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-edit"></i>
+                    Nhập số lượng
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Chỉ cập nhật giao diện biểu mẫu, còn hành vi lưu số lượng vẫn giữ nguyên như hiện tại.
+                </div>
+            </div>
+        </div>
 
-<h3>Existing Product Quantities:</h3>
+        <div class="admin-ui-panel__body">
+            <form asp-area="Admin"
+                  asp-controller="Product"
+                  asp-action="StoreProductQuantity"
+                  asp-route-id="@ViewBag.Id"
+                  method="post">
+                @Html.AntiForgeryToken()
 
-@if (!logs.Any())
-{
-    <div class="text-muted">No quantity logs yet.</div>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Quantity</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var qty in logs)
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
+
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Quantity" class="admin-ui-label">Số lượng</label>
+                        <input asp-for="Quantity" type="number" min="1" step="1" class="admin-ui-control" placeholder="Nhập số lượng cần thêm" />
+                        <span asp-validation-for="Quantity" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <div class="admin-ui-note">
+                            Mỗi lần lưu sẽ ghi thêm một bản ghi lịch sử số lượng cho sản phẩm này, giúp bạn dễ đối chiếu các lần cập nhật trước đó.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-floppy-o"></i>
+                        Lưu số lượng
+                    </button>
+
+                    <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Danh sách sản phẩm
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-history"></i>
+                    Lịch sử số lượng
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Tổng hợp các lần cộng số lượng trước đó để dễ theo dõi biến động nhập thêm của sản phẩm.
+                </div>
+            </div>
+            <span class="admin-ui-total">Tổng: @logs.Count</span>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            @if (logs.Any())
             {
-                <tr>
-                    <td>@key</td>
-                    <td>@qty.Quantity</td>
-                    <td>@qty.DateCreate.ToString("g")</td>
-                </tr>
-                key++;
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">#</th>
+                                    <th style="width: 160px;">Số lượng</th>
+                                    <th>Thời gian tạo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var key = 1;
+                                }
+                                @foreach (var qty in logs)
+                                {
+                                    <tr>
+                                        <td>@key</td>
+                                        <td>@qty.Quantity</td>
+                                        <td>@qty.DateCreate.ToString("g")</td>
+                                    </tr>
+                                    key++;
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>Tổng</th>
+                                    <th>@totalQuantities</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             }
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="1">Total</th>
-                <th>@totalQuantities</th>
-                <th></th>
-            </tr>
-        </tfoot>
-    </table>
-}
-
-<a asp-area="Admin" asp-controller="Product" asp-action="Index">Back to Product Index</a>
+            else
+            {
+                <div class="admin-ui-empty">
+                    Chưa có lịch sử bổ sung số lượng nào cho sản phẩm này.
+                </div>
+            }
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     @{

@@ -1,101 +1,213 @@
-﻿@model Eshop.Models.ProductModel
+@model Eshop.Models.ProductModel
+@using System.Linq
 
 @{
     ViewData["Title"] = "Quản lý tùy chọn sản phẩm";
+    var groups = Model.OptionGroups?.ToList() ?? new List<Eshop.Models.ProductOptionGroupModel>();
+    var totalValues = groups.Sum(x => x.OptionValues?.Count ?? 0);
+    var requiredGroups = groups.Count(x => x.IsRequired);
 }
 
-<h3>Quản lý tùy chọn cho: @Model.Name</h3>
-
-<div class="mb-3">
-    <a asp-action="CreateGroup" asp-route-productId="@Model.Id" class="btn btn-primary">Thêm nhóm tùy chọn</a>
-    <a asp-controller="Product" asp-action="Index" class="btn btn-secondary">Quay lại danh sách sản phẩm</a>
-</div>
-
-@if (Model.OptionGroups != null && Model.OptionGroups.Any())
-{
-    @foreach (var group in Model.OptionGroups)
-    {
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>@group.Name</strong>
-                    |
-                    Bắt buộc: @(group.IsRequired ? "Có" : "Không")
-                    |
-                    Chọn nhiều: @(group.AllowMultiple ? "Có" : "Không")
-                </div>
-                <div>
-                    <a asp-action="CreateValue" asp-route-groupId="@group.Id" class="btn btn-success btn-sm">Thêm giá trị</a>
-                    <a asp-action="EditGroup" asp-route-id="@group.Id" class="btn btn-warning btn-sm">Sửa nhóm</a>
-                    <form asp-action="DeleteGroup"
-                          method="post"
-                          style="display:inline-block;"
-                          data-swal-confirm
-                          data-swal-title="Xóa nhóm tùy chọn?"
-                          data-swal-text="Nhóm tùy chọn và các giá trị liên quan sẽ bị xóa."
-                          data-swal-confirm-text="Xóa"
-                          data-swal-cancel-text="Hủy">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@group.Id" />
-                        <button type="submit" class="btn btn-danger btn-sm">Xóa nhóm</button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="card-body">
-                @if (group.OptionValues != null && group.OptionValues.Any())
-                {
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Giá trị</th>
-                                <th>Giá cộng thêm</th>
-                                <th>Tồn kho</th>
-                                <th>Mặc định</th>
-                                <th>Thứ tự</th>
-                                <th>Trạng thái</th>
-                                <th width="180">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in group.OptionValues.OrderBy(x => x.SortOrder))
-                            {
-                                <tr>
-                                    <td>@item.Value</td>
-                                    <td>@item.AdditionalPrice.ToString("#,##0 đ")</td>
-                                    <td>@item.Stock</td>
-                                    <td>@(item.IsDefault ? "Có" : "Không")</td>
-                                    <td>@item.SortOrder</td>
-                                    <td>@(item.Status == 1 ? "Hiển thị" : "Ẩn")</td>
-                                    <td>
-                                        <a asp-action="EditValue" asp-route-id="@item.Id" class="btn btn-warning btn-sm">Sửa</a>
-                                        <form asp-action="DeleteValue"
-                                              method="post"
-                                              style="display:inline-block;"
-                                              data-swal-confirm
-                                              data-swal-title="Xóa giá trị?"
-                                              data-swal-text="Giá trị tùy chọn này sẽ bị xóa khỏi sản phẩm."
-                                              data-swal-confirm-text="Xóa"
-                                              data-swal-cancel-text="Hủy">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@item.Id" />
-                                            <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-                else
-                {
-                    <p>Chưa có giá trị nào.</p>
-                }
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Product Options</span>
+            <h4>Quản lý tùy chọn cho @Model.Name</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi toàn bộ nhóm tùy chọn và giá trị đi kèm của sản phẩm trong một giao diện rõ ràng hơn để thao tác nhanh mà không làm thay đổi logic dữ liệu.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@groups.Count nhóm</span>
+                <span class="admin-ui-chip">@totalValues giá trị</span>
+                <span class="admin-ui-chip">@requiredGroups nhóm bắt buộc</span>
             </div>
         </div>
+
+        <div class="admin-ui-actions">
+            <a asp-action="CreateGroup" asp-route-productId="@Model.Id" class="admin-ui-btn admin-ui-btn--primary">
+                <i class="fa fa-plus"></i>
+                Thêm nhóm
+            </a>
+
+            <a asp-controller="Product" asp-action="Index" class="admin-ui-back">
+                <i class="fa fa-arrow-left"></i>
+                Quay lại sản phẩm
+            </a>
+        </div>
+    </section>
+
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-th-large"></i>Nhóm tùy chọn</div>
+            <div class="admin-ui-stat__value">@groups.Count</div>
+            <div class="admin-ui-stat__hint">Số nhóm tùy chọn đang gắn với sản phẩm này.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-list-ul"></i>Giá trị tùy chọn</div>
+            <div class="admin-ui-stat__value">@totalValues</div>
+            <div class="admin-ui-stat__hint">Tổng số giá trị đang được quản lý trong tất cả các nhóm.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-check-circle"></i>Nhóm bắt buộc</div>
+            <div class="admin-ui-stat__value">@requiredGroups</div>
+            <div class="admin-ui-stat__hint">Các nhóm người mua cần chọn trước khi thêm vào giỏ.</div>
+        </article>
+    </div>
+
+    @if (groups.Any())
+    {
+        <div class="admin-ui-group-grid">
+            @foreach (var group in groups)
+            {
+                var values = group.OptionValues?.OrderBy(x => x.SortOrder).ToList() ?? new List<Eshop.Models.ProductOptionValueModel>();
+
+                <section class="admin-ui-group-card">
+                    <div class="admin-ui-group-card__head">
+                        <div>
+                            <div class="admin-ui-stack__title">@group.Name</div>
+                            <div class="admin-ui-muted">Nhóm tùy chọn cho sản phẩm @Model.Name</div>
+                            <div class="admin-ui-meta-row">
+                                <span class="admin-ui-status @(group.IsRequired ? "admin-ui-status--warning" : "")">
+                                    Bắt buộc: @(group.IsRequired ? "Có" : "Không")
+                                </span>
+                                <span class="admin-ui-status @(group.AllowMultiple ? "admin-ui-status--info" : "")">
+                                    Chọn nhiều: @(group.AllowMultiple ? "Có" : "Không")
+                                </span>
+                                <span class="admin-ui-status">@values.Count giá trị</span>
+                            </div>
+                        </div>
+
+                        <div class="admin-ui-table-actions">
+                            <a asp-action="CreateValue" asp-route-groupId="@group.Id" class="admin-ui-btn admin-ui-btn--primary">
+                                <i class="fa fa-plus"></i>
+                                Thêm giá trị
+                            </a>
+
+                            <a asp-action="EditGroup" asp-route-id="@group.Id" class="admin-ui-btn admin-ui-btn--soft">
+                                <i class="fa fa-pencil"></i>
+                                Sửa nhóm
+                            </a>
+
+                            <form asp-action="DeleteGroup"
+                                  method="post"
+                                  class="admin-ui-inline-form"
+                                  data-swal-confirm
+                                  data-swal-title="Xóa nhóm tùy chọn?"
+                                  data-swal-text="Nhóm tùy chọn và các giá trị liên quan sẽ bị xóa."
+                                  data-swal-confirm-text="Xóa"
+                                  data-swal-cancel-text="Hủy">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@group.Id" />
+                                <button type="submit" class="admin-ui-btn admin-ui-btn--danger">
+                                    <i class="fa fa-trash"></i>
+                                    Xóa nhóm
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="admin-ui-group-card__body">
+                        @if (values.Any())
+                        {
+                            <div class="admin-ui-table-shell">
+                                <div class="admin-ui-table-responsive">
+                                    <table class="table admin-ui-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Giá trị</th>
+                                                <th style="width: 150px;">Giá cộng thêm</th>
+                                                <th style="width: 110px;">Tồn kho</th>
+                                                <th style="width: 120px;">Mặc định</th>
+                                                <th style="width: 120px;">Thứ tự</th>
+                                                <th style="width: 130px;">Trạng thái</th>
+                                                <th style="width: 220px;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in values)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="admin-ui-stack">
+                                                            <div class="admin-ui-stack__title">@item.Value</div>
+                                                            <div class="admin-ui-stack__line">Group #@group.Id</div>
+                                                        </div>
+                                                    </td>
+                                                    <td>@item.AdditionalPrice.ToString("#,##0 đ")</td>
+                                                    <td>@item.Stock</td>
+                                                    <td>
+                                                        @if (item.IsDefault)
+                                                        {
+                                                            <span class="admin-ui-status admin-ui-status--success">Mặc định</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="admin-ui-status">Tùy chọn</span>
+                                                        }
+                                                    </td>
+                                                    <td>@item.SortOrder</td>
+                                                    <td>
+                                                        @if (item.Status == 1)
+                                                        {
+                                                            <span class="admin-ui-status admin-ui-status--success">Hiển thị</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="admin-ui-status">Ẩn</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <div class="admin-ui-table-actions">
+                                                            <a asp-action="EditValue" asp-route-id="@item.Id" class="admin-ui-btn admin-ui-btn--soft">
+                                                                <i class="fa fa-pencil"></i>
+                                                                Sửa
+                                                            </a>
+
+                                                            <form asp-action="DeleteValue"
+                                                                  method="post"
+                                                                  class="admin-ui-inline-form"
+                                                                  data-swal-confirm
+                                                                  data-swal-title="Xóa giá trị?"
+                                                                  data-swal-text="Giá trị tùy chọn này sẽ bị xóa khỏi sản phẩm."
+                                                                  data-swal-confirm-text="Xóa"
+                                                                  data-swal-cancel-text="Hủy">
+                                                                @Html.AntiForgeryToken()
+                                                                <input type="hidden" name="id" value="@item.Id" />
+                                                                <button type="submit" class="admin-ui-btn admin-ui-btn--danger">
+                                                                    <i class="fa fa-trash"></i>
+                                                                    Xóa
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="admin-ui-empty">
+                                Nhóm này chưa có giá trị nào. Hãy thêm giá trị đầu tiên để bắt đầu sử dụng.
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
     }
-}
-else
-{
-    <p>Chưa có nhóm tùy chọn nào cho sản phẩm này.</p>
-}
+    else
+    {
+        <section class="admin-ui-panel">
+            <div class="admin-ui-panel__body">
+                <div class="admin-ui-empty">
+                    Chưa có nhóm tùy chọn nào cho sản phẩm này.
+                </div>
+            </div>
+        </section>
+    }
+</div>

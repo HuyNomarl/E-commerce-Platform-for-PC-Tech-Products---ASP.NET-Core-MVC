@@ -7,19 +7,28 @@
     var shippingList = ViewBag.ShippingList as List<ShippingModel> ?? new List<ShippingModel>();
 }
 
-<div class="row g-3 shipping-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            @* <div>
-                <h4 class="mb-1">Thiết lập vận chuyển</h4>
-                <div class="small page-subtitle">Tạo khu vực giao hàng và quản lý phí vận chuyển</div>
-            </div> *@
-
-            <a asp-action="Index" asp-controller="Shipping" asp-area="Admin" class="btn btn-outline-secondary">
-                <i class="fa fa-arrow-left me-1"></i> Quay lại
-            </a>
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Shipping</span>
+            <h4>Thiết lập vận chuyển</h4>
+            <p class="admin-ui-hero__desc">
+                Tạo khu vực giao hàng, cập nhật phí ship và quản lý toàn bộ mức phí trong cùng một màn hình gọn hơn để thao tác nhanh hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@shippingList.Count khu vực vận chuyển</span>
+                <span class="admin-ui-chip">Tạo và quản lý trên cùng một trang</span>
+                <span class="admin-ui-chip">Không thay đổi logic tính phí</span>
+            </div>
         </div>
-    </div>
+
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Về dashboard
+        </a>
+    </section>
+
+    <div class="row g-3 shipping-page">
 
     <div class="col-12 col-xl-5">
         <div class="card-soft form-card">
@@ -166,6 +175,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

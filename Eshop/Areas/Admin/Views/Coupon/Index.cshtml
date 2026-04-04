@@ -1,17 +1,31 @@
 ﻿@model CouponModel
 @{
     ViewData["Title"] = "Quản lý mã giảm giá";
+    var couponList = ViewBag.Coupons as IEnumerable<CouponModel> ?? Enumerable.Empty<CouponModel>();
 }
 
-<div class="row g-3 coupon-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Mã giảm giá</h4>
-                <div class="small page-subtitle">Tạo và quản lý các chương trình giảm giá</div>
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Coupons</span>
+            <h4>Quản lý mã giảm giá</h4>
+            <p class="admin-ui-hero__desc">
+                Tạo mã khuyến mãi, kiểm soát điều kiện áp dụng và theo dõi thời gian hiệu lực trong cùng một giao diện gọn hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@couponList.Count() mã giảm giá</span>
+                <span class="admin-ui-chip">Tạo và theo dõi trên cùng một trang</span>
+                <span class="admin-ui-chip">Quản lý số lượng và thời hạn</span>
             </div>
         </div>
-    </div>
+
+        <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Về dashboard
+        </a>
+    </section>
+
+    <div class="row g-3 coupon-page">
 
     <div class="col-12 col-xl-5">
         <div class="card-soft form-card">
@@ -134,7 +148,7 @@
                 </div>
 
                 <span class="total-badge">
-                    Tổng: @(ViewBag.Coupons != null ? ((IEnumerable<dynamic>)ViewBag.Coupons).Count() : 0)
+                    Tổng: @couponList.Count()
                 </span>
             </div>
 
@@ -261,6 +275,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

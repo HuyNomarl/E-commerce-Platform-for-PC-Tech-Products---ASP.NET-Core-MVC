@@ -27,34 +27,52 @@
     };
 }
 
-<div class="row g-3 inventory-receive-page">
+<div class="row g-3 inventory-receive-page inv-page">
     <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Phiếu nhập kho</h4>
-                <div class="small page-subtitle">Tạo phiếu nhập theo brand, thêm nhiều sản phẩm và duyệt sau</div>
+        <section class="inv-hero">
+            <div class="inv-hero__content">
+                <div class="inv-hero__eyebrow">
+                    <i class="fa fa-download"></i>
+                    <span>Inventory Intake</span>
+                </div>
+                <h4>Phiếu nhập kho</h4>
+                <p class="inv-hero__desc">Tạo phiếu nhập theo brand, thêm nhiều sản phẩm trong một lần và duyệt sau để cập nhật tồn kho chính xác hơn.</p>
+                <div class="inv-hero__meta">
+                    <span class="inv-chip">Chọn kho và brand</span>
+                    <span class="inv-chip">Thêm nhiều sản phẩm</span>
+                    <span class="inv-chip">Duyệt sau khi kiểm tra</span>
+                </div>
             </div>
 
-            <a asp-action="Index" class="btn-back-soft">
+            <a asp-action="Index" class="inv-btn-back">
                 <i class="fa fa-arrow-left"></i>
                 <span>Quay lại tổng quan kho</span>
             </a>
-        </div>
+        </section>
     </div>
 
     <div class="col-12">
-        <div class="card-soft">
+        <div class="card-soft inv-panel">
             <div class="section-head">
-                <div class="section-title">
-                    <i class="fa fa-plus-circle"></i>
-                    <span>Tạo phiếu nhập mới</span>
+                <div>
+                    <div class="section-title">
+                        <i class="fa fa-plus-circle"></i>
+                        <span>Tạo phiếu nhập mới</span>
+                    </div>
+                    <div class="section-subtitle">Điền thông tin đợt nhập và thêm danh sách sản phẩm theo brand đã chọn.</div>
                 </div>
             </div>
 
             <div class="section-body">
                 <form asp-action="Receive" method="post" id="receipt-form">
                     @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    <div asp-validation-summary="ModelOnly" class="text-danger inv-validation-summary"></div>
+
+                    <div class="inv-step-row">
+                        <span class="inv-step-chip">1. Chọn kho</span>
+                        <span class="inv-step-chip">2. Chọn brand</span>
+                        <span class="inv-step-chip">3. Thêm sản phẩm và giá nhập</span>
+                    </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-md-4">
@@ -67,7 +85,11 @@
 
                         <div class="col-12 col-md-4">
                             <label asp-for="PublisherId" class="field-label">Brand</label>
-                            <select asp-for="PublisherId" asp-items="Model.Publishers" class="form-select field-control" id="PublisherId">
+                            <select asp-for="PublisherId"
+                                    asp-items="Model.Publishers"
+                                    class="form-select field-control js-filterable-select"
+                                    id="PublisherId"
+                                    data-search-placeholder="Tìm brand theo tên...">
                                 <option value="">-- Chọn brand --</option>
                             </select>
                             <span asp-validation-for="PublisherId" class="text-danger small"></span>
@@ -98,7 +120,7 @@
                         </button>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive inv-table-shell">
                         <table class="table modern-table receipt-items-table">
                             <thead>
                                 <tr>
@@ -113,7 +135,9 @@
                                 {
                                     <tr class="receipt-row">
                                         <td>
-                                            <select name="Items[@i].ProductId" class="form-select field-control js-product-select">
+                                            <select name="Items[@i].ProductId"
+                                                    class="form-select field-control js-product-select js-filterable-select"
+                                                    data-search-placeholder="Tìm sản phẩm trong brand đã chọn...">
                                                 <option value="">-- Chọn sản phẩm --</option>
                                                 @foreach (var option in Model.ProductOptions)
                                                 {
@@ -167,18 +191,21 @@
     </div>
 
     <div class="col-12">
-        <div class="card-soft">
+        <div class="card-soft inv-panel">
             <div class="section-head">
-                <div class="section-title">
-                    <i class="fa fa-history"></i>
-                    <span>Phiếu nhập gần đây</span>
+                <div>
+                    <div class="section-title">
+                        <i class="fa fa-history"></i>
+                        <span>Phiếu nhập gần đây</span>
+                    </div>
+                    <div class="section-subtitle">Theo dõi nhanh các phiếu mới tạo, trạng thái duyệt và danh sách sản phẩm liên quan.</div>
                 </div>
             </div>
 
             <div class="section-body">
                 @if (Model.RecentReceipts.Any())
                 {
-                    <div class="table-responsive">
+                    <div class="table-responsive inv-table-shell">
                         <table class="table modern-table recent-receipts-table">
                             <thead>
                                 <tr>
@@ -203,21 +230,9 @@
                                                 <div class="code-sub">Ref: @receipt.ReferenceCode</div>
                                             }
                                         </td>
-
-                                        <td>
-                                            <span class="info-pill">@receipt.PublisherName</span>
-                                        </td>
-
-                                        <td>
-                                            <span class="info-pill">@receipt.WarehouseName</span>
-                                        </td>
-
-                                        <td>
-                                            <span class="@GetStatusClass(receipt.Status)">
-                                                @GetStatusText(receipt.Status)
-                                            </span>
-                                        </td>
-
+                                        <td><span class="info-pill">@receipt.PublisherName</span></td>
+                                        <td><span class="info-pill">@receipt.WarehouseName</span></td>
+                                        <td><span class="@GetStatusClass(receipt.Status)">@GetStatusText(receipt.Status)</span></td>
                                         <td>
                                             <div class="stack-list">
                                                 @foreach (var item in receipt.Items)
@@ -226,7 +241,6 @@
                                                 }
                                             </div>
                                         </td>
-
                                         <td>
                                             @if (string.IsNullOrWhiteSpace(receipt.Note))
                                             {
@@ -237,7 +251,6 @@
                                                 <div class="note-text">@receipt.Note</div>
                                             }
                                         </td>
-
                                         <td>
                                             <div class="date-main">@receipt.CreatedAt.ToString("dd/MM/yyyy HH:mm")</div>
                                             @if (receipt.ApprovedAt.HasValue)
@@ -249,7 +262,6 @@
                                                 <div class="date-sub text-danger">Hủy: @receipt.CancelledAt.Value.ToString("dd/MM/yyyy HH:mm")</div>
                                             }
                                         </td>
-
                                         <td>
                                             @if (receipt.Status == InventoryReceiptStatus.Pending)
                                             {
@@ -266,7 +278,6 @@
                                                         <input type="hidden" name="id" value="@receipt.Id" />
                                                         <button type="submit" class="btn-action-success">Duyệt</button>
                                                     </form>
-
                                                     <form asp-action="CancelReceipt"
                                                           method="post"
                                                           class="d-inline"
@@ -304,358 +315,6 @@
     </div>
 </div>
 
-<style>
-    .inventory-receive-page .page-subtitle {
-        opacity: .75;
-    }
-
-    .card-soft {
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 16px;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-        overflow: hidden;
-    }
-
-    .section-head {
-        padding: 16px 18px;
-        border-bottom: 1px solid #eef2f7;
-        background: #fcfcfd;
-    }
-
-    .section-title {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .section-body {
-        padding: 18px;
-    }
-
-    .btn-back-soft {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 42px;
-        padding: 0 14px;
-        border-radius: 12px;
-        border: 1px solid #d1d5db;
-        background: #fff;
-        color: #374151;
-        text-decoration: none !important;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all .2s ease;
-    }
-
-        .btn-back-soft:hover {
-            background: #f3f4f6;
-            color: #111827;
-            border-color: #cbd5e1;
-        }
-
-    .field-label {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 12px;
-        font-weight: 700;
-        color: #374151;
-    }
-
-    .field-control {
-        height: 42px;
-        border-radius: 12px;
-        border: 1px solid #d1d5db;
-        box-shadow: none;
-    }
-
-        .field-control:focus {
-            border-color: #9ca3af;
-            box-shadow: none;
-        }
-
-    .textarea-control {
-        height: auto;
-        min-height: 100px;
-        padding-top: 10px;
-        padding-bottom: 10px;
-    }
-
-    .sub-toolbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin: 6px 0 14px;
-    }
-
-    .sub-toolbar-title {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .btn-add-soft {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 40px;
-        padding: 0 14px;
-        border-radius: 12px;
-        border: 1px solid #bfdbfe;
-        background: #eff6ff;
-        color: #1d4ed8;
-        font-size: 13px;
-        font-weight: 700;
-        transition: all .2s ease;
-    }
-
-        .btn-add-soft:hover {
-            background: #dbeafe;
-            border-color: #93c5fd;
-        }
-
-    .modern-table {
-        margin-bottom: 0;
-    }
-
-        .modern-table thead th {
-            background: #f8fafc;
-            color: #374151;
-            font-weight: 700;
-            border-bottom: 1px solid #e5e7eb !important;
-            vertical-align: middle !important;
-            padding: 14px 12px !important;
-        }
-
-        .modern-table tbody td {
-            vertical-align: middle !important;
-            padding: 14px 12px !important;
-            border-top: 1px solid #eef2f7 !important;
-        }
-
-        .modern-table tbody tr:hover {
-            background: #fafafa;
-        }
-
-    .icon-btn {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        text-decoration: none !important;
-        transition: all .2s ease;
-    }
-
-        .icon-btn:hover {
-            background: #f3f4f6;
-            border-color: #d1d5db;
-        }
-
-    .icon-delete {
-        color: #ef4444;
-    }
-
-    .form-footer {
-        margin-top: 16px;
-    }
-
-    .btn-submit-soft {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        height: 44px;
-        padding: 0 18px;
-        border-radius: 12px;
-        border: 1px solid #16a34a;
-        background: #16a34a;
-        color: #fff;
-        font-size: 14px;
-        font-weight: 700;
-        transition: all .2s ease;
-    }
-
-        .btn-submit-soft:hover {
-            background: #15803d;
-            border-color: #15803d;
-            color: #fff;
-        }
-
-    .code-main {
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .code-sub {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 4px;
-    }
-
-    .info-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1px solid #dbe3ee;
-        background: #f8fafc;
-        color: #374151;
-    }
-
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-        border: 1px solid transparent;
-    }
-
-    .status-warning {
-        background: #fffbeb;
-        color: #b45309;
-        border-color: #fde68a;
-    }
-
-    .status-success {
-        background: #ecfdf3;
-        color: #15803d;
-        border-color: #bbf7d0;
-    }
-
-    .status-danger {
-        background: #fef2f2;
-        color: #dc2626;
-        border-color: #fecaca;
-    }
-
-    .status-muted {
-        background: #f8fafc;
-        color: #475569;
-        border-color: #dbe3ee;
-    }
-
-    .stack-list {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .stack-item {
-        font-size: 13px;
-        color: #374151;
-        line-height: 1.45;
-    }
-
-    .note-text {
-        font-size: 13px;
-        color: #374151;
-        line-height: 1.5;
-    }
-
-    .muted-text {
-        color: #6b7280;
-    }
-
-    .date-main {
-        font-weight: 600;
-        color: #111827;
-    }
-
-    .date-sub {
-        font-size: 12px;
-        margin-top: 4px;
-    }
-
-    .action-group {
-        display: inline-flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .btn-action-success,
-    .btn-action-danger {
-        height: 36px;
-        padding: 0 12px;
-        border-radius: 10px;
-        font-size: 12px;
-        font-weight: 700;
-        border: 1px solid transparent;
-        transition: all .2s ease;
-    }
-
-    .btn-action-success {
-        background: #16a34a;
-        color: #fff;
-        border-color: #16a34a;
-    }
-
-        .btn-action-success:hover {
-            background: #15803d;
-            border-color: #15803d;
-        }
-
-    .btn-action-danger {
-        background: #fff;
-        color: #dc2626;
-        border-color: #fecaca;
-    }
-
-        .btn-action-danger:hover {
-            background: #fef2f2;
-            border-color: #fca5a5;
-        }
-
-    .empty-box {
-        min-height: 120px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        color: #6b7280;
-        font-size: 14px;
-    }
-
-    @@media (max-width: 767px) {
-        .sub-toolbar {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .btn-add-soft,
-        .btn-submit-soft,
-        .btn-back-soft {
-            justify-content: center;
-            width: 100%;
-        }
-
-        .action-group {
-            flex-direction: column;
-            width: 100%;
-        }
-
-        .btn-action-success,
-        .btn-action-danger {
-            width: 100%;
-        }
-    }
-</style>
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
@@ -666,6 +325,7 @@
             const productOptions = @Html.Raw(productOptionsJson);
             const $publisher = $('#PublisherId');
             const $tbody = $('#receipt-items');
+            const selectFilter = window.EshopAdminSelectFilter;
 
             function escapeHtml(value) {
                 return (value ?? '')
@@ -675,6 +335,24 @@
                     .replace(/>/g, '&gt;')
                     .replace(/"/g, '&quot;')
                     .replace(/'/g, '&#39;');
+            }
+
+            function enhanceSelectFilters(root) {
+                if (selectFilter) {
+                    selectFilter.enhance(root || document);
+                }
+            }
+
+            function refreshSelectFilter(selectElement) {
+                if (selectFilter) {
+                    selectFilter.refresh(selectElement);
+                }
+            }
+
+            function resetSelectFilter(selectElement) {
+                if (selectFilter) {
+                    selectFilter.reset(selectElement);
+                }
             }
 
             function getSelectedPublisherId() {
@@ -703,7 +381,9 @@
                 return `
                     <tr class="receipt-row">
                         <td>
-                            <select name="Items[${index}].ProductId" class="form-select field-control js-product-select">
+                            <select name="Items[${index}].ProductId"
+                                    class="form-select field-control js-product-select js-filterable-select"
+                                    data-search-placeholder="Tìm sản phẩm trong brand đã chọn...">
                                 ${buildProductOptions(selectedProductId)}
                             </select>
                         </td>
@@ -728,6 +408,8 @@
                 if (!$select.find(`option[value="${selectedValue}"]`).length) {
                     $select.val('');
                 }
+
+                refreshSelectFilter($select[0]);
             }
 
             function reindexRows() {
@@ -762,6 +444,7 @@
                     const $row = $(this).closest('.receipt-row');
                     $row.find('select').val('');
                     $row.find('input[type="number"]').val('');
+                    resetSelectFilter($row.find('.js-product-select')[0]);
                     return;
                 }
 
@@ -775,6 +458,7 @@
                 });
             });
 
+            enhanceSelectFilters(document);
             reindexRows();
         })();
     </script>

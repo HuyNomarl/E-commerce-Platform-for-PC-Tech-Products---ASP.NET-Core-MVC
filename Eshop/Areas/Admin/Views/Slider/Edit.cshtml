@@ -1,58 +1,120 @@
-﻿@model SliderModel
+@model SliderModel
 @{
-    ViewData["Title"] = "Edit Slider";
+    ViewData["Title"] = "Sửa slider";
 }
 
-
-<form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
-    @Html.AntiForgeryToken()
-    <input asp-for="Id" type="hidden" />
-
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-    <div class="form-group">
-        <label asp-for="Name"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Description"></label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Status"></label>
-        <select asp-for="Status" class="form-control">
-            <option value="1">Hiển thị</option>
-            <option value="0">Ẩn</option>
-        </select>
-        <span asp-validation-for="Status" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="ImageUpload">Image</label>
-        <input asp-for="ImageUpload" type="file" class="form-control" accept="image/*" />
-        <span asp-validation-for="ImageUpload" class="text-danger"></span>
-
-        @if (!string.IsNullOrEmpty(Model.Image))
-        {
-            <div class="mt-2">
-                <div>Ảnh hiện tại:</div>
-                <img src="~/media/sliders/@Model.Image" width="360" class="img-thumbnail" />
+<div class="admin-ui-page admin-ui-page--rose">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Homepage Slider</span>
+            <h4>Cập nhật slider</h4>
+            <p class="admin-ui-hero__desc">
+                Chỉnh sửa nội dung banner hiện có, cập nhật trạng thái hiển thị và xem trước hình ảnh mới ngay trong cùng một giao diện gọn gàng hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Slider #@Model.Id</span>
+                <span class="admin-ui-chip">@Model.Name</span>
+                <span class="admin-ui-chip">Quản lý ảnh trực quan</span>
             </div>
-        }
-
-        <div class="mt-3">
-            <div>Preview ảnh mới:</div>
-            <img id="imgpreview" src="#" alt="Preview" class="img-thumbnail" style="display:none; max-width:360px;" />
         </div>
-    </div>
 
-    <button type="submit" class="btn btn-primary">Update</button>
-    <a asp-action="Index" class="btn btn-secondary">Back to Index Slider</a>
-</form>
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-pencil-square-o"></i>
+                    Thông tin slider
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Cập nhật nội dung hiện có mà vẫn giữ nguyên luồng xử lý upload và lưu dữ liệu hiện tại.
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input asp-for="Id" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
+
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Name" class="admin-ui-label">Tên slider</label>
+                        <input asp-for="Name" class="admin-ui-control" placeholder="Nhập tên slider" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <label asp-for="Status" class="admin-ui-label">Trạng thái</label>
+                        <select asp-for="Status" class="admin-ui-control">
+                            <option value="1">Hiển thị</option>
+                            <option value="0">Ẩn</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-12">
+                        <label asp-for="Description" class="admin-ui-label">Mô tả</label>
+                        <textarea asp-for="Description" class="admin-ui-control admin-ui-control--textarea" placeholder="Cập nhật mô tả slider"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <label asp-for="ImageUpload" class="admin-ui-label">Thay ảnh slider</label>
+                        <input asp-for="ImageUpload" type="file" class="admin-ui-control admin-ui-file" accept="image/*" />
+                        <span asp-validation-for="ImageUpload" class="text-danger"></span>
+                        <div class="admin-ui-note" style="margin-top: 12px;">
+                            Nếu không chọn ảnh mới, hệ thống sẽ giữ nguyên ảnh hiện tại của slider.
+                        </div>
+                    </div>
+
+                    <div class="admin-ui-col-6">
+                        <div class="admin-ui-preview-card admin-ui-preview">
+                            <div class="admin-ui-preview-card__label">Ảnh hiện tại</div>
+                            @if (!string.IsNullOrEmpty(Model.Image))
+                            {
+                                <img src="~/media/sliders/@Model.Image" alt="@Model.Name" class="admin-ui-thumb admin-ui-thumb--large" />
+                            }
+                            else
+                            {
+                                <div class="admin-ui-empty">Slider này chưa có ảnh.</div>
+                            }
+
+                            <div class="admin-ui-preview-card__label">Preview ảnh mới</div>
+                            <img id="imgpreview"
+                                 src="#"
+                                 alt="Preview"
+                                 class="admin-ui-thumb admin-ui-thumb--large"
+                                 style="display: none;" />
+                            <div id="imgpreview-empty" class="admin-ui-empty">
+                                Chưa chọn ảnh mới.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-save"></i>
+                        Cập nhật
+                    </button>
+
+                    <a asp-action="Index" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Danh sách slider
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     @{
@@ -63,6 +125,7 @@
         (function () {
             const input = document.getElementById("ImageUpload");
             const preview = document.getElementById("imgpreview");
+            const emptyState = document.getElementById("imgpreview-empty");
 
             if (!input) return;
 
@@ -71,6 +134,7 @@
                 if (!file) {
                     preview.style.display = "none";
                     preview.src = "#";
+                    emptyState.style.display = "flex";
                     return;
                 }
 
@@ -78,6 +142,7 @@
                 reader.onload = function (e) {
                     preview.src = e.target.result;
                     preview.style.display = "block";
+                    emptyState.style.display = "none";
                 };
                 reader.readAsDataURL(file);
             });

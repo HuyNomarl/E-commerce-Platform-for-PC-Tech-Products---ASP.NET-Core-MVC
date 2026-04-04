@@ -18,9 +18,35 @@
     );
 }
 
-<div class="row g-3 product-create-page">
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">PC Builder</span>
+            <h4>Thêm linh kiện PC</h4>
+            <p class="admin-ui-hero__desc">
+                Tạo linh kiện mới với ảnh, loại linh kiện, thương hiệu và thông số kỹ thuật trong một form rõ ràng hơn cho luồng PC Builder.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Thông số kỹ thuật động</span>
+                <span class="admin-ui-chip">Ảnh và media sản phẩm</span>
+                <span class="admin-ui-chip">Đồng bộ với kho và catalog</span>
+            </div>
+        </div>
+
+        <a asp-area="Admin" asp-controller="PcComponentAdmin" asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <div class="row g-3 product-create-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+            <div>
+                <h4 class="mb-1">Thêm linh kiện PC</h4>
+                <div class="small page-subtitle">Tạo mới linh kiện, ảnh sản phẩm và bộ thông số kỹ thuật theo cùng chuẩn giao diện admin</div>
+            </div>
+
             <a asp-area="Admin"
                    asp-controller="PcComponentAdmin"
                    asp-action="Index"
@@ -106,6 +132,15 @@
                                 </select>
                                 <span asp-validation-for="Product.CategoryId" class="text-danger small d-block mt-1"></span>
                             </div>
+
+                            <div class="col-12 col-md-6 form-col">
+                                <label asp-for="Product.Status" class="form-label">Trạng thái hiển thị</label>
+                                <select asp-for="Product.Status" class="form-select input-soft">
+                                    <option value="1">Hiển thị</option>
+                                    <option value="0">Ẩn tạm</option>
+                                </select>
+                                <span asp-validation-for="Product.Status" class="text-danger small d-block mt-1"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,6 +207,7 @@
             </div>
         </div>
     </form>
+</div>
 </div>
 
 <style>

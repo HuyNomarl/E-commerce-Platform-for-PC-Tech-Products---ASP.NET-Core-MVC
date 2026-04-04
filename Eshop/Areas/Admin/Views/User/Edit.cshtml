@@ -4,7 +4,28 @@
     ViewData["Title"] = "Chỉnh sửa người dùng";
 }
 
-<div class="row g-3 user-upsert-page">
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Users</span>
+            <h4>Chỉnh sửa người dùng</h4>
+            <p class="admin-ui-hero__desc">
+                Cập nhật thông tin tài khoản, vai trò và mật khẩu khi cần trong một bố cục nhất quán hơn với phần quản trị người dùng.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Thông tin tài khoản và vai trò</span>
+                <span class="admin-ui-chip">Hỗ trợ đặt lại mật khẩu</span>
+                <span class="admin-ui-chip">Không đổi logic cập nhật</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại danh sách
+        </a>
+    </section>
+
+    <div class="row g-3 user-upsert-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
@@ -91,6 +112,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

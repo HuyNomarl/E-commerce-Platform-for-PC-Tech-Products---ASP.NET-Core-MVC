@@ -1,10 +1,38 @@
 @model IEnumerable<AdminUserListItemViewModel>
 
 @{
+    var userList = Model?.ToList() ?? new List<AdminUserListItemViewModel>();
+    var currentUserCount = userList.Count(x => x.IsCurrentUser);
     ViewData["Title"] = "Quản lý người dùng";
 }
 
-<div class="row g-3 user-index-page">
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Users</span>
+            <h4>Quản lý người dùng</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi tài khoản nội bộ, khách hàng, vai trò và phương thức đăng nhập trong một bố cục rõ ràng hơn để xử lý nhanh hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@userList.Count tài khoản</span>
+                <span class="admin-ui-chip">@currentUserCount tài khoản hiện tại</span>
+                <span class="admin-ui-chip">Vai trò và đăng nhập cùng một màn</span>
+            </div>
+        </div>
+
+        <div class="admin-ui-actions">
+            <a asp-area="Admin"
+               asp-controller="User"
+               asp-action="Create"
+               class="admin-ui-btn admin-ui-btn--primary">
+                <i class="fa fa-plus-circle"></i>
+                Thêm người dùng
+            </a>
+        </div>
+    </section>
+
+    <div class="row g-3 user-index-page">
     <div class="col-12">
         <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
             <div>
@@ -39,7 +67,7 @@
                     </div>
 
                     <span class="total-badge">
-                        Tổng: <span id="totalRows">@Model.Count()</span>
+                        Tổng: <span id="totalRows">@userList.Count</span>
                     </span>
                 </div>
             </div>
@@ -57,9 +85,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (userList.Any())
                         {
-                            @foreach (var user in Model)
+                            @foreach (var user in userList)
                             {
                                 <tr>
                                     <td>
@@ -87,6 +115,14 @@
                                         {
                                             <span class="badge bg-dark">Tài khoản hiện tại</span>
                                         }
+                                        else if (user.IsLocked)
+                                        {
+                                            <span class="badge bg-danger">Đã khóa</span>
+                                            @if (!string.IsNullOrWhiteSpace(user.LockoutEndText))
+                                            {
+                                                <div class="cell-sub status-note">Khóa đến @user.LockoutEndText</div>
+                                            }
+                                        }
                                         else if (user.HasPassword)
                                         {
                                             <span class="badge bg-success">Đang hoạt động</span>
@@ -109,6 +145,19 @@
 
                                             @if (!user.IsCurrentUser)
                                             {
+                                                <form asp-action="ToggleLock"
+                                                      asp-controller="User"
+                                                      asp-route-id="@user.Id"
+                                                      method="post"
+                                                      class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit"
+                                                            class="icon-btn @(user.IsLocked ? "icon-unlock" : "icon-lock")"
+                                                            title="@(user.IsLocked ? "Mở khóa" : "Khóa tài khoản")">
+                                                        <i class="fa @(user.IsLocked ? "fa-unlock-alt" : "fa-lock")"></i>
+                                                    </button>
+                                                </form>
+
                                                 <form asp-action="Delete"
                                                       asp-controller="User"
                                                       asp-route-id="@user.Id"
@@ -145,8 +194,13 @@
         </div>
     </div>
 </div>
+</div>
 
 <style>
+    .user-index-page > .col-12:first-child {
+        display: none;
+    }
+
     .user-index-page .page-subtitle {
         opacity: .75;
     }
@@ -279,6 +333,10 @@
         line-height: 1.4;
     }
 
+    .status-note {
+        margin-top: 6px;
+    }
+
     .action-group {
         display: inline-flex;
         justify-content: flex-end;
@@ -314,6 +372,14 @@
 
     .icon-edit {
         color: #f59e0b;
+    }
+
+    .icon-lock {
+        color: #b91c1c;
+    }
+
+    .icon-unlock {
+        color: #15803d;
     }
 
     .icon-delete {

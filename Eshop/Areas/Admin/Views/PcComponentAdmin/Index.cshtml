@@ -27,26 +27,33 @@
         .ToList();
 }
 
-<div class="row g-3 product-index-page">
-    <!-- Header -->
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Linh kiện PC</h4>
-                <div class="small page-subtitle">Quản lý danh sách linh kiện PC</div>
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">PC Builder</span>
+            <h4>Quản lý linh kiện PC</h4>
+            <p class="admin-ui-hero__desc">
+                Gom danh sách linh kiện, loại linh kiện, thương hiệu và bộ lọc kỹ thuật về cùng một hệ giao diện để dễ quét và thao tác hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@productList.Count linh kiện</span>
+                <span class="admin-ui-chip">@componentTypes.Count loại linh kiện</span>
+                <span class="admin-ui-chip">@publishers.Count thương hiệu</span>
             </div>
+        </div>
 
+        <div class="admin-ui-actions">
             <a asp-area="Admin"
-                   asp-controller="PcComponentAdmin"
-                   asp-action="Create"
-                   class="icon-btn icon-add"
-                   title="Thêm linh kiện">
+               asp-controller="PcComponentAdmin"
+               asp-action="Create"
+               class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Thêm linh kiện
             </a>
         </div>
-    </div>
+    </section>
 
-    <!-- Toolbar -->
+    <div class="row g-3 product-index-page">
     <div class="col-12">
         <div class="card-soft toolbar-card">
             <div class="toolbar-inner">
@@ -153,7 +160,8 @@
                             <th style="width: 140px;">Danh mục</th>
                             <th style="width: 150px;">Giá</th>
                             <th style="width: 110px;">Tồn kho</th>
-                            <th style="width: 170px;" class="text-right">Thao tác</th>
+                            <th style="width: 130px;">Trạng thái</th>
+                            <th style="width: 220px;" class="text-right">Thao tác</th>
                         </tr>
                     </thead>
 
@@ -223,6 +231,17 @@
                                         <span class="qty-badge">@item.Quantity</span>
                                     </td>
 
+                                    <td>
+                                        @if (item.Status == 1)
+                                        {
+                                            <span class="status-badge status-badge--show">Hiển thị</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-badge--hide">Ẩn tạm</span>
+                                        }
+                                    </td>
+
                                     <td class="text-right">
                                         <div class="action-group">
                                             <a asp-area="Admin"
@@ -233,6 +252,20 @@
                                                    title="Chỉnh sửa">
                                                 <i class="fa fa-pencil-square-o"></i>
                                             </a>
+
+                                            <form asp-area="Admin"
+                                                  asp-controller="PcComponentAdmin"
+                                                  asp-action="ToggleVisibility"
+                                                  asp-route-id="@item.Id"
+                                                  method="post"
+                                                  class="d-inline-block m-0">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="icon-btn @(item.Status == 1 ? "icon-hide" : "icon-show")"
+                                                        title="@(item.Status == 1 ? "Ẩn linh kiện" : "Hiển thị linh kiện")">
+                                                    <i class="fa @(item.Status == 1 ? "fa-eye-slash" : "fa-eye")"></i>
+                                                </button>
+                                            </form>
 
                                             <form asp-area="Admin"
                                                   asp-controller="PcComponentAdmin"
@@ -260,7 +293,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="9" class="text-center py-5">
+                                <td colspan="10" class="text-center py-5">
                                     <div class="empty-state">
                                         <i class="fa fa-folder-open-o empty-icon"></i>
                                         <div>Không có linh kiện nào.</div>
@@ -273,6 +306,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -483,7 +517,8 @@
     }
 
     .qty-badge,
-    .unit-badge {
+    .unit-badge,
+    .status-badge {
         display: inline-flex;
         align-items: center;
         padding: 6px 12px;
@@ -493,6 +528,14 @@
         border: 1px solid #dbe3ee;
         background: #f8fafc;
         color: #374151;
+    }
+
+    .status-badge--show {
+        color: #15803d;
+    }
+
+    .status-badge--hide {
+        color: #b91c1c;
     }
 
     .price-text {
@@ -542,6 +585,14 @@
 
     .icon-edit {
         color: #f59e0b;
+    }
+
+    .icon-show {
+        color: #15803d;
+    }
+
+    .icon-hide {
+        color: #b91c1c;
     }
 
     .icon-delete {

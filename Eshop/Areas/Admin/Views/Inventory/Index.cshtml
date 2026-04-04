@@ -5,23 +5,38 @@
     var stockList = Model?.ToList() ?? new List<dynamic>();
 }
 
-<div class="row g-3 inventory-overview-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Tổng quan tồn kho</h4>
-                <div class="small page-subtitle">Quản lý số lượng tồn, giữ chỗ và khả dụng của sản phẩm</div>
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Inventory</span>
+            <h4>Tổng quan tồn kho</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi số lượng tồn, giữ chỗ và khả dụng của sản phẩm trong một không gian quản trị gọn hơn, đồng bộ hơn với các phiếu nhập, chuyển và điều chỉnh.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@stockList.Count dòng tồn kho</span>
+                <span class="admin-ui-chip">Nhập, điều chỉnh, chuyển kho</span>
+                <span class="admin-ui-chip">Lọc và tra cứu nhanh hơn</span>
             </div>
+        </div>
 
+        <div class="admin-ui-actions">
             <form asp-action="BootstrapLegacyStock" method="post" class="m-0">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn action-btn btn-dark-soft">
-                    <i class="fa fa-database me-1"></i>
+                <button type="submit" class="admin-ui-btn admin-ui-btn--soft">
+                    <i class="fa fa-database"></i>
                     Khởi tạo tồn kho cũ
                 </button>
             </form>
+
+            <a asp-action="History" class="admin-ui-btn admin-ui-btn--primary">
+                <i class="fa fa-history"></i>
+                Lịch sử kho
+            </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 inventory-overview-page">
 
     <div class="col-12">
         <div class="card-soft quick-action-card">
@@ -220,6 +235,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

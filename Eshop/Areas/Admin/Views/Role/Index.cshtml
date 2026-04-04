@@ -3,25 +3,37 @@
 
 @{
     ViewData["title"] = "Role Index";
+    var roleList = Model?.ToList() ?? new List<IdentityRole>();
+    var systemRoleCount = roleList.Count(x => RoleNames.IsSystemRole(x.Name));
 }
 
-<div class="row g-3 role-index-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Vai trò</h4>
-                <div class="small page-subtitle">Quản lý danh sách vai trò trong hệ thống</div>
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Roles</span>
+            <h4>Quản lý vai trò</h4>
+            <p class="admin-ui-hero__desc">
+                Gom danh sách vai trò hệ thống và vai trò tự tạo về cùng một giao diện rõ ràng hơn để phân quyền và vận hành dễ theo dõi hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@roleList.Count vai trò</span>
+                <span class="admin-ui-chip">@systemRoleCount vai trò hệ thống</span>
+                <span class="admin-ui-chip">Không thay đổi logic phân quyền</span>
             </div>
+        </div>
 
+        <div class="admin-ui-actions">
             <a asp-area="Admin"
-                   asp-action="Create"
-                   asp-controller="Role"
-                   class="icon-btn icon-add"
-                   title="Thêm vai trò">
+               asp-action="Create"
+               asp-controller="Role"
+               class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Thêm vai trò
             </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 role-index-page">
 
     <div class="col-12">
         <div class="card-soft table-card">
@@ -40,7 +52,7 @@
                     </div>
 
                     <span class="total-badge">
-                        Tổng: <span id="totalRows">@Model.Count()</span>
+                        Tổng: <span id="totalRows">@roleList.Count</span>
                     </span>
                 </div>
             </div>
@@ -55,9 +67,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (roleList.Any())
                         {
-                            @foreach (var item in Model)
+                            @foreach (var item in roleList)
                             {
                                 var isSystemRole = RoleNames.IsSystemRole(item.Name);
                                 <tr>
@@ -128,6 +140,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>

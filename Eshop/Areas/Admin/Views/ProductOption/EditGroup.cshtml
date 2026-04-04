@@ -1,38 +1,95 @@
-﻿@model Eshop.Models.ProductOptionGroupModel
+@model Eshop.Models.ProductOptionGroupModel
 
 @{
     ViewData["Title"] = "Sửa nhóm tùy chọn";
 }
 
-<h3>Sửa nhóm tùy chọn</h3>
+<div class="admin-ui-page admin-ui-page--amber">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Product Options</span>
+            <h4>Sửa nhóm tùy chọn</h4>
+            <p class="admin-ui-hero__desc">
+                Cập nhật tên nhóm và cách chọn của nhóm tùy chọn hiện có trong một form gọn gàng hơn nhưng vẫn giữ nguyên hành vi lưu dữ liệu.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">Group #@Model.Id</span>
+                <span class="admin-ui-chip">@Model.Name</span>
+                <span class="admin-ui-chip">Product #@Model.ProductId</span>
+            </div>
+        </div>
 
-<form asp-action="EditGroup" asp-route-id="@Model.Id" method="post">
-    @Html.AntiForgeryToken()
+        <a asp-action="Index" asp-route-productId="@Model.ProductId" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Quay lại
+        </a>
+    </section>
 
-    <input type="hidden" asp-for="Id" />
-    <input type="hidden" asp-for="ProductId" />
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-pencil-square-o"></i>
+                    Chỉnh sửa nhóm
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Điều chỉnh nhanh cấu trúc nhóm tùy chọn mà không ảnh hưởng đến các luồng xử lý phía sau.
+                </div>
+            </div>
+        </div>
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="admin-ui-panel__body">
+            <form asp-action="EditGroup" asp-route-id="@Model.Id" method="post">
+                @Html.AntiForgeryToken()
 
-    <div class="form-group mb-3">
-        <label asp-for="Name">Tên nhóm</label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ProductId" />
 
-    <div class="form-check mb-2">
-        <input asp-for="IsRequired" class="form-check-input" />
-        <label asp-for="IsRequired" class="form-check-label">Bắt buộc phải chọn</label>
-    </div>
+                <div asp-validation-summary="ModelOnly" class="admin-ui-validation"></div>
 
-    <div class="form-check mb-3">
-        <input asp-for="AllowMultiple" class="form-check-input" />
-        <label asp-for="AllowMultiple" class="form-check-label">Cho chọn nhiều giá trị</label>
-    </div>
+                <div class="admin-ui-form-grid">
+                    <div class="admin-ui-col-12">
+                        <label asp-for="Name" class="admin-ui-label">Tên nhóm</label>
+                        <input asp-for="Name" class="admin-ui-control" placeholder="Ví dụ: RAM, SSD, Màu sắc" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
 
-    <button type="submit" class="btn btn-primary">Cập nhật</button>
-    <a asp-action="Index" asp-route-productId="@Model.ProductId" class="btn btn-secondary">Quay lại</a>
-</form>
+                    <div class="admin-ui-col-12">
+                        <div class="admin-ui-check-grid">
+                            <label class="admin-ui-check-card">
+                                <input asp-for="IsRequired" class="form-check-input" />
+                                <span>
+                                    <span class="admin-ui-check-title">Bắt buộc phải chọn</span>
+                                    <span class="admin-ui-check-desc">Người dùng cần chọn ít nhất một giá trị trong nhóm này trước khi tiếp tục mua hàng.</span>
+                                </span>
+                            </label>
+
+                            <label class="admin-ui-check-card">
+                                <input asp-for="AllowMultiple" class="form-check-input" />
+                                <span>
+                                    <span class="admin-ui-check-title">Cho phép chọn nhiều</span>
+                                    <span class="admin-ui-check-desc">Dùng cho các nhóm mà người dùng có thể chọn nhiều giá trị cùng lúc.</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-ui-form-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-save"></i>
+                        Cập nhật
+                    </button>
+
+                    <a asp-action="Index" asp-route-productId="@Model.ProductId" class="admin-ui-btn">
+                        <i class="fa fa-list"></i>
+                        Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</div>
 
 @section Scripts {
     @{

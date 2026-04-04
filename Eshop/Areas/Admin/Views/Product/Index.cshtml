@@ -21,30 +21,41 @@
         .ToList();
 }
 
-<div class="row g-3 product-index-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Sản phẩm</h4>
-                <div class="small page-subtitle">Quản lý danh sách sản phẩm</div>
+<div class="admin-ui-page admin-ui-page--blue">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Products</span>
+            <h4>Quản lý sản phẩm</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi danh mục sản phẩm, thương hiệu, mức giá và tình trạng tồn kho trong cùng một bố cục gọn hơn để vận hành nhanh hơn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@productList.Count sản phẩm</span>
+                <span class="admin-ui-chip">@categories.Count danh mục</span>
+                <span class="admin-ui-chip">@publishers.Count thương hiệu</span>
             </div>
+        </div>
 
-            <form asp-area="Admin" asp-controller="Recommendation" asp-action="Train" method="post">
+        <div class="admin-ui-actions">
+            <form asp-area="Admin" asp-controller="Recommendation" asp-action="Train" method="post" class="m-0">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="admin-ui-btn admin-ui-btn--soft">
+                    <i class="fa fa-line-chart"></i>
                     Train recommendation
                 </button>
             </form>
 
             <a asp-area="Admin"
-                   asp-action="Create"
-                   asp-controller="Product"
-                   class="icon-btn icon-add"
-                   title="Thêm sản phẩm">
+               asp-action="Create"
+               asp-controller="Product"
+               class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus-circle"></i>
+                Tạo sản phẩm
             </a>
         </div>
-    </div>
+    </section>
+
+    <div class="row g-3 product-index-page">
 
     <div class="col-12">
         <div class="card-soft toolbar-card">
@@ -149,7 +160,8 @@
                             <th style="width: 150px;">Slug</th>
                             <th style="width: 140px;">Danh mục</th>
                             <th style="width: 140px;">Thương hiệu</th>
-                            <th style="width: 240px;" class="text-right">Thao tác</th>
+                            <th style="width: 130px;">Trạng thái</th>
+                            <th style="width: 280px;" class="text-right">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -226,6 +238,17 @@
                                     <span class="unit-badge">@(item.Publisher?.Name ?? "-")</span>
                                 </td>
 
+                                <td>
+                                    @if (item.Status == 1)
+                                    {
+                                        <span class="status-badge status-badge--show">Hiển thị</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-badge--hide">Ẩn tạm</span>
+                                    }
+                                </td>
+
                                 <td class="text-right">
                                     <div class="action-group">
                                         <a asp-action="Edit"
@@ -244,6 +267,19 @@
                                                title="Option">
                                             <i class="fa fa-sliders"></i>
                                         </a>
+
+                                        <form asp-action="ToggleVisibility"
+                                              asp-controller="Product"
+                                              method="post"
+                                              style="display:inline-block;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit"
+                                                    class="icon-btn @(item.Status == 1 ? "icon-hide" : "icon-show")"
+                                                    title="@(item.Status == 1 ? "Ẩn sản phẩm" : "Hiển thị sản phẩm")">
+                                                <i class="fa @(item.Status == 1 ? "fa-eye-slash" : "fa-eye")"></i>
+                                            </button>
+                                        </form>
 
                                         <form asp-action="Delete"
                                               asp-controller="Product"
@@ -269,6 +305,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <style>
@@ -474,7 +511,8 @@
 
     .qty-badge,
     .sold-badge,
-    .unit-badge {
+    .unit-badge,
+    .status-badge {
         display: inline-flex;
         align-items: center;
         padding: 6px 12px;
@@ -484,6 +522,14 @@
         border: 1px solid #dbe3ee;
         background: #f8fafc;
         color: #374151;
+    }
+
+    .status-badge--show {
+        color: #15803d;
+    }
+
+    .status-badge--hide {
+        color: #b91c1c;
     }
 
     .price-text {
@@ -546,6 +592,14 @@
 
     .icon-option {
         color: #2563eb;
+    }
+
+    .icon-show {
+        color: #15803d;
+    }
+
+    .icon-hide {
+        color: #b91c1c;
     }
 
     .icon-delete {

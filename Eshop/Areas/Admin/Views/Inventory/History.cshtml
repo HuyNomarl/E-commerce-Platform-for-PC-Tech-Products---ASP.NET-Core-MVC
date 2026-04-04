@@ -1,38 +1,196 @@
-﻿@model IEnumerable<Eshop.Models.InventoryTransactionModel>
+@model IEnumerable<Eshop.Models.InventoryTransactionModel>
+@using System.Linq
 
-<h2>Lịch sử kho</h2>
+@{
+    ViewData["Title"] = "Lịch sử kho";
+    var transactions = Model?.ToList() ?? new List<Eshop.Models.InventoryTransactionModel>();
+    var referenceCode = ViewBag.ReferenceCode?.ToString() ?? string.Empty;
+    var totalDetails = transactions.Sum(x => x.Details?.Count ?? 0);
+    var distinctReferences = transactions
+        .Select(x => x.ReferenceCode)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .Count();
 
-<form method="get" class="mb-3">
-    <input type="text" name="referenceCode" value="@ViewBag.ReferenceCode" class="form-control" placeholder="Tìm theo mã phiếu nhập / mã tham chiếu / mã đơn" />
-</form>
+    string GetTypeClass(object transactionType)
+    {
+        var value = transactionType?.ToString()?.ToLowerInvariant() ?? string.Empty;
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã phiếu</th>
-            <th>Loại</th>
-            <th>Kho</th>
-            <th>Mã tham chiếu</th>
-            <th>Ngày tạo</th>
-            <th>Chi tiết</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var tx in Model)
+        if (value.Contains("receive") || value.Contains("nhập"))
         {
-            <tr>
-                <td>@tx.TransactionCode</td>
-                <td>@tx.TransactionType</td>
-                <td>@tx.Warehouse?.Name</td>
-                <td>@tx.ReferenceCode</td>
-                <td>@tx.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>
-                    @foreach (var d in tx.Details)
-                    {
-                        <div>@d.Product?.Name - SL: @d.Quantity - @d.BeforeQuantity -> @d.AfterQuantity</div>
-                    }
-                </td>
-            </tr>
+            return "admin-ui-status admin-ui-status--success";
         }
-    </tbody>
-</table>
+
+        if (value.Contains("transfer") || value.Contains("chuyển"))
+        {
+            return "admin-ui-status admin-ui-status--info";
+        }
+
+        if (value.Contains("adjust") || value.Contains("điều chỉnh"))
+        {
+            return "admin-ui-status admin-ui-status--warning";
+        }
+
+        return "admin-ui-status";
+    }
+}
+
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Inventory History</span>
+            <h4>Lịch sử giao dịch kho</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi các phiếu nhập, chuyển và điều chỉnh kho trong một bảng dễ quét hơn để kiểm tra nhanh mã tham chiếu và biến động tồn.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@transactions.Count giao dịch</span>
+                <span class="admin-ui-chip">@distinctReferences mã tham chiếu</span>
+                <span class="admin-ui-chip">@totalDetails dòng chi tiết</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Tổng quan tồn kho
+        </a>
+    </section>
+
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-exchange"></i>Tổng giao dịch</div>
+            <div class="admin-ui-stat__value">@transactions.Count</div>
+            <div class="admin-ui-stat__hint">Số phiếu đã được ghi nhận trong lịch sử kho.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-barcode"></i>Mã tham chiếu</div>
+            <div class="admin-ui-stat__value">@distinctReferences</div>
+            <div class="admin-ui-stat__hint">Các mã đơn hoặc tham chiếu đang xuất hiện trong lịch sử.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-list"></i>Dòng chi tiết</div>
+            <div class="admin-ui-stat__value">@totalDetails</div>
+            <div class="admin-ui-stat__hint">Tổng số dòng biến động sản phẩm được ghi nhận.</div>
+        </article>
+    </div>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-search"></i>
+                    Tra cứu giao dịch
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Lọc nhanh theo mã phiếu nhập, mã tham chiếu hoặc mã đơn hàng để thu hẹp danh sách.
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            <form method="get" class="admin-ui-search-row">
+                <div class="admin-ui-search-box">
+                    <i class="fa fa-search"></i>
+                    <input type="text"
+                           name="referenceCode"
+                           value="@referenceCode"
+                           class="admin-ui-control"
+                           placeholder="Tìm theo mã phiếu nhập / mã tham chiếu / mã đơn" />
+                </div>
+
+                <div class="admin-ui-actions">
+                    <button type="submit" class="admin-ui-btn admin-ui-btn--primary">
+                        <i class="fa fa-filter"></i>
+                        Lọc
+                    </button>
+
+                    @if (!string.IsNullOrWhiteSpace(referenceCode))
+                    {
+                        <a asp-action="History" class="admin-ui-btn">
+                            <i class="fa fa-refresh"></i>
+                            Xóa lọc
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-clock-o"></i>
+                    Danh sách giao dịch
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Toàn bộ giao dịch kho được hiển thị theo cấu trúc rõ ràng hơn để dễ đối chiếu thay đổi số lượng.
+                </div>
+            </div>
+            <span class="admin-ui-total">Tổng: @transactions.Count</span>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            @if (transactions.Any())
+            {
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 160px;">Mã phiếu</th>
+                                    <th style="width: 150px;">Loại</th>
+                                    <th style="width: 180px;">Kho</th>
+                                    <th style="width: 170px;">Mã tham chiếu</th>
+                                    <th style="width: 170px;">Ngày tạo</th>
+                                    <th>Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in transactions)
+                                {
+                                    var details = tx.Details?.ToList() ?? new List<Eshop.Models.InventoryTransactionDetailModel>();
+
+                                    <tr>
+                                        <td>@tx.TransactionCode</td>
+                                        <td>
+                                            <span class="@GetTypeClass(tx.TransactionType)">@tx.TransactionType</span>
+                                        </td>
+                                        <td>@tx.Warehouse?.Name</td>
+                                        <td>@tx.ReferenceCode</td>
+                                        <td>@tx.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @if (details.Any())
+                                            {
+                                                <div class="admin-ui-stack">
+                                                    @foreach (var d in details)
+                                                    {
+                                                        <div class="admin-ui-stack__line">
+                                                            @d.Product?.Name - SL: @d.Quantity - @d.BeforeQuantity -> @d.AfterQuantity
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="admin-ui-muted">Chưa có chi tiết.</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="admin-ui-empty">
+                    Không tìm thấy giao dịch kho phù hợp.
+                </div>
+            }
+        </div>
+    </section>
+</div>

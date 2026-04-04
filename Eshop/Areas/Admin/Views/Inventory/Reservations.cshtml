@@ -1,34 +1,149 @@
-﻿@model IEnumerable<Eshop.Models.InventoryReservationModel>
+@model IEnumerable<Eshop.Models.InventoryReservationModel>
+@using System.Linq
 
-<h2>Reservation kho</h2>
+@{
+    ViewData["Title"] = "Reservations";
+    var reservations = Model?.ToList() ?? new List<Eshop.Models.InventoryReservationModel>();
+    var expiredCount = reservations.Count(x => x.ExpiresAt < DateTime.Now);
+    var totalDetails = reservations.Sum(x => x.Details?.Count ?? 0);
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã reservation</th>
-            <th>Payment</th>
-            <th>Trạng thái</th>
-            <th>OrderCode</th>
-            <th>Hết hạn</th>
-            <th>Chi tiết</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
+    string GetStatusClass(object status)
+    {
+        var value = status?.ToString()?.ToLowerInvariant() ?? string.Empty;
+
+        if (value.Contains("expired") || value.Contains("cancel") || value.Contains("void"))
         {
-            <tr>
-                <td>@item.ReservationCode</td>
-                <td>@item.PaymentMethod</td>
-                <td>@item.Status</td>
-                <td>@item.OrderCode</td>
-                <td>@item.ExpiresAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                <td>
-                    @foreach (var d in item.Details)
-                    {
-                        <div>@d.Product?.Name - SL: @d.Quantity - KhoId: @d.WarehouseId</div>
-                    }
-                </td>
-            </tr>
+            return "admin-ui-status admin-ui-status--danger";
         }
-    </tbody>
-</table>
+
+        if (value.Contains("paid") || value.Contains("complete") || value.Contains("confirmed") || value.Contains("active") || value.Contains("reserved"))
+        {
+            return "admin-ui-status admin-ui-status--success";
+        }
+
+        if (value.Contains("pending") || value.Contains("hold") || value.Contains("waiting"))
+        {
+            return "admin-ui-status admin-ui-status--warning";
+        }
+
+        return "admin-ui-status";
+    }
+}
+
+<div class="admin-ui-page admin-ui-page--slate">
+    <section class="admin-ui-hero">
+        <div class="admin-ui-hero__content">
+            <span class="admin-ui-hero__eyebrow">Inventory Reservations</span>
+            <h4>Reservation kho</h4>
+            <p class="admin-ui-hero__desc">
+                Theo dõi các reservation theo đơn hàng, phương thức thanh toán và thời điểm hết hạn trong một bảng dễ đọc hơn để kiểm tra nhanh trạng thái giữ chỗ.
+            </p>
+            <div class="admin-ui-hero__meta">
+                <span class="admin-ui-chip">@reservations.Count reservation</span>
+                <span class="admin-ui-chip">@expiredCount đã hết hạn</span>
+                <span class="admin-ui-chip">@totalDetails dòng chi tiết</span>
+            </div>
+        </div>
+
+        <a asp-action="Index" class="admin-ui-back">
+            <i class="fa fa-arrow-left"></i>
+            Tổng quan tồn kho
+        </a>
+    </section>
+
+    <div class="admin-ui-stats">
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-lock"></i>Tổng reservation</div>
+            <div class="admin-ui-stat__value">@reservations.Count</div>
+            <div class="admin-ui-stat__hint">Tất cả reservation đang được hệ thống ghi nhận.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-clock-o"></i>Hết hạn</div>
+            <div class="admin-ui-stat__value">@expiredCount</div>
+            <div class="admin-ui-stat__hint">Những reservation đã qua thời điểm giữ chỗ.</div>
+        </article>
+
+        <article class="admin-ui-stat">
+            <div class="admin-ui-stat__label"><i class="fa fa-list"></i>Dòng chi tiết</div>
+            <div class="admin-ui-stat__value">@totalDetails</div>
+            <div class="admin-ui-stat__hint">Tổng số dòng sản phẩm đang được reservation giữ lại.</div>
+        </article>
+    </div>
+
+    <section class="admin-ui-panel">
+        <div class="admin-ui-panel__head">
+            <div>
+                <div class="admin-ui-panel__title">
+                    <i class="fa fa-table"></i>
+                    Danh sách reservation
+                </div>
+                <div class="admin-ui-panel__subtitle">
+                    Xem mã reservation, phương thức thanh toán, trạng thái và chi tiết sản phẩm được giữ chỗ.
+                </div>
+            </div>
+            <span class="admin-ui-total">Tổng: @reservations.Count</span>
+        </div>
+
+        <div class="admin-ui-panel__body">
+            @if (reservations.Any())
+            {
+                <div class="admin-ui-table-shell">
+                    <div class="admin-ui-table-responsive">
+                        <table class="table admin-ui-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 170px;">Mã reservation</th>
+                                    <th style="width: 180px;">Payment</th>
+                                    <th style="width: 140px;">Trạng thái</th>
+                                    <th style="width: 170px;">OrderCode</th>
+                                    <th style="width: 190px;">Hết hạn</th>
+                                    <th>Chi tiết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in reservations)
+                                {
+                                    var details = item.Details?.ToList() ?? new List<Eshop.Models.InventoryReservationDetailModel>();
+
+                                    <tr>
+                                        <td>@item.ReservationCode</td>
+                                        <td>@item.PaymentMethod</td>
+                                        <td>
+                                            <span class="@GetStatusClass(item.Status)">@item.Status</span>
+                                        </td>
+                                        <td>@item.OrderCode</td>
+                                        <td>@item.ExpiresAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                        <td>
+                                            @if (details.Any())
+                                            {
+                                                <div class="admin-ui-stack">
+                                                    @foreach (var d in details)
+                                                    {
+                                                        <div class="admin-ui-stack__line">
+                                                            @d.Product?.Name - SL: @d.Quantity - KhoId: @d.WarehouseId
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="admin-ui-muted">Không có chi tiết.</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="admin-ui-empty">
+                    Chưa có reservation kho nào.
+                </div>
+            }
+        </div>
+    </section>
+</div>
