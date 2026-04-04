@@ -64,6 +64,7 @@ namespace Eshop.Controllers
                     .Include(p => p.Publisher)
                     .Include(p => p.Category)
                     .Include(p => p.ProductImages)
+                    .WhereVisibleOnStorefront(_dataContext)
                     .ToListAsync();
 
                 var productCacheOptions = new MemoryCacheEntryOptions()
@@ -130,7 +131,7 @@ namespace Eshop.Controllers
                 });
             }
 
-            if (!User.IsCustomerOnly())
+            if (!User.CanUseWishlistAndCompare())
             {
                 return StatusCode(403, new
                 {
@@ -142,6 +143,7 @@ namespace Eshop.Controllers
             var targetProduct = await _dataContext.Products
                 .AsNoTracking()
                 .Include(x => x.Category)
+                .WhereVisibleOnStorefront(_dataContext)
                 .FirstOrDefaultAsync(x => x.Id == productId);
 
             if (targetProduct == null)
@@ -195,7 +197,7 @@ namespace Eshop.Controllers
                 });
             }
 
-            if (!User.IsCustomerOnly())
+            if (!User.CanUseWishlistAndCompare())
             {
                 return StatusCode(403, new
                 {
@@ -207,6 +209,7 @@ namespace Eshop.Controllers
             var targetProduct = await _dataContext.Products
                 .AsNoTracking()
                 .Include(x => x.Category)
+                .WhereVisibleOnStorefront(_dataContext)
                 .FirstOrDefaultAsync(x => x.Id == productId);
 
             if (targetProduct == null)
@@ -296,7 +299,7 @@ namespace Eshop.Controllers
             });
         }
 
-        [Authorize(Policy = PolicyNames.CustomerSelfService)]
+        [Authorize(Policy = PolicyNames.WishlistCompareAccess)]
         public async Task<IActionResult> Compare()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -360,7 +363,7 @@ namespace Eshop.Controllers
             return View(model);
         }
 
-        [Authorize(Policy = PolicyNames.CustomerSelfService)]
+        [Authorize(Policy = PolicyNames.WishlistCompareAccess)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCompare(int id)
@@ -382,7 +385,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Compare));
         }
 
-        [Authorize(Policy = PolicyNames.CustomerSelfService)]
+        [Authorize(Policy = PolicyNames.WishlistCompareAccess)]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteWishlist(int id)
@@ -404,7 +407,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Wishlist));
         }
 
-        [Authorize(Policy = PolicyNames.CustomerSelfService)]
+        [Authorize(Policy = PolicyNames.WishlistCompareAccess)]
         public async Task<IActionResult> Wishlist()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -496,7 +499,7 @@ namespace Eshop.Controllers
                 return new Dictionary<int, int>();
 
             return await _dataContext.InventoryStocks
-                .Where(x => ids.Contains(x.ProductId))
+                .Where(x => ids.Contains(x.ProductId) && x.Warehouse.IsActive)
                 .GroupBy(x => x.ProductId)
                 .Select(g => new
                 {

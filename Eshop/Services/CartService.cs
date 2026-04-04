@@ -1,4 +1,5 @@
 using Eshop.Models;
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -21,7 +22,7 @@ namespace Eshop.Services
             var resolvedUserId = ResolveUserId(httpContext, userId);
             if (string.IsNullOrWhiteSpace(resolvedUserId))
             {
-                return ReadSessionCart(httpContext);
+                return await FilterVisibleCartItemsAsync(ReadSessionCart(httpContext));
             }
 
             if (mergeSessionCart)
@@ -29,7 +30,7 @@ namespace Eshop.Services
                 await MergeSessionCartAsync(httpContext, resolvedUserId);
             }
 
-            return await LoadUserCartAsync(resolvedUserId);
+            return await FilterVisibleCartItemsAsync(await LoadUserCartAsync(resolvedUserId));
         }
 
         public async Task SaveCartAsync(HttpContext httpContext, IReadOnlyCollection<CartItemModel> cartItems, string? userId = null)
@@ -329,6 +330,33 @@ namespace Eshop.Services
             return httpContext.User.Identity?.IsAuthenticated == true
                 ? httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)
                 : null;
+        }
+
+        private async Task<List<CartItemModel>> FilterVisibleCartItemsAsync(IEnumerable<CartItemModel> cartItems)
+        {
+            var normalizedCart = NormalizeCartItems(cartItems);
+            if (normalizedCart.Count == 0)
+            {
+                return normalizedCart;
+            }
+
+            var productIds = normalizedCart
+                .Select(x => (int)x.ProductId)
+                .Distinct()
+                .ToList();
+
+            var visibleProductIds = await _dataContext.Products
+                .AsNoTracking()
+                .WhereVisibleOnStorefront(_dataContext)
+                .Where(x => productIds.Contains(x.Id))
+                .Select(x => x.Id)
+                .ToListAsync();
+
+            var visibleIdSet = visibleProductIds.ToHashSet();
+
+            return normalizedCart
+                .Where(x => visibleIdSet.Contains((int)x.ProductId))
+                .ToList();
         }
     }
 }

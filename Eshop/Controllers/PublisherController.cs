@@ -1,3 +1,4 @@
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,8 @@ namespace Eshop.Controllers
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
-                .Where(p => p.PublisherId == publisher.Id);
+                .Where(p => p.PublisherId == publisher.Id)
+                .WhereVisibleOnStorefront(_dataContext);
 
             return View(await productsByPublisher.OrderByDescending(p => p.Id).ToListAsync());
         }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -20,15 +21,18 @@ namespace Eshop.Areas.Admin.Controllers
         private readonly DataContext _dataContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IMemoryCache _memoryCache;
 
         public ProductController(
             IWebHostEnvironment webHostEnvironment,
             DataContext dataContext,
-            ICloudinaryService cloudinaryService)
+            ICloudinaryService cloudinaryService,
+            IMemoryCache memoryCache)
         {
             _webHostEnvironment = webHostEnvironment;
             _dataContext = dataContext;
             _cloudinaryService = cloudinaryService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IActionResult> Index()
@@ -107,6 +111,7 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Thêm sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -185,6 +190,7 @@ namespace Eshop.Areas.Admin.Controllers
             existingProduct.CategoryId = vm.Product.CategoryId;
             existingProduct.PublisherId = vm.Product.PublisherId;
             existingProduct.IsPcBuild = vm.Product.IsPcBuild;
+            existingProduct.Status = vm.Product.Status;
 
             await DeleteMarkedProductImagesAsync(existingProduct, vm.DeletedImageIds);
             await HandleLegacyImageDeletionAsync(existingProduct, vm.DeleteLegacyImage);
@@ -233,6 +239,7 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Cập nhật sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -287,8 +294,31 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Products.Remove(product);
             await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Xóa sản phẩm thành công!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleVisibility(int id)
+        {
+            var product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (product == null)
+            {
+                TempData["error"] = "Không tìm thấy sản phẩm.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            product.Status = product.Status == 1 ? 0 : 1;
+            await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            TempData["success"] = product.Status == 1
+                ? "Đã hiển thị sản phẩm."
+                : "Đã ẩn sản phẩm.";
+
             return RedirectToAction(nameof(Index));
         }
 

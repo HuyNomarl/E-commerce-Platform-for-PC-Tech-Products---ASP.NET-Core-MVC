@@ -1,12 +1,27 @@
-﻿@{
+@{
     ViewData["Title"] = "Access Denied";
     var returnUrl = ViewBag.ReturnUrl as string;
+    var isCompareOrWishlistPage =
+        !string.IsNullOrWhiteSpace(returnUrl) &&
+        (returnUrl.Contains("/Home/Compare", StringComparison.OrdinalIgnoreCase) ||
+         returnUrl.Contains("/Home/Wishlist", StringComparison.OrdinalIgnoreCase));
+    var showBackOfficeCustomerMessage =
+        isCompareOrWishlistPage &&
+        User.Identity?.IsAuthenticated == true &&
+        User.CanAccessBackOffice();
 }
 
 <div class="container mt-4">
     <div class="alert alert-warning">
         <h4>Không có quyền truy cập</h4>
-        <div>Bạn không có quyền truy cập trang này.</div>
+        @if (showBackOfficeCustomerMessage)
+        {
+            <div>Trang Yêu thích và So sánh chỉ dành cho tài khoản khách hàng hoặc admin. Tài khoản hiện tại không có quyền dùng hai chức năng này.</div>
+        }
+        else
+        {
+            <div>Bạn không có quyền truy cập trang này.</div>
+        }
     </div>
 
     <div class="d-flex gap-2">

@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Home Page";
+    var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
 
     var productList = Model?.ToList() ?? new List<Eshop.Models.ProductModel>();
 
@@ -107,7 +108,7 @@
                                             }
                                         </div>
 
-                                        @if (User.IsCustomerOnly())
+                                        @if (canUseWishlistAndCompare)
                                         {
                                             <div class="mini-actions">
                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
@@ -200,7 +201,7 @@
                                                             }
                                                         </div>
 
-                                                        @if (User.IsCustomerOnly())
+                                                        @if (canUseWishlistAndCompare)
                                                         {
                                                             <div class="mini-actions">
                                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>
@@ -311,7 +312,7 @@
                                             }
                                         </div>
 
-                                        @if (User.IsCustomerOnly())
+                                        @if (canUseWishlistAndCompare)
                                         {
                                             <div class="mini-actions">
                                                 <button class="btn add-btn-wishlist" data-product_id="@item.Id">Yêu thích</button>

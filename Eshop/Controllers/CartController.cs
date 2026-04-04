@@ -89,6 +89,7 @@ namespace Eshop.Controllers
                 .Include(p => p.ProductImages)
                 .Include(p => p.OptionGroups)
                     .ThenInclude(g => g.OptionValues)
+                .WhereVisibleOnStorefront(_dataContext)
                 .FirstOrDefaultAsync(p => p.Id == model.ProductId);
 
 
@@ -232,10 +233,12 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
-            ProductModel? product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == cartItem.ProductId);
+            ProductModel? product = await _dataContext.Products
+                .WhereVisibleOnStorefront(_dataContext)
+                .FirstOrDefaultAsync(x => x.Id == cartItem.ProductId);
             if (product == null)
             {
-                TempData["Error"] = "Sản phẩm không tồn tại.";
+                TempData["Error"] = "Sản phẩm không còn khả dụng.";
                 return RedirectToAction("Index");
             }
 

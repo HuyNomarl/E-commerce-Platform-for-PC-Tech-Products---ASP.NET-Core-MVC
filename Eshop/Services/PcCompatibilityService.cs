@@ -1,6 +1,7 @@
 ﻿using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -35,6 +36,7 @@ namespace Eshop.Services
             var products = await _context.Products
                 .Include(x => x.Specifications)
                     .ThenInclude(x => x.SpecificationDefinition)
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => productIds.Contains(x.Id))
                 .ToListAsync();
 

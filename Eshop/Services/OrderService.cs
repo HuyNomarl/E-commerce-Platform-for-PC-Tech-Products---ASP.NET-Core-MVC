@@ -117,6 +117,7 @@ namespace Eshop.Services
                 var productIds = cartItems.Select(x => (int)x.ProductId).Distinct().ToList();
                 var products = await _dataContext.Products
                     .Include(x => x.ProductImages)
+                    .WhereVisibleOnStorefront(_dataContext)
                     .Where(x => productIds.Contains(x.Id))
                     .ToDictionaryAsync(x => x.Id);
 
@@ -196,7 +197,7 @@ namespace Eshop.Services
                 foreach (var cart in cartItems)
                 {
                     if (!products.TryGetValue((int)cart.ProductId, out var product))
-                        throw new InvalidOperationException($"Sản phẩm #{cart.ProductId} không tồn tại.");
+                        throw new InvalidOperationException($"Sản phẩm #{cart.ProductId} không còn khả dụng để đặt hàng.");
 
                     var detail = new OrderDetails
                     {

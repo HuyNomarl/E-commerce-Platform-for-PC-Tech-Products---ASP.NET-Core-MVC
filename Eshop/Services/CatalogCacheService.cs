@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -25,6 +26,7 @@ namespace Eshop.Services
 
             data = await _context.Categories
                 .AsNoTracking()
+                .Where(x => x.Status == 1)
                 .OrderBy(x => x.Name)
                 .ToListAsync();
 
@@ -68,7 +70,8 @@ namespace Eshop.Services
             data = await _context.Products
                 .AsNoTracking()
                 .Include(x => x.Category)
-                .Include(x => x.Publisher   )
+                .Include(x => x.Publisher)
+                .WhereVisibleOnStorefront(_context)
                 .OrderByDescending(x => x.Id)
                 .Take(count)
                 .ToListAsync();
@@ -95,6 +98,7 @@ namespace Eshop.Services
                 .Include(x => x.Publisher)
                 .Include(x => x.OptionGroups)
                     .ThenInclude(g => g.OptionValues)
+                .WhereVisibleOnStorefront(_context)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (data != null)

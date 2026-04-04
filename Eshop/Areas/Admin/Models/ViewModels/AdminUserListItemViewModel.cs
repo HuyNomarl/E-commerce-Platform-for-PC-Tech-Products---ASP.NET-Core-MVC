@@ -10,6 +10,8 @@ namespace Eshop.Areas.Admin.Models.ViewModels
         public string RoleDescription { get; set; } = string.Empty;
         public string AuthMethods { get; set; } = "Local";
         public bool HasPassword { get; set; }
+        public bool IsLocked { get; set; }
+        public string? LockoutEndText { get; set; }
         public bool IsCurrentUser { get; set; }
     }
 }

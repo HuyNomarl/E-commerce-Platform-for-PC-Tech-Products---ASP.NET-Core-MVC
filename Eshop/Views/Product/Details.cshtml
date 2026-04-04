@@ -16,6 +16,7 @@
 
 @{
     var product = Model.ProductDetail!;
+    var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
     var optionGroups = product.OptionGroups?
         .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
         .ToList()
@@ -170,7 +171,7 @@
                                     @(string.IsNullOrWhiteSpace(Model.TechnicalDocumentName) ? "Tài liệu kỹ thuật" : "Tải " + Model.TechnicalDocumentName)
                                 </a>
                             }
-                            @if (User.IsCustomerOnly())
+                            @if (canUseWishlistAndCompare)
                             {
                                 <button type="button" class="pd-btn js-add-wishlist" data-product-id="@product.Id"><i class="fa fa-heart-o"></i> Wishlist</button>
                                 <button type="button" class="pd-btn js-add-compare" data-product-id="@product.Id"><i class="fa fa-balance-scale"></i> Compare</button>

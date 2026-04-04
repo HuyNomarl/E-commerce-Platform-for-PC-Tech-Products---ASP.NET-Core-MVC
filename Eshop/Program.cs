@@ -184,6 +184,8 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAssertion(context =>
             context.User.IsInRole(RoleNames.Customer) &&
             !context.User.IsInAnyRole(RoleNames.BackOfficeRoles)));
+    options.AddPolicy(PolicyNames.WishlistCompareAccess, policy =>
+        policy.RequireAssertion(context => context.User.CanUseWishlistAndCompare()));
 });
 
 // Cookie

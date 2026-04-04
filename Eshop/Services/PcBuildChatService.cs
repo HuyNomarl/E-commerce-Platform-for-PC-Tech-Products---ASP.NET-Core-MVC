@@ -184,16 +184,16 @@ namespace Eshop.Services
                 var parts = new List<string>();
 
                 if (!string.IsNullOrWhiteSpace(requirement.PrimaryPurpose))
-                    parts.Add($"Muc dich: {requirement.PrimaryPurpose}");
+                    parts.Add($"Mục đích: {requirement.PrimaryPurpose}");
 
                 if (!string.IsNullOrWhiteSpace(requirement.GameTitle))
                     parts.Add($"Game: {requirement.GameTitle}");
 
                 if (!string.IsNullOrWhiteSpace(requirement.PerformancePriority))
-                    parts.Add($"Uu tien: {requirement.PerformancePriority}");
+                    parts.Add($"Ưu tiên: {requirement.PerformancePriority}");
 
                 if (requirement.BudgetMax.HasValue)
-                    parts.Add($"Ngan sach toi da: {requirement.BudgetMax.Value}");
+                    parts.Add($"Ngân sách tối đa: {requirement.BudgetMax.Value}");
 
                 parts.Add($"Cau hoi: {userMessage}");
                 return string.Join(". ", parts);
@@ -279,12 +279,12 @@ namespace Eshop.Services
             }
 
             sb.AppendLine("""
-Quy tắc trả lời:
-- Nếu has_current_build = true, hãy nói theo ngữ cảnh cấu hình hiện tại của người dùng.
-- Nếu has_current_build = false, đây là cấu hình đề xuất do hệ thống gợi ý, KHÔNG được nói là "cấu hình bạn đã chọn".
-- Nếu chưa có build hiện tại, hãy nói theo kiểu tư vấn: "mình gợi ý", "với nhu cầu này", "một cấu hình phù hợp có thể là".
-- Nếu game người dùng hỏi không có nhiều dữ liệu cụ thể, hãy nói rõ đây là định hướng build đề xuất và nên уточ rõ ngân sách hoặc độ phân giải.
-""");
+                Quy tắc trả lời:
+                - Nếu has_current_build = true, hãy nói theo ngữ cảnh cấu hình hiện tại của người dùng.
+                - Nếu has_current_build = false, đây là cấu hình đề xuất do hệ thống gợi ý, KHÔNG được nói là "cấu hình bạn đã chọn".
+                - Nếu chưa có build hiện tại, hãy nói theo kiểu tư vấn: "mình gợi ý", "với nhu cầu này", "một cấu hình phù hợp có thể là".
+                - Nếu game người dùng hỏi không có nhiều dữ liệu cụ thể, hãy nói rõ đây là định hướng build đề xuất và nên nói rõ ngân sách hoặc độ phân giải.
+                """);
 
             sb.AppendLine("Hãy tạo câu trả lời cuối cùng cho người dùng.");
             return sb.ToString();

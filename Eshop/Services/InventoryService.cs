@@ -21,7 +21,7 @@ namespace Eshop.Services
         public async Task<int> GetAvailableStockAsync(int productId)
         {
             return await _context.InventoryStocks
-                .Where(x => x.ProductId == productId)
+                .Where(x => x.ProductId == productId && x.Warehouse.IsActive)
                 .SumAsync(x => (int?)x.OnHandQuantity - x.ReservedQuantity) ?? 0;
         }
 
@@ -544,6 +544,20 @@ namespace Eshop.Services
 
             await _context.SaveChangesAsync();
             await SyncProductsCacheAsync(productIds.ToList());
+        }
+
+        public async Task SyncWarehouseProductsAsync(int warehouseId)
+        {
+            var productIds = await _context.InventoryStocks
+                .Where(x => x.WarehouseId == warehouseId)
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToListAsync();
+
+            if (!productIds.Any())
+                return;
+
+            await SyncProductsCacheAsync(productIds);
         }
 
         public async Task IssueOrderAsync(string orderCode, Dictionary<int, int> requestedQtyByProduct, string? userId)

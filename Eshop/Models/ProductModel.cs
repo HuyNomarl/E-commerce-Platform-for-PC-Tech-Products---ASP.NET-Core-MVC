@@ -20,6 +20,7 @@ namespace Eshop.Models
 
         public int Quantity { get; set; }
         public int Sold { get; set; }
+        public int Status { get; set; } = 1;
 
         [Required(ErrorMessage = "Yêu cầu nhập giá sản phẩm!")]
         [Range(0.01, double.MaxValue)]

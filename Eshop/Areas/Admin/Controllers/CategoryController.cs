@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -13,10 +14,12 @@ namespace Eshop.Areas.Admin.Controllers
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly IMemoryCache _memoryCache;
 
-        public CategoryController(DataContext dataContext)
+        public CategoryController(DataContext dataContext, IMemoryCache memoryCache)
         {
             _dataContext = dataContext;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IActionResult> Index(int pg = 1)
@@ -90,6 +93,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Categories.Add(category);
             await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Thêm danh mục thành công!";
             return RedirectToAction(nameof(Index));
@@ -174,6 +178,7 @@ namespace Eshop.Areas.Admin.Controllers
             try
             {
                 await _dataContext.SaveChangesAsync();
+                _memoryCache.Remove(CacheKeys.HomeProducts);
                 TempData["success"] = "Cập nhật danh mục thành công!";
                 return RedirectToAction(nameof(Index));
             }
@@ -206,8 +211,31 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Categories.Remove(category);
             await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Xóa danh mục thành công!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleVisibility(int id)
+        {
+            var category = await _dataContext.Categories.FirstOrDefaultAsync(x => x.Id == id);
+            if (category == null)
+            {
+                TempData["error"] = "Không tìm thấy danh mục.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            category.Status = category.Status == 1 ? 0 : 1;
+            await _dataContext.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            TempData["success"] = category.Status == 1
+                ? "Đã hiển thị danh mục."
+                : "Đã ẩn danh mục.";
+
             return RedirectToAction(nameof(Index));
         }
 

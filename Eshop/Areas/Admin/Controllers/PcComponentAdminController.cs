@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -22,13 +23,16 @@ namespace Eshop.Areas.Admin.Controllers
     {
         private readonly DataContext _context;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IMemoryCache _memoryCache;
 
         public PcComponentAdminController(
             DataContext context,
-            ICloudinaryService cloudinaryService)
+            ICloudinaryService cloudinaryService,
+            IMemoryCache memoryCache)
         {
             _context = context;
             _cloudinaryService = cloudinaryService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IActionResult> Index()
@@ -137,6 +141,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Update(vm.Product);
             await _context.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Tạo linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -264,6 +269,7 @@ namespace Eshop.Areas.Admin.Controllers
             product.ProductType = vm.Product.ProductType;
             product.IsPcBuild = false;
             product.Slug = newSlug;
+            product.Status = vm.Product.Status;
 
             var hasLegacyImage = !string.IsNullOrWhiteSpace(product.Image)
                 && !product.ProductImages.Any(x => x.Url == product.Image);
@@ -383,6 +389,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Cập nhật linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -430,8 +437,32 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
 
             TempData["success"] = "Xóa linh kiện thành công.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleVisibility(int id)
+        {
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (product == null ||
+                (product.ProductType != ProductType.Component && product.ProductType != ProductType.Monitor))
+            {
+                TempData["error"] = "Không tìm thấy linh kiện.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            product.Status = product.Status == 1 ? 0 : 1;
+            await _context.SaveChangesAsync();
+            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            TempData["success"] = product.Status == 1
+                ? "Đã hiển thị linh kiện."
+                : "Đã ẩn linh kiện.";
+
             return RedirectToAction(nameof(Index));
         }
 

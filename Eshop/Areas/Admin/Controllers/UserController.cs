@@ -46,7 +46,9 @@ namespace Eshop.Areas.Admin.Controllers
                     Email = user.Email,
                     PhoneNumber = user.PhoneNumber,
                     RoleId = user.RoleId,
-                    PasswordHash = user.PasswordHash
+                    PasswordHash = user.PasswordHash,
+                    LockoutEnabled = user.LockoutEnabled,
+                    LockoutEnd = user.LockoutEnd
                 })
                 .ToListAsync();
 
@@ -109,6 +111,8 @@ namespace Eshop.Areas.Admin.Controllers
                         authMethods.Add("Chưa cấu hình");
                     }
 
+                    var isLocked = IsUserLocked(user);
+
                     return new AdminUserListItemViewModel
                     {
                         Id = user.Id,
@@ -126,6 +130,10 @@ namespace Eshop.Areas.Admin.Controllers
                             : RoleNames.GetDescription(primaryRoleName),
                         AuthMethods = string.Join(", ", authMethods),
                         HasPassword = !string.IsNullOrWhiteSpace(user.PasswordHash),
+                        IsLocked = isLocked,
+                        LockoutEndText = isLocked && user.LockoutEnd.HasValue
+                            ? user.LockoutEnd.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                            : null,
                         IsCurrentUser = string.Equals(user.Id, currentUserId, StringComparison.Ordinal)
                     };
                 })
@@ -448,6 +456,71 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLock(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["ErrorMessage"] = "Id người dùng không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var currentUserId = _userManager.GetUserId(User);
+            if (string.Equals(currentUserId, id, StringComparison.Ordinal))
+            {
+                TempData["ErrorMessage"] = "Bạn không thể tự khóa chính mình.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Người dùng không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var isLocked = IsUserLocked(user);
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var isAdmin = currentRoles.Contains(RoleNames.Admin, StringComparer.OrdinalIgnoreCase);
+
+            if (!isLocked && isAdmin && await CountUnlockedUsersInRoleAsync(RoleNames.Admin) <= 1)
+            {
+                TempData["ErrorMessage"] = "Không thể khóa admin cuối cùng còn hoạt động.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var enableLockoutResult = await _userManager.SetLockoutEnabledAsync(user, true);
+            if (!enableLockoutResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(" | ", enableLockoutResult.Errors.Select(x => x.Description));
+                return RedirectToAction(nameof(Index));
+            }
+
+            var lockoutEndResult = isLocked
+                ? await _userManager.SetLockoutEndDateAsync(user, null)
+                : await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+
+            if (!lockoutEndResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(" | ", lockoutEndResult.Errors.Select(x => x.Description));
+                return RedirectToAction(nameof(Index));
+            }
+
+            if (isLocked)
+            {
+                await _userManager.ResetAccessFailedCountAsync(user);
+            }
+
+            _ = await _userManager.UpdateSecurityStampAsync(user);
+
+            TempData["SuccessMessage"] = isLocked
+                ? "Đã mở khóa tài khoản."
+                : "Đã khóa tài khoản.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private async Task PopulateRolesAsync(string? selectedRoleId = null)
         {
             var roles = (await _roleManager.Roles
@@ -527,6 +600,38 @@ namespace Eshop.Areas.Admin.Controllers
                 .CountAsync();
         }
 
+        private async Task<int> CountUnlockedUsersInRoleAsync(string roleName)
+        {
+            var role = await _roleManager.FindByNameAsync(roleName);
+            if (role == null)
+            {
+                return 0;
+            }
+
+            var userIds = await _dataContext.UserRoles
+                .AsNoTracking()
+                .Where(x => x.RoleId == role.Id)
+                .Select(x => x.UserId)
+                .Union(_dataContext.Users
+                    .AsNoTracking()
+                    .Where(x => x.RoleId == role.Id)
+                    .Select(x => x.Id))
+                .Distinct()
+                .ToListAsync();
+
+            if (userIds.Count == 0)
+            {
+                return 0;
+            }
+
+            var now = DateTimeOffset.UtcNow;
+
+            return await _dataContext.Users
+                .AsNoTracking()
+                .Where(x => userIds.Contains(x.Id))
+                .CountAsync(x => !x.LockoutEnabled || !x.LockoutEnd.HasValue || x.LockoutEnd <= now);
+        }
+
         private async Task<IdentityResult> SetPasswordAsync(AppUserModel user, string password)
         {
             if (string.IsNullOrWhiteSpace(password))
@@ -577,6 +682,13 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             return !string.Equals(currentRoles[0], selectedRole.Name, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsUserLocked(AppUserModel user)
+        {
+            return user.LockoutEnabled &&
+                   user.LockoutEnd.HasValue &&
+                   user.LockoutEnd.Value > DateTimeOffset.UtcNow;
         }
 
         private void AddErrors(IdentityResult result)

@@ -277,7 +277,7 @@ function initSupportChat() {
         clearMessages();
 
         if (!data || !data.length) {
-            renderEmptyState("Chua co tin nhan nao.");
+            renderEmptyState("Chưa có tin nhắn nào.");
             return;
         }
 
@@ -296,7 +296,7 @@ function initSupportChat() {
         productResults.innerHTML = "";
 
         if (!data || !data.length) {
-            productResults.innerHTML = '<div class="support-chat-empty">Khong tim thay san pham phu hop.</div>';
+            productResults.innerHTML = '<div class="support-chat-empty">Không tìm thấy sản phẩm phù hợp.</div>';
             return;
         }
 

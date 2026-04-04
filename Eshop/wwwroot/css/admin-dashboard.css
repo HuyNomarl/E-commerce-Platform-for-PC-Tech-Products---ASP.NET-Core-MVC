@@ -164,6 +164,116 @@
     margin-bottom: 12px;
 }
 
+.dashboard-admin-page .dash {
+    gap: 18px;
+}
+
+.dashboard-admin-page .dash-toolbar {
+    gap: 16px;
+    padding: 24px 26px;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 58%, #eef2ff 100%);
+    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.07);
+}
+
+.dashboard-admin-page .dash-caption {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.dashboard-admin-page .dash-updated {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #475569;
+}
+
+.dashboard-admin-page .dash-range__btn {
+    min-width: 84px;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 14px;
+    border-color: #d3dae6;
+}
+
+.dashboard-admin-page .dash-card,
+.dashboard-admin-page .dash-kpi,
+.dashboard-admin-page .dash-ops__card,
+.dashboard-admin-page .kpi-card {
+    border-radius: 20px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.05);
+}
+
+.dashboard-admin-page .dash-kpi,
+.dashboard-admin-page .dash-card {
+    padding: 18px;
+}
+
+.dashboard-admin-page .dash-card__head {
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.dashboard-admin-page .dash-card__head h4,
+.dashboard-admin-page .dash-section__title {
+    color: #0f172a;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.dashboard-admin-page .dash-card__head h4 {
+    font-size: 18px;
+}
+
+.dashboard-admin-page .dash-section__title {
+    font-size: 18px;
+}
+
+.dashboard-admin-page .dash-chart,
+.dashboard-admin-page .dash-table-wrap,
+.dashboard-admin-page .dash-alert,
+.dashboard-admin-page .dash-trend,
+.dashboard-admin-page .dash-mini,
+.dashboard-admin-page .dash-empty {
+    border-radius: 18px;
+}
+
+.dashboard-admin-page .dash-chart {
+    padding: 14px;
+}
+
+.dashboard-admin-page .dash-ops__card {
+    padding: 16px;
+    border-radius: 18px;
+}
+
+@media (max-width: 767px) {
+    .dashboard-admin-page .dash-toolbar {
+        padding: 20px;
+        border-radius: 20px;
+    }
+}
+
+.dash-chart canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.dash-chart--compact {
+    height: 220px;
+}
+
+.dash-chart--tall {
+    height: 320px;
+}
+
+.dash-chart--flush {
+    margin-bottom: 0;
+}
+
 .dash-list,
 .dash-breakdowns,
 .dash-alerts {
@@ -492,6 +602,14 @@
 
     .dash-chart {
         height: 250px;
+    }
+
+    .dash-chart--compact {
+        height: 220px;
+    }
+
+    .dash-chart--tall {
+        height: 280px;
     }
 
     .dash-table {

@@ -34,7 +34,7 @@ namespace Eshop.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = "Chua co tai khoan ho tro."
+                    message = "Chưa có tài khoản hỗ trợ."
                 });
             }
 
@@ -43,7 +43,7 @@ namespace Eshop.Controllers
                 success = true,
                 adminId = supportUser.Id,
                 adminName = supportUser.UserName,
-                title = "Doi ngu ho tro"
+                title = "Đội ngũ hỗ trợ"
             });
         }
 

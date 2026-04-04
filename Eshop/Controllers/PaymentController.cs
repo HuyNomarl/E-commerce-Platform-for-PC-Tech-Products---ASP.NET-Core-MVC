@@ -50,6 +50,7 @@ namespace Eshop.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["error"] = "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin Ä‘áº·t hÃ ng.";
+                TempData["error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -153,6 +154,21 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
+            if (!response.SignatureValid)
+            {
+                if (!string.IsNullOrWhiteSpace(reservationCode))
+                {
+                    await _inventoryService.ReleaseReservationAsync(
+                        reservationCode,
+                        pendingState?.UserId ?? User.FindFirstValue(ClaimTypes.NameIdentifier),
+                        "VNPAY trả về chữ ký không hợp lệ.");
+                    ClearPendingCheckoutState(reservationCode);
+                }
+
+                TempData["error"] = "Phản hồi từ VNPAY có chữ ký không hợp lệ.";
+                return RedirectToAction("Index", "Cart");
+            }
+
             if (!response.Success)
             {
                 if (!string.IsNullOrWhiteSpace(reservationCode))
@@ -160,7 +176,7 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         pendingState?.UserId ?? User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        $"VNPAY fail: {response.VnPayResponseCode}");
+                        $"VNPAY fail: ResponseCode={response.VnPayResponseCode}, TransactionStatus={response.TransactionStatus}");
                     ClearPendingCheckoutState(reservationCode);
                 }
 

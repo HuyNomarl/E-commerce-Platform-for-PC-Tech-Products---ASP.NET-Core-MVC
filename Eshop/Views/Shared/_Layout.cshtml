@@ -2,7 +2,7 @@
 @{
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
     var isBackOfficeUser = User.CanAccessBackOffice();
-    var canUseCustomerPages = !isBackOfficeUser;
+    var canUseWishlistCompareLinks = !isBackOfficeUser || User.CanUseWishlistAndCompare();
 }
 <html lang="vi">
 <head>
@@ -111,8 +111,11 @@
 
                         <div class="tt-quick-links">
                             <a href="#">PC Gaming</a>
-                            <a asp-action="Compare" asp-controller="Home">So sánh</a>
-                            <a asp-controller="Home" asp-action="Wishlist">Yêu thích</a>
+                            @if (canUseWishlistCompareLinks)
+                            {
+                                <a asp-action="Compare" asp-controller="Home">So sánh</a>
+                                <a asp-controller="Home" asp-action="Wishlist">Yêu thích</a>
+                            }
                         </div>
                     </div>
 

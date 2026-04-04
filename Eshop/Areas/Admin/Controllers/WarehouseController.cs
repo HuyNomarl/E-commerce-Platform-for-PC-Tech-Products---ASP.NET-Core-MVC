@@ -1,9 +1,11 @@
-﻿using Eshop.Models;
-using Eshop.Repository;
 using Eshop.Constants;
+using Eshop.Models;
+using Eshop.Repository;
+using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -12,10 +14,17 @@ namespace Eshop.Areas.Admin.Controllers
     public class WarehouseController : Controller
     {
         private readonly DataContext _context;
+        private readonly IInventoryService _inventoryService;
+        private readonly IMemoryCache _memoryCache;
 
-        public WarehouseController(DataContext context)
+        public WarehouseController(
+            DataContext context,
+            IInventoryService inventoryService,
+            IMemoryCache memoryCache)
         {
             _context = context;
+            _inventoryService = inventoryService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IActionResult> Index()
@@ -51,6 +60,12 @@ namespace Eshop.Areas.Admin.Controllers
             var hasDefault = await _context.Warehouses.AnyAsync(x => x.IsDefault && x.IsActive);
             if (!hasDefault)
                 model.IsDefault = true;
+
+            if (model.IsDefault && !model.IsActive)
+            {
+                ModelState.AddModelError("IsActive", "Kho mặc định phải luôn ở trạng thái hoạt động.");
+                return View(model);
+            }
 
             if (model.IsDefault)
             {
@@ -92,12 +107,9 @@ namespace Eshop.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var hasStock = await _context.InventoryStocks
-                .AnyAsync(x => x.WarehouseId == id && (x.OnHandQuantity > 0 || x.ReservedQuantity > 0));
-
-            if (!model.IsActive && hasStock)
+            if (model.IsDefault && !model.IsActive)
             {
-                ModelState.AddModelError("IsActive", "Không thể ngưng hoạt động kho đang còn tồn.");
+                ModelState.AddModelError("IsActive", "Kho mặc định phải luôn ở trạng thái hoạt động.");
                 return View(model);
             }
 
@@ -119,6 +131,8 @@ namespace Eshop.Areas.Admin.Controllers
                 defaults.ForEach(x => x.IsDefault = false);
             }
 
+            var isActiveChanged = item.IsActive != model.IsActive;
+
             item.Code = model.Code;
             item.Name = model.Name;
             item.Address = model.Address;
@@ -126,6 +140,12 @@ namespace Eshop.Areas.Admin.Controllers
             item.IsActive = model.IsActive;
 
             await _context.SaveChangesAsync();
+
+            if (isActiveChanged)
+            {
+                await _inventoryService.SyncWarehouseProductsAsync(id);
+                _memoryCache.Remove(CacheKeys.HomeProducts);
+            }
 
             TempData["success"] = "Cập nhật kho thành công.";
             return RedirectToAction(nameof(Index));

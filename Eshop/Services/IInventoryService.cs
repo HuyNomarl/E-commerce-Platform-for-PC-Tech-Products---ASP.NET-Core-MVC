@@ -29,5 +29,6 @@ namespace Eshop.Services
             int expireMinutes = 20);
         Task CommitReservationAsync(string reservationCode, string orderCode, string? userId);
         Task ReleaseReservationAsync(string reservationCode, string? userId, string? note = null, bool expired = false);
+        Task SyncWarehouseProductsAsync(int warehouseId);
     }
 }

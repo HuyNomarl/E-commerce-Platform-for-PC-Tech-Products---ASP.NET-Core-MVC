@@ -1,0 +1,29 @@
+.admin-select-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.admin-select-filter-input {
+    height: 38px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.admin-select-filter.is-disabled {
+    opacity: 0.75;
+}
+
+.admin-select-filter-empty {
+    display: none;
+    padding: 0 2px;
+    font-size: 12px;
+    color: #b45309;
+}
+
+.admin-select-filter.has-no-results .admin-select-filter-empty {
+    display: block;
+}

@@ -935,6 +935,9 @@ namespace Eshop.Migrations
                     b.Property<int>("Sold")
                         .HasColumnType("int");
 
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");

@@ -1,4 +1,5 @@
-﻿using Eshop.Models;
+using Eshop.Helpers;
+using Eshop.Models;
 using Eshop.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ namespace Eshop.Controllers
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;
+
         public CategoryController(DataContext dataContext)
         {
             _dataContext = dataContext;
@@ -39,6 +41,7 @@ namespace Eshop.Controllers
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
                 .Where(p => categoryIds.Contains(p.CategoryId))
+                .WhereVisibleOnStorefront(_dataContext)
                 .ToListAsync();
 
             ViewBag.CategoryName = category.Name;

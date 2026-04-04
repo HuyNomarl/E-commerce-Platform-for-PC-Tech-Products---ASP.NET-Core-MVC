@@ -51,6 +51,16 @@ namespace Eshop.Helpers
             return user.IsInRole(RoleNames.Customer) && !user.CanAccessBackOffice();
         }
 
+        public static bool CanUseWishlistAndCompare(this ClaimsPrincipal? user)
+        {
+            if (user?.Identity?.IsAuthenticated != true)
+            {
+                return false;
+            }
+
+            return user.IsCustomerOnly() || user.IsInRole(RoleNames.Admin);
+        }
+
         public static string GetPrimaryRoleName(this ClaimsPrincipal? user)
         {
             if (user?.Identity?.IsAuthenticated != true)

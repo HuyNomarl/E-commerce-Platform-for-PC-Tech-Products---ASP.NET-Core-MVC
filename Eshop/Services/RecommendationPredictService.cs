@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Models.ML;
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -131,6 +132,7 @@ namespace Eshop.Services
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
+                .WhereVisibleOnStorefront(_context)
                 .Where(p => p.Quantity > 0 && !excludedIds.Contains(p.Id))
                 .ToListAsync();
 
@@ -236,6 +238,7 @@ namespace Eshop.Services
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
+                .WhereVisibleOnStorefront(_context)
                 .Where(p => p.Quantity > 0)
                 .OrderByDescending(p => p.Sold)
                 .ThenByDescending(p => p.Id)

@@ -123,12 +123,12 @@ namespace Eshop.Constants
         {
             return roleName?.Trim() switch
             {
-                Admin => "Quan tri vien",
+                Admin => "Quản trị viên",
                 CatalogManager => "Quan ly catalog",
                 Publisher => "Quan ly thuong hieu",
                 OrderStaff => "Nhan vien don hang",
-                WarehouseManager => "Quan ly kho",
-                SupportStaff => "Nhan vien ho tro",
+                WarehouseManager => "Quản lý kho",
+                SupportStaff => "Nhân viên hỗ trợ",
                 Customer => "Khach hang",
                 _ => string.IsNullOrWhiteSpace(roleName) ? "Khach hang" : roleName.Trim()
             };

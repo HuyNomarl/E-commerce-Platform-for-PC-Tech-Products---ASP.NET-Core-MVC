@@ -1,6 +1,7 @@
 ﻿using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,7 +58,7 @@ namespace Eshop.Services
 
         private async Task<ProductModel?> PickCpu(BuildRequirementProfile profile)
         {
-            var query = _context.Products
+            var query = GetVisibleComponentsQuery()
                 .Where(x => x.ComponentType == PcComponentType.CPU);
 
             if ((profile.GameTitle ?? "").Contains("valorant", StringComparison.OrdinalIgnoreCase))
@@ -74,6 +75,7 @@ namespace Eshop.Services
             if (string.IsNullOrWhiteSpace(cpuSocket)) return null;
 
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.Mainboard)
                 .Where(x => x.Specifications.Any(s =>
                     s.SpecificationDefinition.Code == "mb_socket" &&
@@ -88,6 +90,7 @@ namespace Eshop.Services
             if (string.IsNullOrWhiteSpace(ramType)) return null;
 
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.RAM)
                 .Where(x => x.Specifications.Any(s =>
                     s.SpecificationDefinition.Code == "ram_type" &&
@@ -98,7 +101,7 @@ namespace Eshop.Services
 
         private async Task<ProductModel?> PickGpu(BuildRequirementProfile profile)
         {
-            var query = _context.Products
+            var query = GetVisibleComponentsQuery()
                 .Where(x => x.ComponentType == PcComponentType.GPU);
 
             if ((profile.GameTitle ?? "").Contains("valorant", StringComparison.OrdinalIgnoreCase))
@@ -124,6 +127,7 @@ namespace Eshop.Services
             }
 
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.PSU)
                 .Where(x => x.Specifications.Any(s =>
                     s.SpecificationDefinition.Code == "psu_watt" &&
@@ -136,6 +140,7 @@ namespace Eshop.Services
         private async Task<ProductModel?> PickSsd(BuildRequirementProfile profile)
         {
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.SSD)
                 .OrderByDescending(x => x.Price)
                 .FirstOrDefaultAsync();
@@ -144,6 +149,7 @@ namespace Eshop.Services
         private async Task<ProductModel?> PickCase(BuildRequirementProfile profile)
         {
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.Case)
                 .OrderBy(x => x.Price)
                 .FirstOrDefaultAsync();
@@ -154,6 +160,7 @@ namespace Eshop.Services
             if (!profile.NeedsMonitorHighRefresh) return null;
 
             return await _context.Products
+                .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType == PcComponentType.Monitor)
                 .Where(x => x.Specifications.Any(s =>
                     s.SpecificationDefinition.Code == "monitor_refresh_rate_hz" &&
@@ -177,6 +184,13 @@ namespace Eshop.Services
                 .Where(x => x.ProductId == productId && x.SpecificationDefinition.Code == code)
                 .Select(x => x.ValueNumber)
                 .FirstOrDefaultAsync();
+        }
+
+        private IQueryable<ProductModel> GetVisibleComponentsQuery()
+        {
+            return _context.Products
+                .WhereVisibleOnStorefront(_context)
+                .Where(x => x.ProductType == ProductType.Component || x.ProductType == ProductType.Monitor);
         }
     }
 }

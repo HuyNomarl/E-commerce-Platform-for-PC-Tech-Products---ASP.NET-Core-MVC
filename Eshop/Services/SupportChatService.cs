@@ -276,6 +276,7 @@ namespace Eshop.Services
             var query = _context.Products
                 .AsNoTracking()
                 .Include(x => x.ProductImages)
+                .WhereVisibleOnStorefront(_context)
                 .OrderByDescending(x => x.Sold)
                 .ThenByDescending(x => x.Id)
                 .AsQueryable();
@@ -427,6 +428,7 @@ namespace Eshop.Services
                 var product = await _context.Products
                     .AsNoTracking()
                     .Include(x => x.ProductImages)
+                    .WhereVisibleOnStorefront(_context)
                     .FirstOrDefaultAsync(x => x.Id == input.ProductId.Value)
                     ?? throw new InvalidOperationException("San pham khong ton tai.");
 

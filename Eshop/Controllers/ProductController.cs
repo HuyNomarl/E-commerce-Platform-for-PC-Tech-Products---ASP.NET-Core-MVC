@@ -55,6 +55,7 @@ namespace Eshop.Controllers
                     .ThenInclude(r => r.MediaItems)
                 .Include(p => p.OptionGroups)
                     .ThenInclude(g => g.OptionValues)
+                .WhereVisibleOnStorefront(_dataContext)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
@@ -66,17 +67,18 @@ namespace Eshop.Controllers
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
                 .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
+                .WhereVisibleOnStorefront(_dataContext)
                 .OrderByDescending(p => p.Sold)
                 .ThenByDescending(p => p.Id)
                 .Take(4)
                 .ToListAsync();
 
             var totalOnHand = await _dataContext.InventoryStocks
-                .Where(x => x.ProductId == id)
+                .Where(x => x.ProductId == id && x.Warehouse.IsActive)
                 .SumAsync(x => (int?)x.OnHandQuantity) ?? 0;
 
             var totalReserved = await _dataContext.InventoryStocks
-                .Where(x => x.ProductId == id)
+                .Where(x => x.ProductId == id && x.Warehouse.IsActive)
                 .SumAsync(x => (int?)x.ReservedQuantity) ?? 0;
 
             var currentUser = await _userManager.GetUserAsync(User);
@@ -146,7 +148,8 @@ namespace Eshop.Controllers
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
-                .Include(p => p.ProductImages);
+                .Include(p => p.ProductImages)
+                .WhereVisibleOnStorefront(_dataContext);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -174,6 +177,7 @@ namespace Eshop.Controllers
 
             var productExists = await _dataContext.Products
                 .AsNoTracking()
+                .WhereVisibleOnStorefront(_dataContext)
                 .AnyAsync(p => p.Id == reviewForm.ProductId);
 
             if (!productExists)
