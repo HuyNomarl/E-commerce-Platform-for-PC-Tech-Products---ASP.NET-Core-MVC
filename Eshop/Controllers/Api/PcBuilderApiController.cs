@@ -1,4 +1,5 @@
 using Eshop.Constants;
+using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
@@ -66,6 +67,8 @@ namespace Eshop.Controllers.Api
                     .Where(x =>
                         x.ComponentType == componentType &&
                         (x.ProductType == ProductType.Component || x.ProductType == ProductType.Monitor));
+
+                query = query.WhereVisibleOnStorefront(_context);
 
                 if (!string.IsNullOrWhiteSpace(keyword))
                 {
@@ -194,6 +197,7 @@ namespace Eshop.Controllers.Api
                 var products = await _context.Products
                     .AsNoTracking()
                     .Include(x => x.ProductImages)
+                    .WhereVisibleOnStorefront(_context)
                     .Where(x => productIds.Contains(x.Id))
                     .ToDictionaryAsync(x => x.Id);
 
@@ -301,6 +305,15 @@ namespace Eshop.Controllers.Api
                 var workbook = await _pcBuildWorkbookService.ImportAsync(stream, HttpContext.RequestAborted);
                 var result = await _pcBuildStorageService.ResolveImportedRowsAsync(workbook.BuildName, workbook.Rows);
                 result.SourceFileName = file.FileName;
+
+                if (result.Errors.Any())
+                {
+                    return BadRequest(new
+                    {
+                        message = $"File Excel không hợp lệ. Có {result.Errors.Count} lỗi cần sửa.",
+                        errors = result.Errors
+                    });
+                }
 
                 return Ok(result);
             }

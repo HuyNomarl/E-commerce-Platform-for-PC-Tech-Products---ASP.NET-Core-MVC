@@ -1,6 +1,7 @@
 using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
+using Eshop.Helpers;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -76,14 +77,23 @@ namespace Eshop.Services
         public async Task<PcBuildImportResultDto> ResolveImportedRowsAsync(string? buildName, IReadOnlyCollection<PcBuildWorkbookRowModel> rows)
         {
             var warnings = new List<string>();
+            var errors = rows
+                .SelectMany(x => x.ValidationErrors ?? Enumerable.Empty<string>())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
             var normalizedItems = new List<PcBuildCheckItemDto>();
-            var latestSingleSlotByType = new Dictionary<PcComponentType, PcBuildCheckItemDto>();
-            var rowsByName = rows
+            var latestSingleSlotByType = new Dictionary<PcComponentType, (PcBuildCheckItemDto Item, int RowNumber)>();
+            var validRows = rows
+                .Where(x => x.ValidationErrors == null || x.ValidationErrors.Count == 0)
+                .ToList();
+
+            var rowsByName = validRows
                 .Where(x => !string.IsNullOrWhiteSpace(x.ProductName))
                 .GroupBy(x => x.ProductName!.Trim(), StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
 
-            var candidateIds = rows
+            var candidateIds = validRows
                 .Where(x => x.ProductId.HasValue && x.ProductId.Value > 0)
                 .Select(x => x.ProductId!.Value)
                 .Distinct()
@@ -97,6 +107,7 @@ namespace Eshop.Services
                 .Include(x => x.ProductImages)
                 .Include(x => x.Specifications)
                     .ThenInclude(x => x.SpecificationDefinition)
+                .WhereVisibleOnStorefront(_context)
                 .Where(x =>
                     candidateIds.Contains(x.Id) ||
                     candidateNames.Contains(x.Name))
@@ -107,12 +118,11 @@ namespace Eshop.Services
                 .GroupBy(x => x.Name, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(x => x.Key, x => x.ToList(), StringComparer.OrdinalIgnoreCase);
 
-            foreach (var row in rows)
+            foreach (var row in validRows)
             {
-                var matchedProduct = MatchImportedProduct(row, productsById, productsByName, warnings);
+                var matchedProduct = MatchImportedProduct(row, productsById, productsByName, errors);
                 if (matchedProduct == null)
                 {
-                    warnings.Add(BuildMissingRowWarning(row));
                     continue;
                 }
 
@@ -122,7 +132,19 @@ namespace Eshop.Services
 
                 if (componentType == PcComponentType.None)
                 {
-                    warnings.Add($"Không xác định được loại linh kiện cho sản phẩm \"{matchedProduct.Name}\".");
+                    errors.Add(BuildImportRowError(row, $"Không xác định được loại linh kiện cho sản phẩm \"{matchedProduct.Name}\"."));
+                    continue;
+                }
+
+                if (row.ComponentType.HasValue &&
+                    row.ComponentType.Value != PcComponentType.None &&
+                    matchedProduct.ComponentType.HasValue &&
+                    matchedProduct.ComponentType.Value != PcComponentType.None &&
+                    row.ComponentType.Value != matchedProduct.ComponentType.Value)
+                {
+                    errors.Add(BuildImportRowError(
+                        row,
+                        $"Loại linh kiện \"{GetComponentLabel(row.ComponentType.Value)}\" không khớp với sản phẩm \"{matchedProduct.Name}\" ({GetComponentLabel(matchedProduct.ComponentType.Value)})."));
                     continue;
                 }
 
@@ -130,7 +152,7 @@ namespace Eshop.Services
                 {
                     ComponentType = componentType,
                     ProductId = matchedProduct.Id,
-                    Quantity = Math.Max(1, row.Quantity)
+                    Quantity = row.Quantity
                 };
 
                 if (IsMultiSlot(componentType))
@@ -139,15 +161,39 @@ namespace Eshop.Services
                     continue;
                 }
 
-                if (latestSingleSlotByType.ContainsKey(componentType))
+                if (row.Quantity != 1)
                 {
-                    warnings.Add($"File import có nhiều hơn 1 linh kiện cho ô {componentType}. Hệ thống giữ lại dòng cuối cùng.");
+                    errors.Add(BuildImportRowError(
+                        row,
+                        $"{GetComponentLabel(componentType)} thuộc nhóm single-slot nên số lượng phải bằng 1."));
+                    continue;
                 }
 
-                latestSingleSlotByType[componentType] = item;
+                if (latestSingleSlotByType.TryGetValue(componentType, out var existingSingleSlot))
+                {
+                    errors.Add(BuildImportRowError(
+                        row,
+                        $"{GetComponentLabel(componentType)} thuộc nhóm single-slot và đã xuất hiện ở dòng {existingSingleSlot.RowNumber}."));
+                    continue;
+                }
+
+                latestSingleSlotByType[componentType] = (item, row.RowNumber);
             }
 
-            normalizedItems.AddRange(latestSingleSlotByType.Values);
+            if (errors.Any())
+            {
+                return new PcBuildImportResultDto
+                {
+                    BuildName = ResolveBuildName(buildName),
+                    ImportedRowCount = 0,
+                    Errors = errors
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList(),
+                    Warnings = warnings
+                };
+            }
+
+            normalizedItems.AddRange(latestSingleSlotByType.Values.Select(x => x.Item));
             var mergedItems = NormalizeItems(normalizedItems);
             var detail = await BuildDetailAsync(buildName, mergedItems);
 
@@ -162,6 +208,7 @@ namespace Eshop.Services
                 Messages = detail.Messages,
                 Items = detail.Items,
                 ImportedRowCount = mergedItems.Sum(x => x.Quantity),
+                Errors = new List<string>(),
                 Warnings = warnings
             };
         }
@@ -302,6 +349,7 @@ namespace Eshop.Services
                     .Include(x => x.ProductImages)
                     .Include(x => x.Specifications)
                         .ThenInclude(x => x.SpecificationDefinition)
+                    .WhereVisibleOnStorefront(_context)
                     .Where(x => productIds.Contains(x.Id))
                     .ToListAsync();
 
@@ -359,12 +407,23 @@ namespace Eshop.Services
             PcBuildWorkbookRowModel row,
             IReadOnlyDictionary<int, ProductModel> productsById,
             IReadOnlyDictionary<string, List<ProductModel>> productsByName,
-            List<string> warnings)
+            List<string> errors)
         {
-            if (row.ProductId.HasValue &&
-                row.ProductId.Value > 0 &&
-                productsById.TryGetValue(row.ProductId.Value, out var byId))
+            if (row.ProductId.HasValue && row.ProductId.Value > 0)
             {
+                if (!productsById.TryGetValue(row.ProductId.Value, out var byId))
+                {
+                    errors.Add(BuildImportRowError(row, $"Không tìm thấy sản phẩm có Product ID {row.ProductId.Value} trong hệ thống."));
+                    return null;
+                }
+
+                if (!string.IsNullOrWhiteSpace(row.ProductName) &&
+                    !string.Equals(byId.Name, row.ProductName.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    errors.Add(BuildImportRowError(row, $"Product ID {row.ProductId.Value} không khớp với tên sản phẩm \"{row.ProductName}\"."));
+                    return null;
+                }
+
                 return byId;
             }
 
@@ -375,39 +434,44 @@ namespace Eshop.Services
 
             if (!productsByName.TryGetValue(row.ProductName.Trim(), out var candidates) || candidates.Count == 0)
             {
+                errors.Add(BuildImportRowError(row, $"Không tìm thấy sản phẩm \"{row.ProductName}\" trong hệ thống."));
                 return null;
             }
 
             if (row.ComponentType.HasValue && row.ComponentType.Value != PcComponentType.None)
             {
-                var matchedByType = candidates.FirstOrDefault(x => x.ComponentType == row.ComponentType.Value);
-                if (matchedByType != null)
+                var matchedByType = candidates
+                    .Where(x => x.ComponentType == row.ComponentType.Value)
+                    .ToList();
+
+                if (matchedByType.Count == 1)
                 {
-                    return matchedByType;
+                    return matchedByType[0];
                 }
+
+                if (matchedByType.Count > 1)
+                {
+                    errors.Add(BuildImportRowError(
+                        row,
+                        $"Tên sản phẩm \"{row.ProductName}\" khớp nhiều sản phẩm cùng loại {GetComponentLabel(row.ComponentType.Value)}. Hãy nhập Product ID chính xác."));
+                    return null;
+                }
+
+                errors.Add(BuildImportRowError(
+                    row,
+                    $"Sản phẩm \"{row.ProductName}\" không thuộc loại {GetComponentLabel(row.ComponentType.Value)}."));
+                return null;
             }
 
             if (candidates.Count > 1)
             {
-                warnings.Add($"Sản phẩm \"{row.ProductName}\" có nhiều kết quả khớp, hệ thống lấy kết quả đầu tiên.");
+                errors.Add(BuildImportRowError(
+                    row,
+                    $"Tên sản phẩm \"{row.ProductName}\" khớp nhiều sản phẩm. Hãy nhập thêm Product ID hoặc loại linh kiện."));
+                return null;
             }
 
             return candidates[0];
-        }
-
-        private static string BuildMissingRowWarning(PcBuildWorkbookRowModel row)
-        {
-            if (row.ProductId.HasValue && row.ProductId.Value > 0)
-            {
-                return $"Không tìm thấy sản phẩm ID {row.ProductId.Value} trong dự án.";
-            }
-
-            if (!string.IsNullOrWhiteSpace(row.ProductName))
-            {
-                return $"Không tìm thấy sản phẩm \"{row.ProductName}\" trong dự án.";
-            }
-
-            return "Có một dòng trong file Excel không xác định được sản phẩm.";
         }
 
         private static bool IsMultiSlot(PcComponentType componentType)
@@ -415,11 +479,36 @@ namespace Eshop.Services
             return MultiSlotTypes.Contains(componentType);
         }
 
+        private static string BuildImportRowError(PcBuildWorkbookRowModel row, string message)
+        {
+            return row.RowNumber > 0
+                ? $"Dòng {row.RowNumber}: {message}"
+                : message;
+        }
+
         private static string ResolveBuildName(string? buildName)
         {
             return string.IsNullOrWhiteSpace(buildName)
                 ? "PC Build mới"
                 : buildName.Trim();
+        }
+
+        private static string GetComponentLabel(PcComponentType componentType)
+        {
+            return componentType switch
+            {
+                PcComponentType.CPU => "CPU",
+                PcComponentType.Mainboard => "Mainboard",
+                PcComponentType.RAM => "RAM",
+                PcComponentType.SSD => "SSD",
+                PcComponentType.HDD => "HDD",
+                PcComponentType.GPU => "GPU",
+                PcComponentType.PSU => "PSU",
+                PcComponentType.Case => "Case",
+                PcComponentType.Cooler => "Cooler",
+                PcComponentType.Monitor => "Monitor",
+                _ => componentType.ToString()
+            };
         }
 
         private static int GetComponentOrder(PcComponentType componentType)

@@ -130,16 +130,19 @@ namespace Eshop.Models.ViewModels
 
     public class PcBuildWorkbookRowModel
     {
+        public int RowNumber { get; set; }
         public PcComponentType? ComponentType { get; set; }
         public int? ProductId { get; set; }
         public string? ProductName { get; set; }
         public int Quantity { get; set; } = 1;
+        public List<string> ValidationErrors { get; set; } = new();
     }
 
     public class PcBuildImportResultDto : PcBuilderBuildDetailDto
     {
         public string? SourceFileName { get; set; }
         public int ImportedRowCount { get; set; }
+        public List<string> Errors { get; set; } = new();
         public List<string> Warnings { get; set; } = new();
     }
 }

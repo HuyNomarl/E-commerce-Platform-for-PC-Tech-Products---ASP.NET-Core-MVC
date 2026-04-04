@@ -9,6 +9,9 @@ namespace Eshop.Services
 {
     public class PcBuildWorkbookService : IPcBuildWorkbookService
     {
+        private const int HeaderRowNumber = 7;
+        private const int DataStartRowNumber = 8;
+
         private static readonly XNamespace SpreadsheetNamespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
         private static readonly XNamespace RelationshipNamespace = "http://schemas.openxmlformats.org/package/2006/relationships";
         private static readonly XNamespace DocumentRelationshipNamespace = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
@@ -64,30 +67,36 @@ namespace Eshop.Services
 
             var rows = sheetData.Elements(SpreadsheetNamespace + "row")
                 .Select(ParseRow)
-                .Where(x => x.Count > 0)
+                .Where(x => x.Cells.Count > 0)
                 .ToList();
 
             var resolvedRows = rows
-                .Select(row => row.ToDictionary(
-                    x => x.Key,
-                    x => ResolveSharedString(x.Value, sharedStrings),
-                    StringComparer.OrdinalIgnoreCase))
+                .Select(row => new ResolvedWorksheetRow(
+                    row.RowNumber,
+                    row.Cells.ToDictionary(
+                        x => x.Key,
+                        x => ResolveCellValue(x.Value, sharedStrings),
+                        StringComparer.OrdinalIgnoreCase)))
                 .ToList();
 
-            var buildName = ExtractBuildName(resolvedRows);
-            var headerRowIndex = FindHeaderRowIndex(resolvedRows);
+            var resolvedCells = resolvedRows
+                .Select(x => (IReadOnlyDictionary<string, string>)x.Cells)
+                .ToList();
+
+            var buildName = ExtractBuildName(resolvedCells);
+            var headerRowIndex = FindHeaderRowIndex(resolvedCells);
             if (headerRowIndex < 0)
             {
                 throw new InvalidOperationException("Không nhận diện được cấu trúc cột của file Excel.");
             }
 
-            var header = resolvedRows[headerRowIndex];
+            var header = resolvedRows[headerRowIndex].Cells;
             var importRows = new List<PcBuildWorkbookRowModel>();
 
             for (var i = headerRowIndex + 1; i < resolvedRows.Count; i++)
             {
                 var row = resolvedRows[i];
-                var mapped = MapImportedRow(row, header, sharedStrings);
+                var mapped = MapImportedRow(row.RowNumber, row.Cells, header);
                 if (mapped != null)
                 {
                     importRows.Add(mapped);
@@ -100,6 +109,10 @@ namespace Eshop.Services
                 Rows = importRows
             };
         }
+
+        private sealed record WorksheetCell(string RawValue, string? CellType);
+        private sealed record WorksheetRow(int RowNumber, Dictionary<string, WorksheetCell> Cells);
+        private sealed record ResolvedWorksheetRow(int RowNumber, Dictionary<string, string> Cells);
 
         private static void AddEntry(ZipArchive archive, string entryPath, string content)
         {
@@ -304,17 +317,18 @@ namespace Eshop.Services
                 BuildTextRow(3, "A", "Xuất lúc", "B", DateTime.Now.ToString("dd/MM/yyyy HH:mm")),
                 BuildNumberRow(4, "A", "Tổng tiền", "B", build.TotalPrice, true),
                 BuildNumberRow(5, "A", "Công suất ước tính", "B", build.EstimatedPower, false),
+                BuildTextRow(6, "A", "Lưu ý", "B", "Product ID phải tồn tại; single-slot chỉ được 1 dòng và số lượng = 1; multi-slot phải có số lượng > 0."),
                 new XElement(SpreadsheetNamespace + "row",
-                    new XAttribute("r", 7),
-                    InlineCell("A7", "Loại linh kiện"),
-                    InlineCell("B7", "Product ID"),
-                    InlineCell("C7", "Tên sản phẩm"),
-                    InlineCell("D7", "Số lượng"),
-                    InlineCell("E7", "Đơn giá"),
-                    InlineCell("F7", "Thành tiền"))
+                    new XAttribute("r", HeaderRowNumber),
+                    InlineCell($"A{HeaderRowNumber}", "Loại linh kiện"),
+                    InlineCell($"B{HeaderRowNumber}", "Product ID"),
+                    InlineCell($"C{HeaderRowNumber}", "Tên sản phẩm"),
+                    InlineCell($"D{HeaderRowNumber}", "Số lượng"),
+                    InlineCell($"E{HeaderRowNumber}", "Đơn giá"),
+                    InlineCell($"F{HeaderRowNumber}", "Thành tiền"))
             };
 
-            var rowIndex = 8;
+            var rowIndex = DataStartRowNumber;
             foreach (var item in build.Items)
             {
                 rows.Add(new XElement(SpreadsheetNamespace + "row",
@@ -331,7 +345,7 @@ namespace Eshop.Services
             var worksheet = new XDocument(
                 new XElement(SpreadsheetNamespace + "worksheet",
                     new XAttribute(XNamespace.Xmlns + "r", DocumentRelationshipNamespace),
-                    new XElement(SpreadsheetNamespace + "dimension", new XAttribute("ref", $"A1:F{Math.Max(7, rowIndex - 1)}")),
+                    new XElement(SpreadsheetNamespace + "dimension", new XAttribute("ref", $"A1:F{Math.Max(HeaderRowNumber, rowIndex - 1)}")),
                     new XElement(SpreadsheetNamespace + "sheetViews",
                         new XElement(SpreadsheetNamespace + "sheetView", new XAttribute("workbookViewId", 0))),
                     new XElement(SpreadsheetNamespace + "sheetFormatPr", new XAttribute("defaultRowHeight", 15)),
@@ -341,9 +355,63 @@ namespace Eshop.Services
                         new XElement(SpreadsheetNamespace + "col", new XAttribute("min", 3), new XAttribute("max", 3), new XAttribute("width", 42), new XAttribute("customWidth", 1)),
                         new XElement(SpreadsheetNamespace + "col", new XAttribute("min", 4), new XAttribute("max", 4), new XAttribute("width", 12), new XAttribute("customWidth", 1)),
                         new XElement(SpreadsheetNamespace + "col", new XAttribute("min", 5), new XAttribute("max", 6), new XAttribute("width", 16), new XAttribute("customWidth", 1))),
-                    new XElement(SpreadsheetNamespace + "sheetData", rows)));
+                    new XElement(SpreadsheetNamespace + "sheetData", rows),
+                    BuildWorksheetDataValidations()));
 
             return worksheet.Declaration + worksheet.ToString(SaveOptions.DisableFormatting);
+        }
+
+        private static XElement BuildWorksheetDataValidations()
+        {
+            const string componentRange = "A8:A1048576";
+            const string productIdRange = "B8:B1048576";
+            const string quantityRange = "D8:D1048576";
+
+            return new XElement(SpreadsheetNamespace + "dataValidations",
+                new XAttribute("count", 4),
+                new XElement(SpreadsheetNamespace + "dataValidation",
+                    new XAttribute("type", "list"),
+                    new XAttribute("allowBlank", 1),
+                    new XAttribute("showInputMessage", 1),
+                    new XAttribute("showErrorMessage", 1),
+                    new XAttribute("errorStyle", "stop"),
+                    new XAttribute("sqref", componentRange),
+                    new XAttribute("promptTitle", "Loại linh kiện"),
+                    new XAttribute("prompt", "Chỉ chấp nhận CPU, Mainboard, RAM, GPU, SSD, PSU, Cooler, Case, Monitor hoặc HDD."),
+                    new XAttribute("errorTitle", "Loại linh kiện không hợp lệ"),
+                    new XAttribute("error", "Giá trị cột Loại linh kiện không đúng danh sách cho phép."),
+                    new XElement(SpreadsheetNamespace + "formula1", "\"CPU,Mainboard,RAM,GPU,SSD,PSU,Cooler,Case,Monitor,HDD\"")),
+                new XElement(SpreadsheetNamespace + "dataValidation",
+                    new XAttribute("type", "whole"),
+                    new XAttribute("operator", "greaterThan"),
+                    new XAttribute("allowBlank", 1),
+                    new XAttribute("showInputMessage", 1),
+                    new XAttribute("showErrorMessage", 1),
+                    new XAttribute("errorStyle", "stop"),
+                    new XAttribute("sqref", productIdRange),
+                    new XAttribute("promptTitle", "Product ID"),
+                    new XAttribute("prompt", "Nhập Product ID là số nguyên dương hoặc để trống nếu bạn muốn đối chiếu theo tên."),
+                    new XAttribute("errorTitle", "Product ID không hợp lệ"),
+                    new XAttribute("error", "Product ID phải là số nguyên dương."),
+                    new XElement(SpreadsheetNamespace + "formula1", "0")),
+                new XElement(SpreadsheetNamespace + "dataValidation",
+                    new XAttribute("type", "custom"),
+                    new XAttribute("allowBlank", 1),
+                    new XAttribute("showErrorMessage", 1),
+                    new XAttribute("errorStyle", "stop"),
+                    new XAttribute("sqref", componentRange),
+                    new XAttribute("errorTitle", "Single-slot bị trùng"),
+                    new XAttribute("error", "CPU, Mainboard, GPU, PSU, Cooler, Case và HDD chỉ được xuất hiện một lần trong file."),
+                    new XElement(SpreadsheetNamespace + "formula1", "OR($A8=\"\",$A8=\"RAM\",$A8=\"SSD\",$A8=\"Monitor\",COUNTIF($A:$A,$A8)=1)")),
+                new XElement(SpreadsheetNamespace + "dataValidation",
+                    new XAttribute("type", "custom"),
+                    new XAttribute("allowBlank", 1),
+                    new XAttribute("showErrorMessage", 1),
+                    new XAttribute("errorStyle", "stop"),
+                    new XAttribute("sqref", quantityRange),
+                    new XAttribute("errorTitle", "Số lượng không hợp lệ"),
+                    new XAttribute("error", "Single-slot phải có số lượng = 1. RAM, SSD, Monitor phải là số nguyên dương."),
+                    new XElement(SpreadsheetNamespace + "formula1", "IF(COUNTA($A8:$C8)=0,TRUE,IF(OR($A8=\"RAM\",$A8=\"SSD\",$A8=\"Monitor\"),AND($D8>=1,INT($D8)=$D8),$D8=1))")));
         }
 
         private static XElement BuildTextRow(int rowNumber, string labelColumn, string label, string valueColumn, string value)
@@ -465,9 +533,9 @@ namespace Eshop.Services
                 .Select(x => x.Element(SpreadsheetNamespace + "t")?.Value ?? string.Empty));
         }
 
-        private static Dictionary<string, string> ParseRow(XElement row)
+        private static WorksheetRow ParseRow(XElement row)
         {
-            var cells = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var cells = new Dictionary<string, WorksheetCell>(StringComparer.OrdinalIgnoreCase);
             foreach (var cell in row.Elements(SpreadsheetNamespace + "c"))
             {
                 var reference = cell.Attribute("r")?.Value;
@@ -482,13 +550,16 @@ namespace Eshop.Services
                     continue;
                 }
 
-                cells[column] = ReadCellRawValue(cell);
+                cells[column] = new WorksheetCell(
+                    ReadCellRawValue(cell),
+                    cell.Attribute("t")?.Value);
             }
 
-            return cells;
+            var rowNumber = ParseInt(row.Attribute("r")?.Value) ?? 0;
+            return new WorksheetRow(rowNumber, cells);
         }
 
-        private static string? ExtractBuildName(IReadOnlyList<Dictionary<string, string>> rows)
+        private static string? ExtractBuildName(IReadOnlyList<IReadOnlyDictionary<string, string>> rows)
         {
             foreach (var row in rows.Take(5))
             {
@@ -507,7 +578,7 @@ namespace Eshop.Services
             return null;
         }
 
-        private static int FindHeaderRowIndex(IReadOnlyList<Dictionary<string, string>> rows)
+        private static int FindHeaderRowIndex(IReadOnlyList<IReadOnlyDictionary<string, string>> rows)
         {
             for (var i = 0; i < rows.Count; i++)
             {
@@ -531,49 +602,92 @@ namespace Eshop.Services
         }
 
         private static PcBuildWorkbookRowModel? MapImportedRow(
+            int rowNumber,
             IReadOnlyDictionary<string, string> row,
-            IReadOnlyDictionary<string, string> header,
-            IReadOnlyList<string> sharedStrings)
+            IReadOnlyDictionary<string, string> header)
         {
-            var mapped = new PcBuildWorkbookRowModel
-            {
-                ComponentType = ParseComponentType(GetValueByHeader(row, header, sharedStrings, "loailinhkien", "componenttype")),
-                ProductId = ParseInt(GetValueByHeader(row, header, sharedStrings, "productid", "idsanpham")),
-                ProductName = GetValueByHeader(row, header, sharedStrings, "tensanpham", "productname"),
-                Quantity = ParseInt(GetValueByHeader(row, header, sharedStrings, "soluong", "quantity")) ?? 1
-            };
+            var rawComponentType = GetValueByHeader(row, header, "loailinhkien", "componenttype");
+            var rawProductId = GetValueByHeader(row, header, "productid", "idsanpham");
+            var rawProductName = GetValueByHeader(row, header, "tensanpham", "productname");
+            var rawQuantity = GetValueByHeader(row, header, "soluong", "quantity");
 
-            if (mapped.ComponentType == null &&
-                !mapped.ProductId.HasValue &&
-                string.IsNullOrWhiteSpace(mapped.ProductName))
+            var productName = rawProductName?.Trim();
+            var productId = ParseInt(rawProductId);
+            var quantity = ParseInt(rawQuantity);
+            var componentType = ParseComponentType(rawComponentType);
+
+            if (componentType == null &&
+                !productId.HasValue &&
+                string.IsNullOrWhiteSpace(productName))
             {
                 return null;
             }
 
-            mapped.ProductName = mapped.ProductName?.Trim();
+            var validationErrors = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(rawComponentType) && componentType == null)
+            {
+                validationErrors.Add(BuildRowError(rowNumber, $"Loại linh kiện \"{rawComponentType}\" không hợp lệ."));
+            }
+
+            if (!string.IsNullOrWhiteSpace(rawProductId) && (!productId.HasValue || productId.Value <= 0))
+            {
+                validationErrors.Add(BuildRowError(rowNumber, "Product ID phải là số nguyên dương."));
+            }
+
+            if (!productId.HasValue && string.IsNullOrWhiteSpace(productName))
+            {
+                validationErrors.Add(BuildRowError(rowNumber, "Cần nhập Product ID hoặc Tên sản phẩm."));
+            }
+
+            if (string.IsNullOrWhiteSpace(rawQuantity))
+            {
+                validationErrors.Add(BuildRowError(rowNumber, "Số lượng không được để trống."));
+            }
+            else if (!quantity.HasValue || quantity.Value <= 0)
+            {
+                validationErrors.Add(BuildRowError(rowNumber, "Số lượng phải là số nguyên dương."));
+            }
+
+            var mapped = new PcBuildWorkbookRowModel
+            {
+                RowNumber = rowNumber,
+                ComponentType = componentType,
+                ProductId = productId,
+                ProductName = productName,
+                Quantity = quantity ?? 0,
+                ValidationErrors = validationErrors
+            };
+
             return mapped;
         }
 
         private static string? GetValueByHeader(
             IReadOnlyDictionary<string, string> row,
             IReadOnlyDictionary<string, string> header,
-            IReadOnlyList<string> sharedStrings,
             params string[] expectedHeaders)
         {
             foreach (var column in header.Keys)
             {
-                var normalizedHeader = NormalizeHeader(ResolveSharedString(header[column], sharedStrings));
+                var normalizedHeader = NormalizeHeader(header[column]);
                 if (!expectedHeaders.Contains(normalizedHeader))
                 {
                     continue;
                 }
 
                 return row.TryGetValue(column, out var value)
-                    ? ResolveSharedString(value, sharedStrings)
+                    ? value
                     : null;
             }
 
             return null;
+        }
+
+        private static string BuildRowError(int rowNumber, string message)
+        {
+            return rowNumber > 0
+                ? $"Dòng {rowNumber}: {message}"
+                : message;
         }
 
         private static string ReadCellRawValue(XElement cell)
@@ -611,6 +725,13 @@ namespace Eshop.Services
             }
 
             return rawValue;
+        }
+
+        private static string ResolveCellValue(WorksheetCell cell, IReadOnlyList<string> sharedStrings)
+        {
+            return string.Equals(cell.CellType, "s", StringComparison.OrdinalIgnoreCase)
+                ? ResolveSharedString(cell.RawValue, sharedStrings)
+                : cell.RawValue;
         }
 
         private static PcComponentType? ParseComponentType(string? rawValue)

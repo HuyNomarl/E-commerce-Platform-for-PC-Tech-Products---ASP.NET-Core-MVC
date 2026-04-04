@@ -2026,7 +2026,11 @@
             const data = await parseJsonResponse(res);
 
             if (!res.ok) {
-                await showAppAlert(data.message || "Không thể nhập file Excel.", "error");
+                const detailedMessage = Array.isArray(data.errors) && data.errors.length > 0
+                    ? `${data.message || "File Excel không hợp lệ."}\n${data.errors.join("\n")}`
+                    : (data.message || "Không thể nhập file Excel.");
+
+                await showAppAlert(detailedMessage, "error");
                 return;
             }
 
