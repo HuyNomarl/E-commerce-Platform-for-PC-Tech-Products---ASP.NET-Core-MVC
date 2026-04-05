@@ -8,8 +8,10 @@
         public string PaymentMethod { get; set; }
         public string PaymentId { get; set; }
         public bool Success { get; set; }
+        public bool SignatureValid { get; set; }
         public string Token { get; set; }
         public string VnPayResponseCode { get; set; }
+        public string TransactionStatus { get; set; }
         public decimal Amount { get; set; }
     }
 }

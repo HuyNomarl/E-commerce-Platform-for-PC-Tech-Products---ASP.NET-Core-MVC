@@ -1,4 +1,4 @@
-﻿using Eshop.Models.VNPay;
+using Eshop.Models.VNPay;
 using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
@@ -9,8 +9,8 @@ namespace Eshop.Libraries
 {
     public class VnPayLibrary
     {
-        private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
-        private readonly SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
+        private readonly SortedDictionary<string, string> _requestData = new(StringComparer.Ordinal);
+        private readonly SortedDictionary<string, string> _responseData = new(StringComparer.Ordinal);
 
         public PaymentResponseModel GetFullResponseData(IQueryCollection collection, string hashSecret)
         {
@@ -18,7 +18,7 @@ namespace Eshop.Libraries
 
             foreach (var (key, value) in collection)
             {
-                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_"))
+                if (!string.IsNullOrEmpty(key) && key.StartsWith("vnp_", StringComparison.Ordinal))
                 {
                     vnPay.AddResponseData(key, value.ToString());
                 }
@@ -27,6 +27,7 @@ namespace Eshop.Libraries
             var orderIdRaw = vnPay.GetResponseData("vnp_TxnRef");
             var vnPayTranIdRaw = vnPay.GetResponseData("vnp_TransactionNo");
             var vnpResponseCode = vnPay.GetResponseData("vnp_ResponseCode");
+            var vnpTransactionStatus = vnPay.GetResponseData("vnp_TransactionStatus");
             var orderInfo = vnPay.GetResponseData("vnp_OrderInfo");
             var amountRaw = vnPay.GetResponseData("vnp_Amount");
             var secureHash = collection.FirstOrDefault(x => x.Key == "vnp_SecureHash").Value.ToString();
@@ -38,11 +39,12 @@ namespace Eshop.Libraries
             }
 
             var checkSignature = vnPay.ValidateSignature(secureHash, hashSecret);
-            var isSuccess = checkSignature && vnpResponseCode == "00";
+            var isSuccess = checkSignature && vnpResponseCode == "00" && vnpTransactionStatus == "00";
 
             return new PaymentResponseModel
             {
                 Success = isSuccess,
+                SignatureValid = checkSignature,
                 PaymentMethod = "VnPay",
                 OrderDescription = orderInfo,
                 OrderId = orderIdRaw,
@@ -50,6 +52,7 @@ namespace Eshop.Libraries
                 TransactionId = vnPayTranIdRaw,
                 Token = secureHash,
                 VnPayResponseCode = vnpResponseCode,
+                TransactionStatus = vnpTransactionStatus,
                 Amount = amount
             };
         }
@@ -61,7 +64,9 @@ namespace Eshop.Libraries
                 var ip = context.Connection.RemoteIpAddress;
 
                 if (ip == null)
+                {
                     return "127.0.0.1";
+                }
 
                 if (ip.AddressFamily == AddressFamily.InterNetworkV6)
                 {
@@ -81,7 +86,7 @@ namespace Eshop.Libraries
         {
             if (!string.IsNullOrEmpty(value))
             {
-                _requestData.Add(key, value);
+                _requestData[key] = value;
             }
         }
 
@@ -89,7 +94,7 @@ namespace Eshop.Libraries
         {
             if (!string.IsNullOrEmpty(value))
             {
-                _responseData.Add(key, value);
+                _responseData[key] = value;
             }
         }
 
@@ -98,92 +103,104 @@ namespace Eshop.Libraries
             return _responseData.TryGetValue(key, out var retValue) ? retValue : string.Empty;
         }
 
+        public string BuildRequestDataString()
+        {
+            return BuildDataString(_requestData);
+        }
+
+        public string ComputeRequestHash(string vnpHashSecret)
+        {
+            return HmacSha512(vnpHashSecret, BuildRequestDataString());
+        }
+
         public string CreateRequestUrl(string baseUrl, string vnpHashSecret)
         {
-            var data = new StringBuilder();
+            var queryString = BuildRequestDataString(); // đã encode
 
-            foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
-            {
-                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
-            }
-
-            var queryString = data.ToString();
-
-            if (queryString.Length > 0)
-            {
-                queryString = queryString.Remove(queryString.Length - 1, 1);
-            }
-
+            // HASH TRÊN CHUỖI ENCODE
             var vnpSecureHash = HmacSha512(vnpHashSecret, queryString);
+
+            Console.WriteLine("HASH_DATA=" + queryString);
+            Console.WriteLine("HASH=" + vnpSecureHash);
 
             return $"{baseUrl}?{queryString}&vnp_SecureHash={vnpSecureHash}";
         }
 
+
         public bool ValidateSignature(string inputHash, string secretKey)
         {
-            var rspRaw = GetResponseDataForValidation();
-            var myChecksum = HmacSha512(secretKey, rspRaw);
+            if (string.IsNullOrWhiteSpace(inputHash) || string.IsNullOrWhiteSpace(secretKey))
+            {
+                return false;
+            }
+
+            var myChecksum = ComputeResponseHash(secretKey);
             return myChecksum.Equals(inputHash, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        private string HmacSha512(string key, string inputData)
+        private static string HmacSha512(string key, string inputData)
         {
             var hash = new StringBuilder();
             var keyBytes = Encoding.UTF8.GetBytes(key);
             var inputBytes = Encoding.UTF8.GetBytes(inputData);
 
-            using (var hmac = new HMACSHA512(keyBytes))
+            using var hmac = new HMACSHA512(keyBytes);
+            var hashValue = hmac.ComputeHash(inputBytes);
+            foreach (var theByte in hashValue)
             {
-                var hashValue = hmac.ComputeHash(inputBytes);
-                foreach (var theByte in hashValue)
-                {
-                    hash.Append(theByte.ToString("x2"));
-                }
+                hash.Append(theByte.ToString("x2"));
             }
 
             return hash.ToString();
         }
 
-        private string GetResponseDataForValidation()
+        public string BuildResponseValidationDataString()
         {
-            var data = new StringBuilder();
+            var responseData = _responseData
+                .Where(kv =>
+                    !string.IsNullOrEmpty(kv.Value) &&
+                    !string.Equals(kv.Key, "vnp_SecureHash", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(kv.Key, "vnp_SecureHashType", StringComparison.OrdinalIgnoreCase));
 
-            var responseData = new SortedList<string, string>(_responseData, new VnPayCompare());
-
-            if (responseData.ContainsKey("vnp_SecureHashType"))
-            {
-                responseData.Remove("vnp_SecureHashType");
-            }
-
-            if (responseData.ContainsKey("vnp_SecureHash"))
-            {
-                responseData.Remove("vnp_SecureHash");
-            }
-
-            foreach (var (key, value) in responseData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
-            {
-                data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
-            }
-
-            if (data.Length > 0)
-            {
-                data.Remove(data.Length - 1, 1);
-            }
-
-            return data.ToString();
+            return BuildDataString(responseData);
         }
-    }
 
-    public class VnPayCompare : IComparer<string>
-    {
-        public int Compare(string x, string y)
+        public string ComputeResponseHash(string secretKey)
         {
-            if (x == y) return 0;
-            if (x == null) return -1;
-            if (y == null) return 1;
+            return HmacSha512(secretKey, BuildResponseValidationDataString());
+        }
 
-            var compare = CompareInfo.GetCompareInfo("en-US");
-            return compare.Compare(x, y, CompareOptions.Ordinal);
+        private static string BuildDataString(IEnumerable<KeyValuePair<string, string>> data)
+        {
+            return string.Join("&",
+                data.Where(kv => !string.IsNullOrEmpty(kv.Value))
+                    .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+                    .Select(kv => $"{WebUtility.UrlEncode(kv.Key)}={WebUtility.UrlEncode(kv.Value)}"));
+        }
+
+        //private static string BuildHashData(IEnumerable<KeyValuePair<string, string>> data)
+        //{
+        //    return string.Join("&",
+        //        data.Where(kv => !string.IsNullOrEmpty(kv.Value))
+        //            .OrderBy(kv => kv.Key, StringComparer.Ordinal)
+        //            .Select(kv => $"{kv.Key}={kv.Value}"));
+        //}
+
+        private static string HmacSha256(string key, string inputData)
+        {
+            var keyBytes = Encoding.UTF8.GetBytes(key);
+            var inputBytes = Encoding.UTF8.GetBytes(inputData);
+
+            using var hmac = new HMACSHA256(keyBytes);
+            var hashValue = hmac.ComputeHash(inputBytes);
+
+            var sb = new StringBuilder();
+            foreach (var b in hashValue)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+
+            return sb.ToString();
         }
     }
 }
