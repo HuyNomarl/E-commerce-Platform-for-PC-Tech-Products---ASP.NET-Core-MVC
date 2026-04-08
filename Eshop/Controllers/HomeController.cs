@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 using System.Globalization;
@@ -36,67 +37,51 @@ namespace Eshop.Controllers
         private readonly DataContext _dataContext;
         private readonly ILogger<HomeController> _logger;
         private readonly UserManager<AppUserModel> _userManager;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICatalogCacheService _catalogCacheService;
+        private readonly HybridCache _cache;
         private readonly RecommendationPredictService _recommendService;
 
         public HomeController(
             ILogger<HomeController> logger,
             DataContext dataContext,
             UserManager<AppUserModel> userManager,
-            IMemoryCache memoryCache,
+            ICatalogCacheService catalogCacheService,
+            HybridCache cache,
             RecommendationPredictService recommendService)
         {
             _logger = logger;
             _dataContext = dataContext;
             _userManager = userManager;
-            _memoryCache = memoryCache;
+            _catalogCacheService = catalogCacheService;
+            _cache = cache;
             _recommendService = recommendService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            if (!_memoryCache.TryGetValue(CacheKeys.HomeProducts, out List<ProductModel>? products))
-            {
-                _logger.LogInformation("CACHE MISS: HomeProducts");
+            _logger.LogInformation("Home/Index started");
 
-                products = await _dataContext.Products
-                    .AsNoTracking()
-                    .Include(p => p.Publisher)
-                    .Include(p => p.Category)
-                    .Include(p => p.ProductImages)
-                    .WhereVisibleOnStorefront(_dataContext)
-                    .ToListAsync();
+            var products = await _catalogCacheService.GetHomeProductsAsync(cancellationToken);
 
-                var productCacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+            var sliders = await _cache.GetOrCreateAsync(
+                CacheKeys.HomeSliders,
+                async cancel =>
+                {
+                    _logger.LogInformation("CACHE MISS: {CacheKey}", CacheKeys.HomeSliders);
 
-                _memoryCache.Set(CacheKeys.HomeProducts, products, productCacheOptions);
-            }
-            else
-            {
-                _logger.LogInformation("CACHE HIT: HomeProducts");
-            }
+                    return await _dataContext.Sliders
+                        .AsNoTracking()
+                        .Where(x => x.Status == 1)
+                        .ToListAsync(cancel);
+                },
+                options: new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(10),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(5)
+                },
+                cancellationToken: cancellationToken);
 
-            if (!_memoryCache.TryGetValue(CacheKeys.HomeSliders, out List<SliderModel>? sliders))
-            {
-                _logger.LogInformation("CACHE MISS: HomeSliders");
-
-                sliders = await _dataContext.Sliders
-                    .AsNoTracking()
-                    .Where(p => p.Status == 1)
-                    .ToListAsync();
-
-                var sliderCacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(10))
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(5));
-
-                _memoryCache.Set(CacheKeys.HomeSliders, sliders, sliderCacheOptions);
-            }
-            else
-            {
-                _logger.LogInformation("CACHE HIT: HomeSliders");
-            }
+            _logger.LogInformation("Home/Index done");
 
             List<ProductModel> recommendedProducts = new();
 
@@ -468,26 +453,24 @@ namespace Eshop.Controllers
             });
         }
 
-        public async Task<IActionResult> Contact()
+        public async Task<IActionResult> Contact(CancellationToken cancellationToken)
         {
-            if (!_memoryCache.TryGetValue(CacheKeys.ContactInfo, out ContactModel? contact))
-            {
-                _logger.LogInformation("CACHE MISS: ContactInfo");
+            var contact = await _cache.GetOrCreateAsync(
+                CacheKeys.ContactInfo,
+                async cancel =>
+                {
+                    _logger.LogInformation("CACHE MISS: {CacheKey}", CacheKeys.ContactInfo);
 
-                contact = await _dataContext.Contact
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync();
-
-                var contactCacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(30))
-                    .SetSlidingExpiration(TimeSpan.FromMinutes(10));
-
-                _memoryCache.Set(CacheKeys.ContactInfo, contact, contactCacheOptions);
-            }
-            else
-            {
-                _logger.LogInformation("CACHE HIT: ContactInfo");
-            }
+                    return await _dataContext.Contact
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(cancel);
+                },
+                options: new HybridCacheEntryOptions
+                {
+                    Expiration = TimeSpan.FromMinutes(30),
+                    LocalCacheExpiration = TimeSpan.FromMinutes(10)
+                },
+                cancellationToken: cancellationToken);
 
             return View(contact);
         }

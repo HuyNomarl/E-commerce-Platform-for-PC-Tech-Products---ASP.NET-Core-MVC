@@ -129,8 +129,8 @@ namespace Eshop.Constants
                 OrderStaff => "Nhan vien don hang",
                 WarehouseManager => "Quản lý kho",
                 SupportStaff => "Nhân viên hỗ trợ",
-                Customer => "Khach hang",
-                _ => string.IsNullOrWhiteSpace(roleName) ? "Khach hang" : roleName.Trim()
+                Customer => "Khách hàng",
+                _ => string.IsNullOrWhiteSpace(roleName) ? "Khách hàng" : roleName.Trim()
             };
         }
 
@@ -138,7 +138,7 @@ namespace Eshop.Constants
         {
             return roleName?.Trim() switch
             {
-                Admin => "Toan quyen he thong, cau hinh, nguoi dung va moi phan he noi bo.",
+                Admin => "Toàn quyền hệ thống",
                 CatalogManager => "Quan ly san pham, danh muc, slider, PC Builder va noi dung catalog.",
                 Publisher => "Chi quan ly thuong hieu va nha phat hanh trong catalog.",
                 OrderStaff => "Chi xem don hang va cap nhat trang thai xu ly don.",

@@ -690,7 +690,7 @@
                 if (!isMe) {
                     const sender = document.createElement("span");
                     sender.className = "admin-chat-sender";
-                    sender.textContent = message.senderName || "Khach hang";
+        sender.textContent = message.senderName || "Khách hàng";
                     bubble.appendChild(sender);
                 }
 
@@ -723,7 +723,7 @@
                     userList.innerHTML = `
                         <div class="empty-wrap" style="padding: 26px 14px;">
                             <i class="fa fa-user-o empty-icon"></i>
-                            <div>Chua co khach hang nao nhan tin.</div>
+                            <div>Chưa có khách hàng nào nhắn tin.</div>
                         </div>
                     `;
                     return;
@@ -752,7 +752,7 @@
 
                     item.addEventListener("click", async function () {
                         selectedUserId = user.id;
-                        selectedUserName = user.userName || "Khach hang";
+                        selectedUserName = user.userName || "Khách hàng";
                         chatTitle.textContent = "Đang chat với: " + selectedUserName;
                         if (chatLiveBanner) {
                             chatLiveBanner.style.display = "none";
@@ -880,7 +880,7 @@
                 if (!selectedUserId) {
                     if (chatLiveBanner) {
                         chatLiveBanner.style.display = "block";
-                        chatLiveBanner.textContent = (message.senderName || "Khach hang") + ": " + (message.preview || message.content || "");
+                        chatLiveBanner.textContent = (message.senderName || "Khách hàng") + ": " + (message.preview || message.content || "");
                     }
                     return;
                 }
@@ -889,7 +889,7 @@
                 if (!related) {
                     if (chatLiveBanner) {
                         chatLiveBanner.style.display = "block";
-                        chatLiveBanner.textContent = (message.senderName || "Khach hang") + ": " + (message.preview || message.content || "");
+                        chatLiveBanner.textContent = (message.senderName || "Khách hàng") + ": " + (message.preview || message.content || "");
                     }
                     return;
                 }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Eshop.Models
 {
@@ -12,6 +13,7 @@ namespace Eshop.Models
         public int ProductId { get; set; }
 
         [ForeignKey(nameof(ProductId))]
+        [JsonIgnore]
         public ProductModel Product { get; set; } = null!;
 
         [Required]

@@ -68,7 +68,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             if (string.IsNullOrWhiteSpace(input.ReceiverId))
             {
-                return BadRequest(new { message = "Chua chon khach hang de chat." });
+                return BadRequest(new { message = "Chưa chọn khách hàng để chat." });
             }
 
             try

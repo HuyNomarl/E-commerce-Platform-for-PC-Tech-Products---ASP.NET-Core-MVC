@@ -1,13 +1,14 @@
-﻿using Eshop.Models;
+﻿using Eshop.Constants;
+using Eshop.Models;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
-using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -21,18 +22,21 @@ namespace Eshop.Areas.Admin.Controllers
         private readonly DataContext _dataContext;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ICloudinaryService _cloudinaryService;
-        private readonly IMemoryCache _memoryCache;
+        private readonly HybridCache _cache;
+        private readonly ICatalogCacheService _catalogCacheService;
 
         public ProductController(
-            IWebHostEnvironment webHostEnvironment,
-            DataContext dataContext,
-            ICloudinaryService cloudinaryService,
-            IMemoryCache memoryCache)
+               IWebHostEnvironment webHostEnvironment,
+               DataContext dataContext,
+               ICloudinaryService cloudinaryService,
+               HybridCache cache,
+               ICatalogCacheService catalogCacheService)
         {
             _webHostEnvironment = webHostEnvironment;
             _dataContext = dataContext;
             _cloudinaryService = cloudinaryService;
-            _memoryCache = memoryCache;
+            _cache = cache;
+            _catalogCacheService = catalogCacheService;
         }
 
         public async Task<IActionResult> Index()
@@ -109,9 +113,11 @@ namespace Eshop.Areas.Admin.Controllers
                     ContentType = vm.TechnicalFileUpload.ContentType
                 });
             }
-
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
+            await _catalogCacheService.RemoveProductAsync(vm.Product.Id);
+            await _catalogCacheService.RemoveFeaturedProductsAsync();
 
             TempData["success"] = "Thêm sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -239,7 +245,10 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
+            await _catalogCacheService.RemoveProductAsync(existingProduct.Id);
+            await _catalogCacheService.RemoveFeaturedProductsAsync();
 
             TempData["success"] = "Cập nhật sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -294,7 +303,10 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Products.Remove(product);
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
+            await _catalogCacheService.RemoveProductAsync(id);
+            await _catalogCacheService.RemoveFeaturedProductsAsync();
 
             TempData["success"] = "Xóa sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -313,7 +325,10 @@ namespace Eshop.Areas.Admin.Controllers
 
             product.Status = product.Status == 1 ? 0 : 1;
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
+            await _catalogCacheService.RemoveProductAsync(product.Id);
+            await _catalogCacheService.RemoveFeaturedProductsAsync();
 
             TempData["success"] = product.Status == 1
                 ? "Đã hiển thị sản phẩm."

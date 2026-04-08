@@ -364,3 +364,7 @@ FodyWeavers.xsd
 
 .dotnet/
 .artifacts/
+
+# Ignore local configuration files
+appsettings.json
+appsettings.Development.json

@@ -1,8 +1,8 @@
 ﻿using CloudinaryDotNet;
 using Eshop.Areas.Admin.Repository;
 using Eshop.Constants;
-using Eshop.Hubs;
 using Eshop.Helpers;
+using Eshop.Hubs;
 using Eshop.Models;
 using Eshop.Models.Configurations;
 using Eshop.Models.Momo;
@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Options;
 using Serilog;
 using System.Text.Json.Serialization;
@@ -107,11 +108,27 @@ builder.Services
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 // Cache + Session
-builder.Services.AddDistributedMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "Eshop:";
+});
+
 builder.Services.AddMemoryCache();
+
+builder.Services.AddHybridCache(options =>
+{
+    options.MaximumKeyLength = 1024;
+    options.DefaultEntryOptions = new HybridCacheEntryOptions
+    {
+        Expiration = TimeSpan.FromMinutes(30),
+        LocalCacheExpiration = TimeSpan.FromMinutes(10)
+    };
+});
 
 builder.Services.AddSession(options =>
 {
