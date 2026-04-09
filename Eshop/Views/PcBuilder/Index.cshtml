@@ -4,23 +4,25 @@
 
 <style>
     .pc-builder-page {
-        background: #efefef;
-        padding: 20px 0 28px;
+        background: linear-gradient(180deg, #dbe3ea 0%, #cfd8e2 100%);
+        padding: 24px 0 36px;
         min-height: 100vh;
     }
 
     .pc-builder-wrap {
-        max-width: 1480px;
+        max-width: 1540px;
         margin: 0 auto;
-        padding: 0 14px;
+        padding: 0 16px;
     }
 
     .pc-builder-title {
         text-align: center;
-        font-size: 22px;
-        font-weight: 800;
+        font-size: 26px;
+        font-weight: 900;
         text-transform: uppercase;
-        margin-bottom: 18px;
+        letter-spacing: .4px;
+        color: #0f172a;
+        margin-bottom: 22px;
     }
 
     .pc-builder-topbar,
@@ -28,38 +30,54 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 14px;
+        margin-bottom: 18px;
     }
 
     .btn-refresh-custom {
-        background: #ff2a2a;
+        background: linear-gradient(180deg, #e45a52, #c93c34);
         color: #fff;
         border: none;
-        padding: 10px 16px;
-        border-radius: 4px;
-        font-weight: 700;
+        padding: 11px 18px;
+        border-radius: 10px;
+        font-weight: 800;
+        box-shadow: 0 10px 24px rgba(120, 36, 30, .18);
+        transition: transform .18s ease, box-shadow .18s ease;
     }
 
+        .btn-refresh-custom:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 26px rgba(120, 36, 30, .22);
+        }
+
     .estimate-box {
-        font-size: 18px;
-        font-weight: 800;
+        font-size: 20px;
+        font-weight: 900;
+        color: #0f172a;
     }
 
         .estimate-box .price {
-            color: #ff1d1d;
+            color: #c0392b;
         }
 
     .builder-table {
         width: 100%;
-        border-collapse: collapse;
-        background: #f4f4f4;
-        border: 1px solid #d5d5d5;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #f3f6f9;
+        border: 1px solid #bcc8d4;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, .07);
     }
 
         .builder-table tr {
-            border-bottom: 1px solid #d5d5d5;
+            border-bottom: 1px solid #cfd8e2;
         }
+
+            .builder-table tr:last-child {
+                border-bottom: none;
+            }
 
         .builder-table td {
             vertical-align: top;
@@ -67,93 +85,107 @@
         }
 
     .slot-col {
-        width: 210px;
-        background: #efefef;
-        border-right: 1px solid #d5d5d5;
-        padding: 14px 12px !important;
-        font-size: 16px;
-        font-weight: 800;
+        width: 235px;
+        background: linear-gradient(180deg, #dbe4ec, #d1dbe5);
+        border-right: 1px solid #c7d1db;
+        padding: 18px 16px !important;
+        font-size: 15px;
+        font-weight: 900;
         text-transform: uppercase;
+        color: #0f172a;
     }
 
     .content-col {
-        background: #f7f7f7;
-        padding: 12px 14px !important;
+        background: #eef3f7;
+        padding: 16px 18px !important;
     }
 
     .empty-slot-wrap {
-        min-height: 58px;
+        min-height: 72px;
         display: flex;
         align-items: center;
     }
 
     .btn-choose-component {
-        background: linear-gradient(180deg, #ff7a42, #ff572f);
+        background: linear-gradient(180deg, #e07a4d, #c85c32);
         color: #fff;
         border: none;
-        border-radius: 5px;
-        padding: 10px 14px;
+        border-radius: 12px;
+        padding: 12px 16px;
         font-size: 15px;
-        font-weight: 700;
+        font-weight: 800;
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        box-shadow: 0 10px 22px rgba(124, 61, 33, .16);
+        transition: transform .18s ease, box-shadow .18s ease;
     }
+
+        .btn-choose-component:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(124, 61, 33, .20);
+        }
 
     .selected-group {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
 
     .selected-item {
         display: grid;
-        grid-template-columns: 66px 1fr auto;
+        grid-template-columns: 82px 1fr auto;
         gap: 16px;
-        align-items: start;
-        padding: 6px 0;
+        align-items: center;
+        padding: 14px;
+        border: 1px solid #ccd6df;
+        border-radius: 14px;
+        background: #e8eef4;
     }
 
     .selected-thumb {
-        width: 66px;
-        height: 66px;
+        width: 82px;
+        height: 82px;
         object-fit: contain;
-        background: #fff;
-        border: 1px solid #ddd;
-        padding: 4px;
+        background: #f8fafc;
+        border: 1px solid #d4dde6;
+        border-radius: 12px;
+        padding: 6px;
     }
 
     .selected-info {
-        font-size: 15px;
-        line-height: 1.45;
+        font-size: 14px;
+        line-height: 1.55;
+        color: #334155;
     }
 
     .selected-name {
         font-size: 16px;
-        font-weight: 700;
-        color: #111;
-        margin-bottom: 2px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 4px;
+        line-height: 1.4;
     }
 
     .selected-sub {
-        color: #222;
+        color: #475569;
     }
 
     .selected-stock {
-        color: #16a34a;
-        font-weight: 700;
+        color: #166534;
+        font-weight: 800;
     }
 
     .selected-out {
-        color: #dc2626;
-        font-weight: 700;
+        color: #b91c1c;
+        font-weight: 800;
     }
 
     .selected-price-side {
         text-align: right;
-        min-width: 280px;
+        min-width: 300px;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: flex-end;
         gap: 10px;
         flex-wrap: wrap;
@@ -161,38 +193,41 @@
 
     .unit-price,
     .line-total {
-        color: #e60000;
+        color: #b9382d;
         font-size: 16px;
-        font-weight: 800;
+        font-weight: 900;
         white-space: nowrap;
     }
 
     .qty-box {
         display: inline-flex;
         align-items: center;
-        border: 1px solid #d7d7d7;
+        border: 1px solid #c7d1db;
         overflow: hidden;
-        background: #fff;
-        height: 34px;
+        background: #f8fafc;
+        height: 38px;
+        border-radius: 10px;
     }
 
     .qty-btn {
-        width: 32px;
-        height: 34px;
+        width: 34px;
+        height: 38px;
         border: none;
-        background: #e8e8e8;
+        background: #dde5ec;
         font-size: 20px;
         line-height: 1;
-        font-weight: 700;
+        font-weight: 800;
+        color: #1e293b;
     }
 
     .qty-input {
-        width: 40px;
-        height: 34px;
+        width: 42px;
+        height: 38px;
         border: none;
         text-align: center;
-        font-weight: 700;
-        background: #fff;
+        font-weight: 800;
+        background: #f8fafc;
+        color: #0f172a;
     }
 
     .item-actions {
@@ -203,92 +238,111 @@
 
     .mini-action-btn {
         border: none;
-        background: transparent;
-        color: #2563eb;
-        font-size: 14px;
-        font-weight: 700;
-        padding: 0 4px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 8px 10px;
+        border-radius: 8px;
     }
 
     .mini-remove-btn {
-        color: #dc2626;
+        background: #fee2e2;
+        color: #b91c1c;
     }
 
     .builder-messages {
-        margin-top: 14px;
-        padding: 14px;
-        background: #fff;
-        border: 1px solid #ddd;
+        margin-top: 16px;
+        padding: 16px 18px;
+        background: #eaf0f5;
+        border: 1px solid #c2ccd6;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .04);
     }
 
     .builder-message {
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         font-size: 14px;
+        line-height: 1.5;
     }
 
+        .builder-message:last-child {
+            margin-bottom: 0;
+        }
+
         .builder-message.error {
-            color: #b91c1c;
-            font-weight: 700;
+            color: #991b1b;
+            font-weight: 800;
         }
 
         .builder-message.warning {
-            color: #b45309;
-            font-weight: 700;
+            color: #92400e;
+            font-weight: 800;
         }
 
         .builder-message.info {
-            color: #1d4ed8;
+            color: #1e40af;
         }
 
     .builder-actions {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-top: 18px;
+        gap: 12px;
+        margin-top: 20px;
     }
 
     .builder-bottom-btn {
         border: none;
-        border-radius: 5px;
-        padding: 12px 14px;
-        font-weight: 800;
-        font-size: 16px;
+        border-radius: 12px;
+        padding: 13px 14px;
+        font-weight: 900;
+        font-size: 15px;
         color: #fff;
         text-transform: uppercase;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+        transition: transform .18s ease, box-shadow .18s ease;
     }
 
+        .builder-bottom-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(15, 23, 42, .14);
+        }
+
     .btn-darkgreen {
-        background: #003a3f;
+        background: linear-gradient(180deg, #31545b, #223c42);
     }
 
     .btn-cart-red {
-        background: #ef1b12;
+        background: linear-gradient(180deg, #d85a50, #bc3a32);
     }
 
     .builder-utility-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-        margin-top: 18px;
+        gap: 18px;
+        margin-top: 22px;
     }
 
     .builder-utility-card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 16px;
+        background: #e8eef4;
+        border: 1px solid #c7d1db;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, .05);
     }
 
     .builder-utility-title {
         font-size: 18px;
-        font-weight: 800;
-        margin-bottom: 12px;
+        font-weight: 900;
+        margin-bottom: 8px;
+        color: #0f172a;
     }
 
     .builder-utility-sub {
-        color: #555;
+        color: #475569;
         font-size: 14px;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
+        line-height: 1.55;
     }
 
     .share-search-row {
@@ -300,16 +354,27 @@
         .share-search-row input,
         .share-note-input {
             width: 100%;
-            border: 1px solid #d6d6d6;
-            border-radius: 6px;
-            padding: 10px 12px;
+            border: 1px solid #bfcbd7;
+            border-radius: 10px;
+            padding: 11px 12px;
             font-size: 14px;
             outline: none;
+            background: #f4f7fa;
+            color: #0f172a;
+            transition: border-color .18s ease, box-shadow .18s ease;
         }
+
+            .share-search-row input:focus,
+            .share-note-input:focus,
+            .build-chatbox-input input:focus,
+            .picker-search input:focus {
+                border-color: #7aa2c7;
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, .10);
+            }
 
     .share-note-input {
         resize: vertical;
-        min-height: 88px;
+        min-height: 94px;
         margin-bottom: 12px;
     }
 
@@ -318,15 +383,15 @@
     .share-load-btn,
     .share-download-btn {
         border: none;
-        border-radius: 6px;
-        font-weight: 700;
+        border-radius: 10px;
+        font-weight: 800;
     }
 
     .share-search-btn,
     .share-action-btn {
-        background: #003a3f;
+        background: #2b4349;
         color: #fff;
-        padding: 10px 14px;
+        padding: 11px 14px;
         white-space: nowrap;
     }
 
@@ -340,53 +405,53 @@
 
     .share-result-item,
     .shared-build-item {
-        border: 1px solid #e5e5e5;
-        border-radius: 8px;
-        padding: 12px;
-        background: #fafafa;
+        border: 1px solid #cdd6df;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f0f4f8;
     }
 
-    .share-result-item.active {
-        border-color: #0f766e;
-        box-shadow: 0 0 0 2px rgba(15, 118, 110, .12);
-        background: #f0fdfa;
-    }
+        .share-result-item.active {
+            border-color: #3b6b72;
+            box-shadow: 0 0 0 3px rgba(59, 107, 114, .10);
+            background: #e4edf1;
+        }
 
     .share-result-top,
     .shared-build-top {
         display: flex;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px;
         align-items: flex-start;
     }
 
     .share-result-name,
     .shared-build-name {
         font-size: 15px;
-        font-weight: 800;
-        color: #111827;
+        font-weight: 900;
+        color: #0f172a;
     }
 
     .share-result-meta,
     .shared-build-meta {
         font-size: 13px;
-        color: #4b5563;
+        color: #475569;
         margin-top: 4px;
-        line-height: 1.5;
+        line-height: 1.6;
     }
 
     .share-select-btn {
         border: none;
-        border-radius: 6px;
+        border-radius: 10px;
         padding: 8px 12px;
-        font-weight: 700;
-        background: #e5e7eb;
-        color: #111827;
+        font-weight: 800;
+        background: #d9e1e8;
+        color: #0f172a;
         white-space: nowrap;
     }
 
     .share-result-item.active .share-select-btn {
-        background: #0f766e;
+        background: #355d64;
         color: #fff;
     }
 
@@ -398,30 +463,30 @@
     }
 
     .share-load-btn {
-        background: #ef1b12;
+        background: #c5483f;
         color: #fff;
         padding: 8px 12px;
     }
 
     .share-download-btn {
-        background: #003a3f;
+        background: #2b4349;
         color: #fff;
         padding: 8px 12px;
     }
 
     .utility-empty {
         padding: 12px;
-        border: 1px dashed #d4d4d4;
-        border-radius: 8px;
-        color: #6b7280;
-        background: #f9fafb;
+        border: 1px dashed #b8c3ce;
+        border-radius: 12px;
+        color: #52606f;
+        background: #edf2f6;
         font-size: 14px;
     }
 
     .picker-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, .45);
+        background: rgba(15, 23, 42, .58);
         display: none;
         align-items: center;
         justify-content: center;
@@ -434,22 +499,22 @@
         }
 
     .picker-modal {
-        width: min(1220px, 100%);
+        width: min(1260px, 100%);
         max-height: 88vh;
-        background: #f0f0f0;
-        border-radius: 8px;
+        background: #dfe7ee;
+        border-radius: 18px;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 10px 40px rgba(0,0,0,.25);
+        box-shadow: 0 18px 50px rgba(0,0,0,.26);
     }
 
     .picker-header {
-        background: #ff5a36;
+        background: linear-gradient(180deg, #cf6d45, #b95a34);
         color: #fff;
-        padding: 12px 16px;
+        padding: 14px 18px;
         font-size: 18px;
-        font-weight: 800;
+        font-weight: 900;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -458,7 +523,7 @@
 
     .picker-search {
         flex: 1;
-        max-width: 740px;
+        max-width: 760px;
         display: flex;
         gap: 8px;
         align-items: center;
@@ -466,65 +531,69 @@
 
         .picker-search input {
             flex: 1;
-            height: 40px;
+            height: 42px;
             border: none;
-            border-radius: 3px;
+            border-radius: 10px;
             padding: 0 12px;
             outline: none;
+            background: #f4f7fa;
+            color: #0f172a;
         }
 
         .picker-search button,
         .picker-close-btn,
         .picker-confirm-btn {
             border: none;
-            border-radius: 4px;
-            font-weight: 700;
+            border-radius: 10px;
+            font-weight: 800;
         }
 
         .picker-search button {
-            height: 40px;
+            height: 42px;
             padding: 0 14px;
-            background: #fff;
-            color: #111;
+            background: #e8eef4;
+            color: #0f172a;
         }
 
     .picker-close-btn {
-        background: #fff;
-        color: #111;
-        padding: 8px 12px;
+        background: #e8eef4;
+        color: #0f172a;
+        padding: 9px 12px;
     }
 
     .picker-body {
         overflow: auto;
-        padding: 14px;
+        padding: 16px;
     }
 
     .picker-layout {
         display: grid;
-        grid-template-columns: 300px 1fr;
-        gap: 14px;
-        min-height: 500px;
+        grid-template-columns: 320px 1fr;
+        gap: 16px;
+        min-height: 520px;
     }
 
     .picker-sidebar {
-        background: #f3f3f3;
-        border-right: 1px solid #ddd;
+        background: #dfe7ee;
+        border-right: 1px solid #c1ccd7;
         padding-right: 8px;
     }
 
     .picker-filter-box {
-        background: #f3f3f3;
+        background: #dfe7ee;
     }
 
     .picker-filter-title {
-        font-size: 16px;
-        font-weight: 800;
+        font-size: 15px;
+        font-weight: 900;
         text-transform: uppercase;
-        border: 1px solid #d8d8d8;
-        background: #efefef;
+        border: 1px solid #c1ccd7;
+        background: #edf2f6;
         text-align: center;
         padding: 10px 12px;
+        border-radius: 12px;
         margin-bottom: 14px;
+        color: #0f172a;
     }
 
     .picker-filter-tools {
@@ -535,11 +604,12 @@
     }
 
     .picker-sort-select {
-        height: 38px;
-        border: 1px solid #ccc;
-        background: #fff;
+        height: 40px;
+        border: 1px solid #c1ccd7;
+        background: #eef3f7;
         padding: 0 10px;
-        border-radius: 4px;
+        border-radius: 10px;
+        color: #0f172a;
     }
 
     .picker-inline-check {
@@ -548,15 +618,16 @@
         gap: 8px;
         font-weight: 700;
         cursor: pointer;
+        color: #1e293b;
     }
 
     .picker-clear-filter-btn {
         border: none;
-        background: #ef1b12;
+        background: #c5483f;
         color: #fff;
-        padding: 8px 10px;
-        border-radius: 4px;
-        font-weight: 700;
+        padding: 10px 12px;
+        border-radius: 10px;
+        font-weight: 800;
     }
 
     .filter-group {
@@ -564,10 +635,11 @@
     }
 
     .filter-group-title {
-        font-size: 15px;
-        font-weight: 800;
+        font-size: 14px;
+        font-weight: 900;
         text-transform: uppercase;
         margin-bottom: 10px;
+        color: #0f172a;
     }
 
     .filter-options-grid {
@@ -581,8 +653,9 @@
         align-items: flex-start;
         gap: 8px;
         cursor: pointer;
-        font-size: 14px;
-        line-height: 1.35;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #334155;
     }
 
         .filter-option-label input {
@@ -590,7 +663,7 @@
         }
 
     .filter-option-count {
-        color: #555;
+        color: #52606f;
     }
 
     .picker-content {
@@ -600,96 +673,105 @@
     .picker-list {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
     }
 
     .picker-item {
-        background: #fff;
-        border: 1px solid #ddd;
-        padding: 12px;
+        background: #edf2f6;
+        border: 1px solid #c8d2dc;
+        border-radius: 14px;
+        padding: 14px;
         display: grid;
-        grid-template-columns: 36px 84px 1fr auto;
+        grid-template-columns: 36px 92px 1fr auto;
         gap: 14px;
-        align-items: start;
+        align-items: center;
+        transition: box-shadow .18s ease, transform .18s ease;
     }
+
+        .picker-item:hover {
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
 
     .picker-check-wrap {
         display: flex;
-        align-items: start;
+        align-items: center;
         justify-content: center;
-        padding-top: 24px;
     }
 
     .picker-check {
         width: 18px;
         height: 18px;
-        accent-color: #ff5a36;
+        accent-color: #c75c33;
     }
 
     .picker-img {
-        width: 84px;
-        height: 84px;
+        width: 92px;
+        height: 92px;
         object-fit: contain;
-        background: #fff;
-        border: 1px solid #ddd;
-        padding: 4px;
+        background: #f8fafc;
+        border: 1px solid #d1d9e1;
+        border-radius: 12px;
+        padding: 6px;
     }
 
     .picker-name {
-        font-size: 17px;
-        font-weight: 700;
-        color: #111;
-        line-height: 1.4;
+        font-size: 16px;
+        font-weight: 800;
+        color: #0f172a;
+        line-height: 1.45;
         margin-bottom: 6px;
     }
 
     .picker-meta {
-        font-size: 14px;
-        line-height: 1.5;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #475569;
     }
 
     .picker-price {
-        min-width: 160px;
+        min-width: 150px;
         text-align: right;
-        color: #e60000;
-        font-weight: 800;
-        font-size: 20px;
+        color: #b9382d;
+        font-weight: 900;
+        font-size: 19px;
         white-space: nowrap;
     }
 
     .picker-footer {
         padding: 12px 16px;
-        background: #fff;
-        border-top: 1px solid #ddd;
+        background: #d9e1e8;
+        border-top: 1px solid #c1ccd7;
         display: flex;
         justify-content: flex-end;
         gap: 10px;
     }
 
     .picker-confirm-btn {
-        background: #ff5a36;
+        background: #c75c33;
         color: #fff;
         padding: 10px 18px;
     }
 
     .empty-picker {
-        background: #fff;
-        border: 1px dashed #ccc;
-        padding: 30px;
+        background: #edf2f6;
+        border: 1px dashed #b9c4cf;
+        border-radius: 14px;
+        padding: 32px;
         text-align: center;
-        color: #666;
+        color: #52606f;
     }
 
     .build-chatbox {
         position: fixed;
-        right: 18px;
-        bottom: 18px;
-        width: 360px;
-        max-height: 70vh;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.18);
+        right: 20px;
+        bottom: 20px;
+        width: 460px;
+        max-height: 78vh;
+        background: #dde5ec;
+        border: 1px solid #bfcbd7;
+        border-radius: 18px;
+        box-shadow: 0 22px 50px rgba(15,23,42,.22);
         display: flex;
         flex-direction: column;
         z-index: 1300;
@@ -703,110 +785,379 @@
         }
 
     .build-chatbox-header {
-        background: #003a3f;
+        background: linear-gradient(135deg, #2c4349, #22363b);
         color: #fff;
-        padding: 12px 14px;
-        font-weight: 800;
+        padding: 14px 16px;
+        font-weight: 900;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
+        gap: 12px;
+        position: relative;
     }
+
+        .build-chatbox-header::after {
+            content: "";
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 0;
+            height: 1px;
+            background: rgba(255,255,255,.08);
+        }
 
         .build-chatbox-header button {
             border: none;
-            background: transparent;
+            background: rgba(255,255,255,.12);
             color: #fff;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             font-size: 20px;
-            font-weight: 700;
+            font-weight: 800;
+            flex: 0 0 auto;
+            transition: background .18s ease;
         }
 
+            .build-chatbox-header button:hover {
+                background: rgba(255,255,255,.18);
+            }
+
     .build-chatbox-body {
-        padding: 12px;
-        background: #f8f8f8;
-        overflow: auto;
+        padding: 10px !important;
+        background: linear-gradient(180deg, #cfd8e1 0%, #c4cfda 100%);
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        min-height: 220px;
+        gap: 10px !important;
+        min-height: 220px !important;
+        max-height: 52vh;
     }
 
     .chat-message {
-        padding: 10px 12px;
-        border-radius: 8px;
+        padding: 12px 14px;
+        border-radius: 14px;
         font-size: 14px;
-        line-height: 1.5;
-        max-width: 88%;
+        line-height: 1.6;
+        max-width: 88% !important;
         white-space: pre-wrap;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .06);
     }
 
         .chat-message.bot {
-            background: #eef5ff;
+            background: #e2e8f0;
+            color: #0f172a;
             align-self: flex-start;
         }
 
         .chat-message.user {
-            background: #ffefe8;
+            background: #e9d8d2;
+            color: #1e293b;
             align-self: flex-end;
         }
 
-    .build-chatbox-actions {
-        padding: 10px 12px;
+        .chat-message.chat-rich {
+            width: 100% !important;
+            max-width: 100% !important;
+            background: transparent;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none;
+        }
+
+    .chat-bubble-text {
+        background: #e2e8f0;
+        border-radius: 14px;
+        padding: 9px 11px !important;
+        white-space: pre-wrap;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .05);
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+        margin-bottom: 6px !important;
+    }
+
+    .chat-hint-box {
+        margin-top: 10px;
+        background: #efe3d3;
+        border: 1px solid #d7b892;
+        border-radius: 12px;
+        padding: 12px;
+    }
+
+    .chat-hint-title {
+        font-size: 13px;
+        font-weight: 900;
+        color: #7c2d12;
+        margin-bottom: 6px;
+    }
+
+    .chat-hint-item {
+        font-size: 13px;
+        color: #78350f;
+        line-height: 1.5;
+    }
+
+        .chat-hint-item + .chat-hint-item {
+            margin-top: 4px;
+        }
+
+    .chat-product-panel {
+        margin-top: 6px !important;
+        border: 1px solid #c8d2dc !important;
+        border-radius: 10px !important;
+        background: #e9eef3 !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, .04) !important;
+    }
+
+    .chat-product-panel-head {
+        padding: 7px 10px !important;
+        background: #dde5ec !important;
+        border-bottom: 1px solid #d3dbe3 !important;
+    }
+
+    .chat-product-panel-title {
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        line-height: 1.2 !important;
+        margin: 0 !important;
+    }
+
+    .chat-product-panel-sub {
+        font-size: 10px !important;
+        margin-top: 2px !important;
+        line-height: 1.2 !important;
+        color: #64748b !important;
+    }
+
+    .chat-product-list {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 6px !important;
+        padding: 8px !important;
+        max-height: 190px !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        align-content: start !important;
+    }
+
+    .chat-product-card {
+        display: grid !important;
+        grid-template-columns: 16px 44px minmax(0, 1fr) !important;
+        gap: 8px !important;
+        align-items: start !important;
+        padding: 7px 8px !important;
+        border: 1px solid #d5dde5 !important;
+        border-radius: 8px !important;
+        background: #f8fafc !important;
+        min-width: 0 !important;
+    }
+
+    .chat-product-check-wrap {
         display: flex;
-        gap: 8px;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 3px;
+    }
+
+    .chat-product-check {
+        width: 12px !important;
+        height: 12px !important;
+        margin: 0 !important;
+        accent-color: #b95a34;
+        flex: 0 0 auto;
+    }
+
+    .chat-product-thumb {
+        width: 44px !important;
+        height: 44px !important;
+        object-fit: contain;
+        background: #f8fafc;
+        border: 1px solid #ccd6df;
+        border-radius: 7px !important;
+        padding: 2px !important;
+        display: block;
+        flex: 0 0 auto;
+    }
+
+    .chat-product-main {
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 4px !important;
+        align-self: start !important;
+    }
+
+    .chat-product-top {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 6px !important;
+        align-items: start !important;
+        min-width: 0 !important;
+    }
+
+    .chat-product-name {
+        font-size: 11px !important;
+        line-height: 1.3 !important;
+        font-weight: 800 !important;
+        min-width: 0 !important;
+        word-break: break-word !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        color: #0f172a;
+    }
+
+    .chat-product-price {
+        color: #b9382d;
+        font-weight: 800;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        white-space: nowrap !important;
+        text-align: right;
+        flex: 0 0 auto;
+    }
+
+    .chat-product-badges {
+        display: flex;
+        gap: 4px !important;
         flex-wrap: wrap;
-        border-top: 1px solid #eee;
-        background: #fff;
+    }
+
+    .chat-product-badge,
+    .chat-stock-badge {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 1px 6px !important;
+        font-size: 9.5px !important;
+        font-weight: 700;
+        line-height: 1.15 !important;
+    }
+
+    .chat-product-badge {
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .chat-stock-badge.in {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .chat-stock-badge.out {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .chat-product-reason {
+        font-size: 10px !important;
+        color: #1d4ed8;
+        line-height: 1.3 !important;
+        word-break: break-word;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+    }
+
+    .chat-product-actions {
+        padding: 6px !important;
+        border-top: 1px solid #cad4de;
+        background: #e1e8ef !important;
+    }
+
+    .chat-product-add-btn {
+        width: 100%;
+        border: none;
+        border-radius: 7px !important;
+        background: linear-gradient(180deg, #d15d52, #bb3d34);
+        color: #fff;
+        font-weight: 800;
+        font-size: 11px !important;
+        padding: 8px 10px !important;
+        box-shadow: none;
+    }
+
+    .build-chatbox-actions {
+        padding: 8px 10px !important;
+        display: flex;
+        gap: 6px !important;
+        flex-wrap: wrap;
+        border-top: 1px solid #c5d0da;
+        background: #d7e0e8;
     }
 
     .chat-quick-btn {
-        border: 1px solid #ddd;
-        background: #fff;
-        border-radius: 20px;
-        padding: 6px 10px;
-        font-size: 13px;
-        font-weight: 700;
+        border: 1px solid #b8c4cf;
+        background: #eef3f7;
+        border-radius: 999px;
+        padding: 7px 10px !important;
+        font-size: 12px !important;
+        font-weight: 800;
+        color: #0f172a;
+        transition: all .18s ease;
     }
+
+        .chat-quick-btn:hover {
+            background: #e2e8f0;
+            border-color: #aab7c4;
+        }
 
     .build-chatbox-input {
         display: flex;
-        gap: 8px;
-        padding: 12px;
-        border-top: 1px solid #eee;
-        background: #fff;
+        gap: 8px !important;
+        padding: 10px !important;
+        border-top: 1px solid #c5d0da;
+        background: #d7e0e8;
     }
 
         .build-chatbox-input input {
             flex: 1;
-            height: 40px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 0 12px;
+            height: 40px !important;
+            border: 1px solid #bfcbd7;
+            border-radius: 12px;
+            padding: 0 14px;
+            font-size: 13px !important;
+            outline: none;
+            background: #f4f7fa;
+            color: #0f172a;
         }
 
         .build-chatbox-input button {
             border: none;
-            background: #ef1b12;
+            background: linear-gradient(180deg, #d15d52, #bb3d34);
             color: #fff;
-            border-radius: 6px;
-            padding: 0 14px;
-            font-weight: 700;
+            border-radius: 12px;
+            padding: 0 14px !important;
+            font-weight: 900;
+            min-width: 64px !important;
+            box-shadow: 0 10px 22px rgba(120, 36, 30, .15);
         }
 
     @@media (max-width: 1200px) {
         .selected-item {
-            grid-template-columns: 66px 1fr;
+            grid-template-columns: 82px 1fr;
+            align-items: start;
         }
 
         .selected-price-side {
             grid-column: 1 / -1;
             justify-content: flex-start;
             min-width: auto;
-            padding-left: 82px;
+            padding-left: 98px;
         }
 
         .builder-actions {
             grid-template-columns: repeat(2, 1fr);
+        }
+
+        .build-chatbox {
+            width: 450px;
         }
     }
 
@@ -822,45 +1173,49 @@
         .builder-utility-grid {
             grid-template-columns: 1fr;
         }
+
+        .build-chatbox {
+            left: 16px;
+            right: 16px;
+            width: auto;
+            bottom: 16px;
+            max-width: none;
+        }
     }
 
     @@media (max-width: 768px) {
-        .pc-builder-topbar,
-        .pc-builder-bottombar {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .slot-col {
-            width: 150px;
-            font-size: 14px;
-        }
-
-        .picker-item {
-            grid-template-columns: 36px 64px 1fr;
-        }
-
-        .picker-price {
-            grid-column: 1 / -1;
-            text-align: left;
-            padding-left: 50px;
-        }
-
-        .builder-actions {
-            grid-template-columns: 1fr;
-        }
-
-        .share-search-row,
-        .share-result-top,
-        .shared-build-top {
-            flex-direction: column;
-        }
-
         .build-chatbox {
-            left: 12px;
-            right: 12px;
-            width: auto;
-            bottom: 12px;
+            left: 10px !important;
+            right: 10px !important;
+            width: auto !important;
+        }
+
+        .chat-product-list {
+            max-height: 155px !important;
+        }
+
+        .chat-product-card {
+            grid-template-columns: 14px 40px minmax(0, 1fr) !important;
+            gap: 6px !important;
+            padding: 6px !important;
+        }
+
+        .chat-product-thumb {
+            width: 40px !important;
+            height: 40px !important;
+        }
+
+        .chat-product-top {
+            grid-template-columns: 1fr !important;
+        }
+
+        .chat-product-price {
+            white-space: normal !important;
+            text-align: left;
+        }
+
+        .chat-product-name {
+            -webkit-line-clamp: 3 !important;
         }
     }
 </style>
@@ -930,20 +1285,25 @@
 
 <div class="build-chatbox" id="buildChatbox">
     <div class="build-chatbox-header">
-        <div>Hỗ trợ build PC</div>
+        <div>
+            <div style="font-size:18px; line-height:1.2;">Hỗ trợ build PC</div>
+            <div style="font-size:12px; font-weight:600; opacity:.85; margin-top:4px; line-height:1.4;">
+                Tư vấn build mới, nâng cấp cấu hình và gợi ý linh kiện phù hợp
+            </div>
+        </div>
         <button type="button" id="toggleBuildChatbox">−</button>
     </div>
 
     <div class="build-chatbox-body" id="buildChatMessages">
         <div class="chat-message bot">
-            Mình có thể giúp bạn kiểm tra lỗi cấu hình, tư vấn PSU, case, hoặc giải thích vì sao linh kiện chưa tương thích.
+            Mình có thể tư vấn build mới, nâng cấp cấu hình hiện tại, gợi ý linh kiện riêng lẻ và giải thích các hiểu nhầm về tương thích.
         </div>
     </div>
 
     <div class="build-chatbox-actions">
-        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Cấu hình hiện tại có lỗi gì?')">Kiểm tra lỗi</button>
-        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Nguồn hiện tại có đủ không?')">Gợi ý PSU</button>
-        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Case hiện tại có phù hợp không?')">Gợi ý Case</button>
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Cấu hình hiện tại có lỗi gì và nên sửa thế nào?')">Kiểm tra lỗi</button>
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Muốn nâng cấp build hiện tại để chơi game tốt hơn thì nên ưu tiên gì?')">Nâng cấp build</button>
+        <button type="button" class="chat-quick-btn" onclick="askBuildAssistant('Gợi ý GPU tầm 10 triệu cho chơi game 2K')">Gợi ý GPU</button>
     </div>
 
     <div class="build-chatbox-input">
@@ -1043,6 +1403,10 @@
         let shareSearchResults = [];
         let selectedShareReceiverId = null;
         let sharedBuildItems = [];
+        let chatResponseSeed = 0;
+
+        const chatConversation = [];
+        const chatSuggestionStore = new Map();
 
         const pickerFilterState = {
             keyword: "",
@@ -2224,23 +2588,240 @@
             window.location.href = `/api/pc-builder/shared/${encodeURIComponent(shareCode)}/excel`;
         }
 
-        function appendChatMessage(role, text) {
-            if (!buildChatMessages) return;
+        function appendTextChatMessage(role, text) {
+            if (!buildChatMessages) return null;
+
             const div = document.createElement("div");
             div.className = `chat-message ${role}`;
             div.textContent = text || "";
             buildChatMessages.appendChild(div);
             buildChatMessages.scrollTop = buildChatMessages.scrollHeight;
+            return div;
+        }
+
+        function recordChatTurn(role, content) {
+            const safeContent = String(content || "").trim();
+            if (!safeContent) return;
+
+            chatConversation.push({
+                role: role === "assistant" ? "assistant" : "user",
+                content: safeContent
+            });
+
+            if (chatConversation.length > 16) {
+                chatConversation.splice(0, chatConversation.length - 16);
+            }
+        }
+
+        function collectChatHistoryPayload() {
+            return chatConversation.slice(-8).map(item => ({
+                role: item.role,
+                content: item.content
+            }));
+        }
+
+        function renderChatText(text) {
+            return escapeHtml(text || "").replaceAll("\n", "<br />");
+        }
+
+        function renderChatClarificationHints(hints) {
+            const safeHints = Array.isArray(hints) ? hints.filter(Boolean) : [];
+            if (!safeHints.length) return "";
+
+            return `
+                <div class="chat-hint-box">
+                    <div class="chat-hint-title">Thông tin nên bổ sung để mình tư vấn sát hơn</div>
+                    ${safeHints.map(hint => `<div class="chat-hint-item">- ${escapeHtml(hint)}</div>`).join("")}
+                </div>
+            `;
+        }
+
+        function renderChatProductPanel(messageId, suggestedProducts) {
+            const items = Array.isArray(suggestedProducts) ? suggestedProducts.filter(x => x && x.product) : [];
+            if (!items.length) return "";
+
+            const cardHtml = items.map((entry, index) => {
+                const product = entry.product || {};
+                const imageUrl = product.image || "/images/no-image.png";
+                const stockIn = Number(product.stock || 0) > 0;
+                const componentType = entry.componentType || product.componentType || "Linh kiện";
+
+                return `
+                    <div class="chat-product-card">
+                        <div class="chat-product-check-wrap">
+                            <input
+                                type="checkbox"
+                                class="chat-product-check"
+                                data-chat-response-id="${messageId}"
+                                data-suggestion-index="${index}" />
+                        </div>
+
+                        <img class="chat-product-thumb" src="${imageUrl}" alt="${escapeHtml(product.name || "")}" />
+
+                        <div class="chat-product-main">
+                            <div class="chat-product-top">
+                                <div class="chat-product-name">${escapeHtml(product.name || "Sản phẩm")}</div>
+                                <div class="chat-product-price">${formatPrice(product.price || 0)}</div>
+                            </div>
+
+                            <div class="chat-product-badges">
+                                <span class="chat-product-badge">${escapeHtml(componentType)}</span>
+                                <span class="chat-stock-badge ${stockIn ? "in" : "out"}">${stockIn ? "Còn hàng" : "Hết hàng"}</span>
+                            </div>
+
+                            ${entry.reason ? `<p class="chat-product-reason">${escapeHtml(entry.reason)}</p>` : ""}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            return `
+               
+                    <div class="chat-product-list">
+                        ${cardHtml}
+                    </div>
+                    <div >
+                        <button type="button" class="chat-product-add-btn" onclick="applyChatSelections(${messageId})">
+                            Thêm đã chọn
+                        </button>
+                    </div>
+             
+            `;
+        }
+
+        function appendBotChatResponse(response) {
+            if (!buildChatMessages) return null;
+
+            const messageId = ++chatResponseSeed;
+            const suggestedProducts = Array.isArray(response?.suggestedProducts) ? response.suggestedProducts : [];
+            chatSuggestionStore.set(String(messageId), suggestedProducts);
+
+            const div = document.createElement("div");
+            div.className = "chat-message bot chat-rich";
+            div.innerHTML = `
+                <div class="chat-bubble-text">${renderChatText(response?.reply || "Mình chưa có câu trả lời phù hợp.")}</div>
+                ${renderChatClarificationHints(response?.clarificationHints)}
+                ${renderChatProductPanel(messageId, suggestedProducts)}
+            `;
+
+            buildChatMessages.appendChild(div);
+            buildChatMessages.scrollTop = buildChatMessages.scrollHeight;
+            return div;
+        }
+
+        async function applyChatSelections(messageId) {
+            const suggestions = chatSuggestionStore.get(String(messageId)) || [];
+            const panel = buildChatMessages?.querySelector(`[data-chat-response-id="${messageId}"]`);
+            if (!panel) return;
+
+            const checkedInputs = [...panel.querySelectorAll(".chat-product-check:checked")];
+            if (!checkedInputs.length) {
+                await showAppAlert("Bạn chưa tick sản phẩm nào để thêm vào Build PC.", "warning");
+                return;
+            }
+
+            const selectedEntries = checkedInputs
+                .map(input => suggestions[Number(input.dataset.suggestionIndex)])
+                .filter(Boolean);
+
+            const invalidSingleTypes = [];
+            const groupedByType = new Map();
+
+            selectedEntries.forEach(entry => {
+                const type = entry.componentType || entry.product?.componentType;
+                if (!type) return;
+
+                if (!groupedByType.has(type)) {
+                    groupedByType.set(type, []);
+                }
+
+                groupedByType.get(type).push(entry);
+            });
+
+            groupedByType.forEach((items, type) => {
+                if (!isMultiSlot(type) && items.length > 1) {
+                    invalidSingleTypes.push(type);
+                }
+            });
+
+            if (invalidSingleTypes.length > 0) {
+                await showAppAlert(`Mỗi loại ${invalidSingleTypes.join(", ")} chỉ có thể chọn 1 sản phẩm mỗi lần.`, "warning");
+                return;
+            }
+
+            let addedCount = 0;
+            let replacedCount = 0;
+            let skippedCount = 0;
+
+            selectedEntries.forEach(entry => {
+                const type = entry.componentType || entry.product?.componentType;
+                const product = entry.product;
+
+                if (!type || !product || !Object.prototype.hasOwnProperty.call(buildState, type)) {
+                    skippedCount++;
+                    return;
+                }
+
+                const nextProduct = {
+                    ...product,
+                    quantity: 1
+                };
+
+                if (isMultiSlot(type)) {
+                    const existing = buildState[type].find(x => x.id === product.id);
+                    if (existing) {
+                        skippedCount++;
+                        return;
+                    }
+
+                    buildState[type].push(nextProduct);
+                    addedCount++;
+                    return;
+                }
+
+                if (buildState[type] && buildState[type].id === product.id) {
+                    skippedCount++;
+                    return;
+                }
+
+                if (buildState[type]) {
+                    replacedCount++;
+                }
+
+                buildState[type] = nextProduct;
+                addedCount++;
+            });
+
+            renderBuildTable();
+            await checkCompatibility();
+
+            checkedInputs.forEach(input => {
+                input.checked = false;
+            });
+
+            if (addedCount === 0 && skippedCount > 0) {
+                await showAppAlert("Các sản phẩm đã chọn đã có sẵn trong Build PC hoặc không thể thêm lúc này.", "warning");
+                return;
+            }
+
+            const messageParts = [`Đã cập nhật ${addedCount} linh kiện vào Build PC.`];
+            if (replacedCount > 0) {
+                messageParts.push(`Có ${replacedCount} vị trí đơn đã được thay thế.`);
+            }
+
+            await showAppAlert(messageParts.join(" "), "success");
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
 
         async function askBuildAssistant(message) {
             const text = String(message || "").trim();
             if (!text) return;
 
-            appendChatMessage("user", text);
-            appendChatMessage("bot", "Mình đang kiểm tra cấu hình cho bạn...");
+            const historyPayload = collectChatHistoryPayload();
+            appendTextChatMessage("user", text);
+            recordChatTurn("user", text);
 
-            const loadingNode = buildChatMessages.lastElementChild;
+            const loadingNode = appendTextChatMessage("bot", "Mình đang kiểm tra cấu hình và tìm sản phẩm phù hợp cho bạn...");
 
             try {
                 const res = await fetch("/api/pc-builder/chat", {
@@ -2248,21 +2829,23 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         message: text,
-                        items: collectPayloadItems()
+                        items: collectPayloadItems(),
+                        history: historyPayload
                     })
                 });
 
-                const data = await res.json();
+                const data = await parseJsonResponse(res);
 
                 if (!res.ok) {
                     throw new Error(data.message || "Không thể nhận tư vấn lúc này.");
                 }
 
-                loadingNode.remove();
-                appendChatMessage("bot", data.reply || "Mình chưa có câu trả lời phù hợp.");
+                loadingNode?.remove();
+                appendBotChatResponse(data);
+                recordChatTurn("assistant", data.reply || "Mình chưa có câu trả lời phù hợp.");
             } catch (error) {
-                loadingNode.remove();
-                appendChatMessage("bot", error.message || "Đang có lỗi khi tư vấn cấu hình.");
+                loadingNode?.remove();
+                appendTextChatMessage("bot", error.message || "Đang có lỗi khi tư vấn cấu hình.");
             }
         }
 
@@ -2320,6 +2903,7 @@
         window.changeQty = changeQty;
         window.removeSelectedItem = removeSelectedItem;
         window.askBuildAssistant = askBuildAssistant;
+        window.applyChatSelections = applyChatSelections;
         window.selectShareReceiver = selectShareReceiver;
         window.loadSharedBuild = loadSharedBuild;
         window.downloadSharedBuildExcel = downloadSharedBuildExcel;

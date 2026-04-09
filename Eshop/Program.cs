@@ -67,17 +67,24 @@ builder.Services.AddScoped<RecommendationPredictService>();
 builder.Services.AddScoped<IBuildRequirementExtractor, BuildRequirementExtractor>();
 builder.Services.AddScoped<IPcBuildRecommendationService, PcBuildRecommendationService>();
 builder.Services.AddScoped<IPcBuildSuggestionService, PcBuildSuggestionService>();
+builder.Services.AddScoped<PcBuildChatIntentAnalyzer>();
+builder.Services.AddScoped<PcBuildChatProductSuggestionService>();
 builder.Services.AddScoped<IPcBuildChatService, PcBuildChatService>();
 builder.Services.AddScoped<IPcBuildStorageService, PcBuildStorageService>();
 builder.Services.AddScoped<IPcBuildWorkbookService, PcBuildWorkbookService>();
 builder.Services.AddScoped<IPcBuildShareService, PcBuildShareService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderStateService, OrderStateService>();
+builder.Services.AddScoped<IProductCatalogRagSyncService, ProductCatalogRagSyncService>();
 builder.Services.AddHostedService<InventoryReservationCleanupHostedService>();
+builder.Services.AddHostedService<ProductCatalogRagSyncHostedService>();
 
 
 builder.Services.Configure<MomoOptionModel>(
     builder.Configuration.GetSection("MomoAPI")
+);
+builder.Services.Configure<RagServiceOptions>(
+    builder.Configuration.GetSection("RagService")
 );
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -141,9 +148,10 @@ builder.Services.AddSession(options =>
 
 //RAG Client
 builder.Services.AddHttpClient<ILlmChatClient, LlmChatClient>();
-builder.Services.AddHttpClient<RagClient>(client =>
+builder.Services.AddHttpClient<RagClient>((sp, client) =>
 {
-    client.BaseAddress = new Uri("http://localhost:8001");
+    var options = sp.GetRequiredService<IOptions<RagServiceOptions>>().Value;
+    client.BaseAddress = new Uri(options.BaseUrl);
 });
 
 

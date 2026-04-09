@@ -3,6 +3,7 @@ using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace Eshop.Services
@@ -11,11 +12,19 @@ namespace Eshop.Services
     {
         private readonly DataContext _context;
         private readonly ICartService _cartService;
+        private readonly IProductCatalogRagSyncService _productCatalogRagSyncService;
+        private readonly ILogger<InventoryService> _logger;
 
-        public InventoryService(DataContext context, ICartService cartService)
+        public InventoryService(
+            DataContext context,
+            ICartService cartService,
+            IProductCatalogRagSyncService productCatalogRagSyncService,
+            ILogger<InventoryService> logger)
         {
             _context = context;
             _cartService = cartService;
+            _productCatalogRagSyncService = productCatalogRagSyncService;
+            _logger = logger;
         }
 
         public async Task<int> GetAvailableStockAsync(int productId)
@@ -874,6 +883,7 @@ namespace Eshop.Services
             product.Quantity = available < 0 ? 0 : available;
 
             await _context.SaveChangesAsync();
+            await TrySyncProductRagAsync(productId);
         }
 
         private async Task SyncProductsCacheAsync(List<int> productIds)
@@ -888,6 +898,27 @@ namespace Eshop.Services
             }
 
             await _context.SaveChangesAsync();
+
+            foreach (var product in products)
+            {
+                await TrySyncProductRagAsync(product.Id);
+            }
+        }
+
+        private async Task TrySyncProductRagAsync(int productId)
+        {
+            try
+            {
+                var synced = await _productCatalogRagSyncService.SyncProductAsync(productId);
+                if (!synced)
+                {
+                    _logger.LogWarning("Dong bo ton kho sang RAG that bai cho product {ProductId}.", productId);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Dong bo ton kho sang RAG loi cho product {ProductId}.", productId);
+            }
         }
     }
 }

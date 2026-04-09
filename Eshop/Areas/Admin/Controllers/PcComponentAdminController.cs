@@ -24,15 +24,18 @@ namespace Eshop.Areas.Admin.Controllers
         private readonly DataContext _context;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IMemoryCache _memoryCache;
+        private readonly IProductCatalogRagSyncService _productCatalogRagSyncService;
 
         public PcComponentAdminController(
             DataContext context,
             ICloudinaryService cloudinaryService,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            IProductCatalogRagSyncService productCatalogRagSyncService)
         {
             _context = context;
             _cloudinaryService = cloudinaryService;
             _memoryCache = memoryCache;
+            _productCatalogRagSyncService = productCatalogRagSyncService;
         }
 
         public async Task<IActionResult> Index()
@@ -142,6 +145,7 @@ namespace Eshop.Areas.Admin.Controllers
             _context.Products.Update(vm.Product);
             await _context.SaveChangesAsync();
             _memoryCache.Remove(CacheKeys.HomeProducts);
+            await SyncProductRagAsync(vm.Product.Id);
 
             TempData["success"] = "Tạo linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -390,6 +394,7 @@ namespace Eshop.Areas.Admin.Controllers
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
             _memoryCache.Remove(CacheKeys.HomeProducts);
+            await SyncProductRagAsync(product.Id);
 
             TempData["success"] = "Cập nhật linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -438,6 +443,7 @@ namespace Eshop.Areas.Admin.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             _memoryCache.Remove(CacheKeys.HomeProducts);
+            await DeleteProductFromRagAsync(id);
 
             TempData["success"] = "Xóa linh kiện thành công.";
             return RedirectToAction(nameof(Index));
@@ -458,6 +464,14 @@ namespace Eshop.Areas.Admin.Controllers
             product.Status = product.Status == 1 ? 0 : 1;
             await _context.SaveChangesAsync();
             _memoryCache.Remove(CacheKeys.HomeProducts);
+            if (product.Status == 1)
+            {
+                await SyncProductRagAsync(product.Id);
+            }
+            else
+            {
+                await DeleteProductFromRagAsync(product.Id);
+            }
 
             TempData["success"] = product.Status == 1
                 ? "Đã hiển thị linh kiện."
@@ -836,6 +850,24 @@ namespace Eshop.Areas.Admin.Controllers
                        (x.OnHandQuantity > 0 || x.ReservedQuantity > 0))
                    || await _context.InventoryTransactionDetails.AnyAsync(x => x.ProductId == productId)
                    || await _context.OrderDetails.AnyAsync(x => x.ProductId == productId);
+        }
+
+        private async Task SyncProductRagAsync(int productId)
+        {
+            var synced = await _productCatalogRagSyncService.SyncProductAsync(productId);
+            if (!synced)
+            {
+                TempData["warning"] = "Linh kiện đã được lưu nhưng chưa đồng bộ sang RAG Service. Hãy kiểm tra rag-service hoặc khởi động lại full-sync.";
+            }
+        }
+
+        private async Task DeleteProductFromRagAsync(int productId)
+        {
+            var deleted = await _productCatalogRagSyncService.DeleteProductAsync(productId);
+            if (!deleted)
+            {
+                TempData["warning"] = "Linh kiện đã được cập nhật nhưng chưa xóa khỏi RAG Service. Hãy kiểm tra rag-service hoặc chạy full-sync.";
+            }
         }
 
     }

@@ -24,19 +24,22 @@ namespace Eshop.Areas.Admin.Controllers
         private readonly ICloudinaryService _cloudinaryService;
         private readonly HybridCache _cache;
         private readonly ICatalogCacheService _catalogCacheService;
+        private readonly IProductCatalogRagSyncService _productCatalogRagSyncService;
 
         public ProductController(
                IWebHostEnvironment webHostEnvironment,
                DataContext dataContext,
                ICloudinaryService cloudinaryService,
                HybridCache cache,
-               ICatalogCacheService catalogCacheService)
+               ICatalogCacheService catalogCacheService,
+               IProductCatalogRagSyncService productCatalogRagSyncService)
         {
             _webHostEnvironment = webHostEnvironment;
             _dataContext = dataContext;
             _cloudinaryService = cloudinaryService;
             _cache = cache;
             _catalogCacheService = catalogCacheService;
+            _productCatalogRagSyncService = productCatalogRagSyncService;
         }
 
         public async Task<IActionResult> Index()
@@ -118,6 +121,7 @@ namespace Eshop.Areas.Admin.Controllers
             await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await _catalogCacheService.RemoveProductAsync(vm.Product.Id);
             await _catalogCacheService.RemoveFeaturedProductsAsync();
+            await SyncProductRagAsync(vm.Product.Id);
 
             TempData["success"] = "Thêm sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -249,6 +253,7 @@ namespace Eshop.Areas.Admin.Controllers
             await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await _catalogCacheService.RemoveProductAsync(existingProduct.Id);
             await _catalogCacheService.RemoveFeaturedProductsAsync();
+            await SyncProductRagAsync(existingProduct.Id);
 
             TempData["success"] = "Cập nhật sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -307,6 +312,7 @@ namespace Eshop.Areas.Admin.Controllers
             await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await _catalogCacheService.RemoveProductAsync(id);
             await _catalogCacheService.RemoveFeaturedProductsAsync();
+            await DeleteProductFromRagAsync(id);
 
             TempData["success"] = "Xóa sản phẩm thành công!";
             return RedirectToAction(nameof(Index));
@@ -329,6 +335,14 @@ namespace Eshop.Areas.Admin.Controllers
             await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await _catalogCacheService.RemoveProductAsync(product.Id);
             await _catalogCacheService.RemoveFeaturedProductsAsync();
+            if (product.Status == 1)
+            {
+                await SyncProductRagAsync(product.Id);
+            }
+            else
+            {
+                await DeleteProductFromRagAsync(product.Id);
+            }
 
             TempData["success"] = product.Status == 1
                 ? "Đã hiển thị sản phẩm."
@@ -725,6 +739,24 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             return null;
+        }
+
+        private async Task SyncProductRagAsync(int productId)
+        {
+            var synced = await _productCatalogRagSyncService.SyncProductAsync(productId);
+            if (!synced)
+            {
+                TempData["warning"] = "Sản phẩm đã được lưu nhưng chưa đồng bộ sang RAG Service. Hãy kiểm tra rag-service hoặc khởi động lại full-sync.";
+            }
+        }
+
+        private async Task DeleteProductFromRagAsync(int productId)
+        {
+            var deleted = await _productCatalogRagSyncService.DeleteProductAsync(productId);
+            if (!deleted)
+            {
+                TempData["warning"] = "Sản phẩm đã được cập nhật nhưng chưa xóa khỏi RAG Service. Hãy kiểm tra rag-service hoặc chạy full-sync.";
+            }
         }
 
     }

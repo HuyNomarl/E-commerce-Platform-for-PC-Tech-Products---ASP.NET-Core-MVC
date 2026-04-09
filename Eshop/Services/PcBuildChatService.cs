@@ -1,4 +1,9 @@
-﻿using Eshop.Models.ViewModels;
+using Eshop.Models;
+using Eshop.Models.Configurations;
+using Eshop.Models.ViewModels;
+using Eshop.Repository;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Serilog;
 using System.Text;
 
@@ -6,86 +11,95 @@ namespace Eshop.Services
 {
     public class PcBuildChatService : IPcBuildChatService
     {
-        private static readonly string[] RagNamespaces = new[]
+        private static readonly string[] StaticRagNamespaces = new[]
         {
             "build_guide",
-            "game_profile",
-            "product_profiles"
+            "game_profile"
         };
 
         private readonly IPcCompatibilityService _compatibilityService;
-        private readonly IBuildRequirementExtractor _requirementExtractor;
         private readonly IPcBuildRecommendationService _recommendationService;
         private readonly IPcBuildSuggestionService _suggestionService;
+        private readonly PcBuildChatIntentAnalyzer _intentAnalyzer;
+        private readonly PcBuildChatProductSuggestionService _productSuggestionService;
         private readonly RagClient _ragClient;
         private readonly ILlmChatClient _llmChatClient;
+        private readonly DataContext _context;
+        private readonly string _catalogNamespace;
 
         public PcBuildChatService(
             IPcCompatibilityService compatibilityService,
-            IBuildRequirementExtractor requirementExtractor,
             IPcBuildRecommendationService recommendationService,
             IPcBuildSuggestionService suggestionService,
+            PcBuildChatIntentAnalyzer intentAnalyzer,
+            PcBuildChatProductSuggestionService productSuggestionService,
             RagClient ragClient,
-            ILlmChatClient llmChatClient)
+            ILlmChatClient llmChatClient,
+            DataContext context,
+            IOptions<RagServiceOptions> ragOptions)
         {
             _compatibilityService = compatibilityService;
-            _requirementExtractor = requirementExtractor;
             _recommendationService = recommendationService;
             _suggestionService = suggestionService;
+            _intentAnalyzer = intentAnalyzer;
+            _productSuggestionService = productSuggestionService;
             _ragClient = ragClient;
             _llmChatClient = llmChatClient;
+            _context = context;
+            _catalogNamespace = ragOptions.Value.CatalogNamespace;
         }
 
         public async Task<PcBuildChatResponse> AskAsync(PcBuildChatRequest request)
         {
             if (request == null)
+            {
                 throw new ArgumentNullException(nameof(request));
+            }
 
-            var safeMessage = (request.Message ?? "").Trim();
+            var safeMessage = (request.Message ?? string.Empty).Trim();
             var hasCurrentBuild = request.Items != null && request.Items.Any();
+            var analysis = await _intentAnalyzer.AnalyzeAsync(request);
+            var requirement = analysis.Requirement ?? new BuildRequirementProfile();
 
-            var requirement = await _requirementExtractor.ExtractAsync(safeMessage)
-                             ?? new BuildRequirementProfile();
-
-            PcBuildCheckRequest buildRequest;
-            if (hasCurrentBuild)
-            {
-                buildRequest = new PcBuildCheckRequest
-                {
-                    Items = request.Items ?? new List<PcBuildCheckItemDto>()
-                };
-            }
-            else
-            {
-                buildRequest = await _recommendationService.RecommendBuildAsync(requirement)
-                              ?? new PcBuildCheckRequest
-                              {
-                                  Items = new List<PcBuildCheckItemDto>()
-                              };
-            }
-
+            var buildRequest = await ResolveBuildRequestAsync(request, analysis, hasCurrentBuild);
             buildRequest.Items ??= new List<PcBuildCheckItemDto>();
-
-            var checkResult = await _compatibilityService.CheckAsync(buildRequest)
-                             ?? new PcBuildCheckResponse();
+            var selectedProducts = await LoadPromptProductsAsync(buildRequest.Items);
+            var checkResult = await _compatibilityService.CheckAsync(buildRequest) ?? new PcBuildCheckResponse();
 
             checkResult.Messages ??= new List<CompatibilityMessageDto>();
 
-            var suggestions = await _suggestionService.SuggestFixesAsync(buildRequest, checkResult)
-                              ?? new List<string>();
+            var suggestions = buildRequest.Items.Any()
+                ? await _suggestionService.SuggestFixesAsync(buildRequest, checkResult) ?? new List<string>()
+                : new List<string>();
 
-            var ragTexts = await CollectRagContextAsync(safeMessage, requirement, checkResult);
+            var productSuggestions = await _productSuggestionService.BuildSuggestionsAsync(
+                analysis,
+                hasCurrentBuild,
+                buildRequest,
+                selectedProducts,
+                checkResult,
+                safeMessage);
+
+            var ragTexts = await CollectRagContextAsync(
+                safeMessage,
+                analysis,
+                buildRequest,
+                selectedProducts,
+                checkResult,
+                productSuggestions);
 
             var systemPrompt = BuildSystemPrompt();
             var userPrompt = BuildUserPrompt(
-                            safeMessage,
-                            hasCurrentBuild,
-                            requirement,
-                            buildRequest,
-                            checkResult,
-                            suggestions,
-                            ragTexts);
-
+                request,
+                analysis,
+                requirement,
+                hasCurrentBuild,
+                buildRequest,
+                selectedProducts,
+                checkResult,
+                suggestions,
+                productSuggestions,
+                ragTexts);
 
             string reply;
             try
@@ -95,147 +109,298 @@ namespace Eshop.Services
             catch (Exception ex)
             {
                 Log.Warning(ex, "LLM failed, using fallback reply.");
-                reply = BuildFallbackReply(checkResult, suggestions, ragTexts);
+                reply = BuildFallbackReply(analysis, checkResult, suggestions, productSuggestions, ragTexts);
             }
 
             return new PcBuildChatResponse
             {
                 Reply = reply,
+                Intent = analysis.IntentCode,
                 IsValid = checkResult.IsValid,
                 TotalPrice = checkResult.TotalPrice,
                 EstimatedPower = checkResult.EstimatedPower,
-                Messages = checkResult.Messages ?? new List<CompatibilityMessageDto>()
+                NeedsClarification = analysis.NeedsClarification,
+                ClarificationHints = analysis.ClarificationHints,
+                Messages = checkResult.Messages ?? new List<CompatibilityMessageDto>(),
+                SuggestedProducts = productSuggestions
             };
+        }
+
+        private async Task<PcBuildCheckRequest> ResolveBuildRequestAsync(
+            PcBuildChatRequest request,
+            PcBuildChatIntentAnalysis analysis,
+            bool hasCurrentBuild)
+        {
+            if (hasCurrentBuild)
+            {
+                return new PcBuildCheckRequest
+                {
+                    Items = request.Items ?? new List<PcBuildCheckItemDto>()
+                };
+            }
+
+            if (analysis.ShouldGenerateBuildProposal)
+            {
+                return await _recommendationService.RecommendBuildAsync(analysis.Requirement)
+                    ?? new PcBuildCheckRequest
+                    {
+                        Items = new List<PcBuildCheckItemDto>()
+                    };
+            }
+
+            return new PcBuildCheckRequest
+            {
+                Items = new List<PcBuildCheckItemDto>()
+            };
+        }
+
+        private async Task<List<PcBuildChatSelectedProduct>> LoadPromptProductsAsync(IReadOnlyCollection<PcBuildCheckItemDto> items)
+        {
+            var safeItems = items ?? Array.Empty<PcBuildCheckItemDto>();
+            var productIds = safeItems
+                .Where(x => x.ProductId > 0)
+                .Select(x => x.ProductId)
+                .Distinct()
+                .ToList();
+
+            if (!productIds.Any())
+            {
+                return new List<PcBuildChatSelectedProduct>();
+            }
+
+            var products = await _context.Products
+                .AsNoTracking()
+                .Include(x => x.Publisher)
+                .Include(x => x.Specifications)
+                    .ThenInclude(x => x.SpecificationDefinition)
+                .Where(x => productIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id);
+
+            var result = new List<PcBuildChatSelectedProduct>();
+
+            foreach (var item in safeItems)
+            {
+                if (products.TryGetValue(item.ProductId, out var product))
+                {
+                    result.Add(new PcBuildChatSelectedProduct(item, product));
+                }
+            }
+
+            return result;
         }
 
         private async Task<List<string>> CollectRagContextAsync(
             string userMessage,
-            BuildRequirementProfile requirement,
-            PcBuildCheckResponse checkResult)
+            PcBuildChatIntentAnalysis analysis,
+            PcBuildCheckRequest buildRequest,
+            List<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult,
+            List<PcBuildChatSuggestedProductDto> productSuggestions)
         {
-            var ragTexts = new List<string>();
+            var namespaces = StaticRagNamespaces
+                .Append(_catalogNamespace)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            foreach (var ns in RagNamespaces)
-            {
-                try
-                {
-                    var query = BuildRagQuery(ns, userMessage, requirement, checkResult);
-                    var rag = await _ragClient.SearchAsync(query, ns);
+            var tasks = namespaces.Select(ns =>
+                CollectNamespaceContextAsync(ns, userMessage, analysis, buildRequest, selectedProducts, checkResult, productSuggestions));
 
-                    Log.Information("RAG namespace: {Namespace}", ns);
-                    Log.Information("RAG query: {Query}", query);
-                    Log.Information("RAG result count: {Count}", rag?.Results?.Count ?? 0);
+            var batches = await Task.WhenAll(tasks);
 
-                    foreach (var item in rag?.Results?.Take(3) ?? Enumerable.Empty<RagSearchItem>())
-                    {
-                        Log.Information("RAG source [{Namespace}]: {Source}", ns, item.Source);
-                        Log.Information("RAG content [{Namespace}]: {Content}", ns, item.Content);
-                    }
-
-                    if (rag?.Results != null && rag.Results.Any())
-                    {
-                        ragTexts.AddRange(
-                            rag.Results
-                                .Select(x => x.Content)
-                                .Where(x => !string.IsNullOrWhiteSpace(x))
-                                .Take(2));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Warning(ex, "RAG query failed for namespace {Namespace}", ns);
-                }
-            }
-
-            return ragTexts
+            return batches
+                .SelectMany(x => x)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Distinct()
                 .Take(6)
                 .ToList();
         }
 
+        private async Task<List<string>> CollectNamespaceContextAsync(
+            string ns,
+            string userMessage,
+            PcBuildChatIntentAnalysis analysis,
+            PcBuildCheckRequest buildRequest,
+            List<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult,
+            List<PcBuildChatSuggestedProductDto> productSuggestions)
+        {
+            try
+            {
+                var query = BuildRagQuery(ns, userMessage, analysis, buildRequest, selectedProducts, checkResult, productSuggestions);
+                var rag = await _ragClient.SearchAsync(query, ns, k: 4, minScore: 0.05);
+
+                Log.Information("RAG namespace: {Namespace}", ns);
+                Log.Information("RAG query: {Query}", query);
+                Log.Information("RAG result count: {Count}", rag?.Results?.Count ?? 0);
+
+                foreach (var item in rag?.Results?.Take(3) ?? Enumerable.Empty<RagSearchItem>())
+                {
+                    Log.Information("RAG source [{Namespace}]: {Source}", ns, item.Source);
+                    Log.Information("RAG content [{Namespace}]: {Content}", ns, item.Content);
+                }
+
+                return rag?.Results?
+                    .Select(x => x.Content)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Take(2)
+                    .Select(x => $"[{ns}] {x}")
+                    .ToList()
+                    ?? new List<string>();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "RAG query failed for namespace {Namespace}", ns);
+                return new List<string>();
+            }
+        }
+
         private static string BuildRagQuery(
             string ns,
             string userMessage,
-            BuildRequirementProfile requirement,
-            PcBuildCheckResponse checkResult)
+            PcBuildChatIntentAnalysis analysis,
+            PcBuildCheckRequest buildRequest,
+            List<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult,
+            List<PcBuildChatSuggestedProductDto> productSuggestions)
         {
             if (ns == "build_guide")
             {
+                if (analysis.NeedsClarification)
+                {
+                    return $"Huong dan dat cau hoi build PC ro hon va cach chot nhu cau: {analysis.ConversationContext}";
+                }
+
                 if (checkResult.Messages != null && checkResult.Messages.Any())
                 {
                     return $"Giai thich va huong dan xu ly loi build PC: {string.Join("; ", checkResult.Messages.Select(x => x.Message))}";
                 }
 
-                return $"Huong dan build PC theo nhu cau: {userMessage}";
+                if (selectedProducts.Any())
+                {
+                    return $"Huong dan build PC cho cau hinh dang xet: {string.Join("; ", selectedProducts.Select(x => x.Product.Name))}. Cau hoi: {userMessage}";
+                }
+
+                return $"Huong dan build PC theo nhu cau: {analysis.ConversationContext}";
             }
 
             if (ns == "game_profile")
             {
-                var gameOrPurpose = !string.IsNullOrWhiteSpace(requirement.GameTitle)
-                    ? requirement.GameTitle
-                    : requirement.PrimaryPurpose;
+                var gameOrPurpose = !string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle)
+                    ? analysis.Requirement.GameTitle
+                    : analysis.Requirement.PrimaryPurpose;
 
-                return $"Nhu cau game hoac muc dich su dung: {gameOrPurpose}. Yeu cau: {userMessage}";
+                return $"Nhu cau game hoac muc dich su dung: {gameOrPurpose}. Yeu cau: {analysis.ConversationContext}";
             }
 
-            if (ns == "product_profiles")
+            var parts = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.PrimaryPurpose))
             {
-                var parts = new List<string>();
-
-                if (!string.IsNullOrWhiteSpace(requirement.PrimaryPurpose))
-                    parts.Add($"Mục đích: {requirement.PrimaryPurpose}");
-
-                if (!string.IsNullOrWhiteSpace(requirement.GameTitle))
-                    parts.Add($"Game: {requirement.GameTitle}");
-
-                if (!string.IsNullOrWhiteSpace(requirement.PerformancePriority))
-                    parts.Add($"Ưu tiên: {requirement.PerformancePriority}");
-
-                if (requirement.BudgetMax.HasValue)
-                    parts.Add($"Ngân sách tối đa: {requirement.BudgetMax.Value}");
-
-                parts.Add($"Cau hoi: {userMessage}");
-                return string.Join(". ", parts);
+                parts.Add($"Muc dich: {analysis.Requirement.PrimaryPurpose}");
             }
 
-            return userMessage;
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle))
+            {
+                parts.Add($"Game: {analysis.Requirement.GameTitle}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.ResolutionTarget))
+            {
+                parts.Add($"Do phan giai: {analysis.Requirement.ResolutionTarget}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.PerformancePriority))
+            {
+                parts.Add($"Uu tien: {analysis.Requirement.PerformancePriority}");
+            }
+
+            if (analysis.Requirement.BudgetMax.HasValue)
+            {
+                parts.Add($"Ngan sach toi da: {analysis.Requirement.BudgetMax.Value}");
+            }
+
+            if (analysis.TargetComponents.Any())
+            {
+                parts.Add("Linh kien quan tam: " + string.Join(", ", analysis.TargetComponents));
+            }
+
+            if (selectedProducts.Any())
+            {
+                parts.Add("Cau hinh dang xet: " + string.Join("; ", selectedProducts.Select(x => x.Product.Name)));
+            }
+            else if (buildRequest?.Items != null && buildRequest.Items.Any())
+            {
+                parts.Add("Cau hinh goi y: " + string.Join("; ", buildRequest.Items.Select(x => $"{x.ComponentType}:{x.ProductId}")));
+            }
+
+            if (productSuggestions.Any())
+            {
+                parts.Add("San pham dang goi y: " + string.Join("; ", productSuggestions.Select(x => x.Product.Name)));
+            }
+
+            parts.Add($"Cau hoi: {analysis.ConversationContext}");
+            return string.Join(". ", parts);
         }
 
         private static string BuildSystemPrompt()
         {
             return """
-                Bạn là trợ lý tư vấn build PC cho website bán linh kiện.
+                Ban la tro ly tu van build PC cho website ban linh kien.
 
-                Quy tắc:
-                - compatibility_result là nguồn sự thật kỹ thuật.
-                - Không tự bịa ra tương thích nếu compatibility_result không xác nhận.
-                - requirement_profile mô tả nhu cầu người dùng.
-                - suggestions là gợi ý sửa hoặc tối ưu.
-                - rag_context là tài liệu tham khảo thêm từ guide, profile game và profile sản phẩm.
-                - Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng, có tính tư vấn mua hàng.
-                - Nếu has_current_build = true, bạn đang phân tích cấu hình hiện tại của người dùng.
-                - Nếu has_current_build = false, bạn đang mô tả một cấu hình đề xuất do hệ thống gợi ý.
-                - Tuyệt đối không nói "cấu hình bạn chọn" khi has_current_build = false.
-                - Nếu đang có lỗi tương thích, hãy nói rõ lỗi, lý do và cách sửa.
-                - Nếu dữ liệu game chưa chắc chắn, hãy nói theo hướng định hướng build và đề nghị người dùng bổ sung ngân sách hoặc độ phân giải mong muốn.
+                Quy tac:
+                - compatibility_result la nguon su that ky thuat.
+                - selected_build_products la danh sach san pham that tu catalog DB, uu tien thong tin nay khi phan tich cau hinh.
+                - catalog_suggestions la cac san pham that se duoc hien thanh card trong UI chat.
+                - intent_analysis mo ta loai cau hoi, linh kien dang duoc quan tam va cac diem con thieu.
+                - requirement_profile mo ta nhu cau nguoi dung.
+                - suggestions la goi y sua hoac toi uu.
+                - rag_context la tai lieu tham khao them tu huong dan build, profile game va catalog san pham.
+                - Tra loi bang tieng Viet, ngan gon, ro rang, co tinh tu van mua hang.
+                - Neu has_current_build = true, ban dang phan tich cau hinh hien tai cua nguoi dung.
+                - Neu has_current_build = false, ban dang tu van dua tren nhu cau va lich su hoi dap, khong duoc gia vo la da co cau hinh hoan chinh neu build dang rong.
+                - Tuyet doi khong noi "cau hinh ban chon" khi has_current_build = false va selected_build_products dang rong.
+                - Neu co loi tuong thich, hay noi ro loi, ly do va cach sua.
+                - Neu nguoi dung hoi sai kien thuc hoac premiss sai, hay noi ro diem sai mot cach lich su, sau do dua thong tin dung.
+                - Neu needs_clarification = true, hay noi ro con thieu thong tin gi va dat 1-3 cau hoi bo sung cu the.
+                - Neu dang hoi linh kien rieng le, uu tien tra loi xoay quanh linh kien do thay vi lat ra ca build.
+                - Neu rag_context va selected_build_products co xung dot, uu tien selected_build_products va compatibility_result.
+                - Neu catalog_suggestions co du lieu, co the nhac den 2-4 ten san pham noi bat va noi rang card san pham dang duoc hien ben duoi de nguoi dung tick chon vao Build PC.
                 """;
         }
 
-
         private static string BuildUserPrompt(
-    string userMessage,
-    bool hasCurrentBuild,
-    BuildRequirementProfile requirement,
-    PcBuildCheckRequest buildRequest,
-    PcBuildCheckResponse checkResult,
-    List<string> suggestions,
-    List<string> ragTexts)
+            PcBuildChatRequest request,
+            PcBuildChatIntentAnalysis analysis,
+            BuildRequirementProfile requirement,
+            bool hasCurrentBuild,
+            PcBuildCheckRequest buildRequest,
+            List<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult,
+            List<string> suggestions,
+            List<PcBuildChatSuggestedProductDto> productSuggestions,
+            List<string> ragTexts)
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine($"user_message: {userMessage}");
+            sb.AppendLine($"user_message: {request.Message}");
             sb.AppendLine($"has_current_build: {hasCurrentBuild}");
+            sb.AppendLine($"chat_intent: {analysis.IntentCode}");
+            sb.AppendLine($"needs_clarification: {analysis.NeedsClarification}");
+            sb.AppendLine($"potential_misconception: {analysis.PotentialMisconception}");
+
+            sb.AppendLine("recent_chat_history:");
+            foreach (var item in request.History?.TakeLast(8) ?? new List<PcBuildChatHistoryItemDto>())
+            {
+                sb.AppendLine($"- {item.Role}: {item.Content}");
+            }
+
+            sb.AppendLine("intent_analysis:");
+            sb.AppendLine($"- TargetComponents: {string.Join(", ", analysis.TargetComponents)}");
+            foreach (var hint in analysis.ClarificationHints)
+            {
+                sb.AppendLine($"- ClarificationHint: {hint}");
+            }
 
             sb.AppendLine("requirement_profile:");
             sb.AppendLine($"- PrimaryPurpose: {requirement?.PrimaryPurpose}");
@@ -250,10 +415,24 @@ namespace Eshop.Services
             sb.AppendLine($"- PreferredBrand: {requirement?.PreferredBrand}");
             sb.AppendLine($"- Notes: {requirement?.Notes}");
 
-            sb.AppendLine("recommended_or_current_build_items:");
-            foreach (var item in buildRequest?.Items ?? new List<PcBuildCheckItemDto>())
+            sb.AppendLine("selected_build_products:");
+            if (selectedProducts.Any())
             {
-                sb.AppendLine($"- ComponentType: {item.ComponentType}, ProductId: {item.ProductId}, Quantity: {item.Quantity}");
+                foreach (var item in selectedProducts)
+                {
+                    sb.AppendLine($"- ProductId: {item.Product.Id}, ComponentType: {item.Item.ComponentType}, Summary: {item.Summary}");
+                }
+            }
+            else if (buildRequest?.Items != null && buildRequest.Items.Any())
+            {
+                foreach (var item in buildRequest.Items)
+                {
+                    sb.AppendLine($"- ComponentType: {item.ComponentType}, ProductId: {item.ProductId}, Quantity: {item.Quantity}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("- Khong co build hien tai.");
             }
 
             sb.AppendLine("compatibility_result:");
@@ -261,56 +440,91 @@ namespace Eshop.Services
             sb.AppendLine($"- EstimatedPower: {checkResult?.EstimatedPower}W");
             sb.AppendLine($"- TotalPrice: {checkResult?.TotalPrice}");
 
-            foreach (var m in checkResult?.Messages ?? new List<CompatibilityMessageDto>())
+            foreach (var message in checkResult?.Messages ?? new List<CompatibilityMessageDto>())
             {
-                sb.AppendLine($"- [{m.Level}] {m.Message}");
+                sb.AppendLine($"- [{message.Level}] {message.Message}");
             }
 
             sb.AppendLine("suggestions:");
-            foreach (var s in suggestions ?? new List<string>())
+            foreach (var suggestion in suggestions ?? new List<string>())
             {
-                sb.AppendLine($"- {s}");
+                sb.AppendLine($"- {suggestion}");
+            }
+
+            sb.AppendLine("catalog_suggestions:");
+            foreach (var suggestion in productSuggestions ?? new List<PcBuildChatSuggestedProductDto>())
+            {
+                sb.AppendLine($"- [{suggestion.ComponentType}] {suggestion.Product.Name} | Gia: {suggestion.Product.Price} | Ly do: {suggestion.Reason}");
             }
 
             sb.AppendLine("rag_context:");
-            foreach (var t in ragTexts ?? new List<string>())
+            foreach (var text in ragTexts ?? new List<string>())
             {
-                sb.AppendLine($"- {t}");
+                sb.AppendLine($"- {text}");
             }
 
             sb.AppendLine("""
-                Quy tắc trả lời:
-                - Nếu has_current_build = true, hãy nói theo ngữ cảnh cấu hình hiện tại của người dùng.
-                - Nếu has_current_build = false, đây là cấu hình đề xuất do hệ thống gợi ý, KHÔNG được nói là "cấu hình bạn đã chọn".
-                - Nếu chưa có build hiện tại, hãy nói theo kiểu tư vấn: "mình gợi ý", "với nhu cầu này", "một cấu hình phù hợp có thể là".
-                - Nếu game người dùng hỏi không có nhiều dữ liệu cụ thể, hãy nói rõ đây là định hướng build đề xuất và nên nói rõ ngân sách hoặc độ phân giải.
+                Quy tac tra loi:
+                - Neu needs_clarification = true, phan dau tien phai noi ro con thieu thong tin gi.
+                - Neu chat_intent = component_recommendation, tap trung vao linh kien nguoi dung dang hoi va de xuat phuong an de chon trong builder.
+                - Neu chat_intent = knowledge_check, phai sua thong tin sai neu co va giai thich ngan gon, de hieu.
+                - Neu chat_intent = upgrade_build, hay noi uu tien nang cap nao dang loi nhat truoc.
+                - Neu has_current_build = false va selected_build_products rong, khong duoc biet ra tong gia hay cong suat nhu mot build da chot.
+                - Khi nhac den san pham cu the, uu tien ten san pham va thong so trong selected_build_products hoac catalog_suggestions.
+                - Khong lap lai nguyen van du lieu prompt.
                 """);
 
-            sb.AppendLine("Hãy tạo câu trả lời cuối cùng cho người dùng.");
+            sb.AppendLine("Hay tao cau tra loi cuoi cung cho nguoi dung.");
             return sb.ToString();
         }
 
-
         private static string BuildFallbackReply(
+            PcBuildChatIntentAnalysis analysis,
             PcBuildCheckResponse checkResult,
             List<string> suggestions,
+            List<PcBuildChatSuggestedProductDto> productSuggestions,
             List<string> ragTexts)
         {
-            var messages = checkResult?.Messages ?? new List<CompatibilityMessageDto>();
+            var parts = new List<string>();
 
-            var baseText = messages.Any()
-                ? string.Join("\n", messages.Select(x => $"- {x.Message}"))
-                : $"Cấu hình hiện tại chưa có cảnh báo. Công suất ước tính khoảng {checkResult?.EstimatedPower ?? 0}W.";
+            if (analysis.NeedsClarification)
+            {
+                parts.Add("Mình cần thêm vài thông tin để tư vấn sát hơn:");
+                parts.AddRange(analysis.ClarificationHints.Select(x => $"- {x}"));
+            }
+            else if (checkResult?.Messages?.Any() == true)
+            {
+                parts.Add("Mình thấy vài điểm đáng chú ý trong cấu hình:");
+                parts.AddRange(checkResult.Messages.Select(x => $"- {x.Message}"));
+            }
+            else if (checkResult != null && checkResult.EstimatedPower > 0)
+            {
+                parts.Add($"Cấu hình hiện tại chưa có cảnh báo lớn. Công suất ước tính khoảng {checkResult.EstimatedPower}W.");
+            }
+            else
+            {
+                parts.Add("Mình chưa đủ dữ liệu để chốt ngay, nhưng vẫn có thể gợi ý theo nhu cầu nếu bạn bổ sung thêm thông tin.");
+            }
 
-            var suggestText = (suggestions ?? new List<string>()).Any()
-                ? "\n\nGợi ý:\n" + string.Join("\n", suggestions.Select(x => $"- {x}"))
-                : "";
+            if ((suggestions ?? new List<string>()).Any())
+            {
+                parts.Add("Gợi ý nhanh:");
+                parts.AddRange(suggestions.Select(x => $"- {x}"));
+            }
 
-            var ragText = (ragTexts ?? new List<string>()).Any()
-                ? "\n\nTham khảo thêm:\n" + string.Join("\n", ragTexts.Take(3).Select(x => $"- {x}"))
-                : "";
+            if ((productSuggestions ?? new List<PcBuildChatSuggestedProductDto>()).Any())
+            {
+                parts.Add("Một vài sản phẩm đang được gợi ý trong khung chat:");
+                parts.AddRange(productSuggestions.Take(4).Select(x => $"- {x.Product.Name}: {x.Reason}"));
+            }
 
-            return baseText + suggestText + ragText;
+            if ((ragTexts ?? new List<string>()).Any())
+            {
+                parts.Add("Tham khảo thêm:");
+                parts.AddRange(ragTexts.Take(2).Select(x => $"- {x}"));
+            }
+
+            return string.Join("\n", parts);
         }
     }
 }

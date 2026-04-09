@@ -29,6 +29,8 @@
     <link href="~/css/typography.css" rel="stylesheet" />
 
     <link rel="shortcut icon" href="~/images/ico/favicon.ico" />
+
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <partial name="_SupportChatPartial" />

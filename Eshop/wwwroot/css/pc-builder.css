@@ -1,0 +1,70 @@
+﻿.pc-builder-page {
+    @media (max-width: 768px) {
+        .pc-builder-wrap {
+            padding: 0 12px;
+        }
+
+        .pc-builder-topbar,
+        .pc-builder-bottombar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .slot-col {
+            width: 145px;
+            font-size: 13px;
+            padding: 16px 12px !important;
+        }
+
+        .content-col {
+            padding: 14px 12px !important;
+        }
+
+        .picker-item {
+            grid-template-columns: 36px 72px 1fr;
+            align-items: start;
+        }
+
+        .picker-price {
+            grid-column: 1 / -1;
+            text-align: left;
+            padding-left: 48px;
+        }
+
+        .builder-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .share-search-row,
+        .share-result-top,
+        .shared-build-top,
+        .chat-product-top {
+            flex-direction: column;
+        }
+
+        .build-chatbox {
+            left: 12px;
+            right: 12px;
+            width: auto;
+            bottom: 12px;
+            border-radius: 16px;
+        }
+
+        .build-chatbox-body {
+            min-height: 260px;
+        }
+
+        .chat-product-card {
+            grid-template-columns: 22px 60px minmax(0, 1fr);
+            align-items: start;
+        }
+
+        .chat-product-thumb {
+            width: 60px;
+            height: 60px;
+        }
+
+        .chat-message {
+            max-width: 96%;
+        }
+    }
