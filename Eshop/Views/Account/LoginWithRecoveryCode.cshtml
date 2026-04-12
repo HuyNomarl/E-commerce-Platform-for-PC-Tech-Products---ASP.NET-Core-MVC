@@ -1,0 +1,46 @@
+@model LoginWithRecoveryCodeViewModel
+
+@{
+    ViewData["Title"] = "Recovery code";
+}
+
+<section id="form" class="account-auth">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card">
+                        <span class="account-auth-badge">Emergency Access</span>
+                        <h1 class="account-auth-title">Đăng nhập bằng recovery code</h1>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
+
+                        <form asp-action="LoginWithRecoveryCode" asp-controller="Account" method="post" class="account-auth-form">
+                            @Html.AntiForgeryToken()
+                            <input asp-for="ReturnURL" type="hidden" />
+
+                            <div class="form-group">
+                                <label asp-for="RecoveryCode">Recovery code</label>
+                                <input asp-for="RecoveryCode" class="form-control" autocomplete="one-time-code" placeholder="Nhập recovery code" />
+                                <span asp-validation-for="RecoveryCode" class="text-danger"></span>
+                            </div>
+
+                            <button type="submit" class="btn btn-default account-auth-submit">Tiếp tục</button>
+                        </form>
+
+                        <div class="account-auth-links">
+                            <a asp-action="LoginWith2fa" asp-controller="Account" asp-route-returnUrl="@Model.ReturnURL">Quay lại mã 2FA</a>
+                            <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@Model.ReturnURL">Đăng nhập lại</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

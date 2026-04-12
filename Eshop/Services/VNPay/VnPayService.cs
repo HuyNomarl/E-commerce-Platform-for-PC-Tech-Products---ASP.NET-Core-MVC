@@ -23,7 +23,7 @@ namespace Eshop.Services.VNPay
             var timeZoneById = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
             var timeNow = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, timeZoneById);
 
-            var callbackUrl = ResolveVnPayReturnUrl();
+            var callbackUrl = ResolveVnPayReturnUrl(context);
             var baseUrl = GetRequiredSetting("Vnpay:BaseUrl");
             var hashSecret = GetRequiredSetting("Vnpay:HashSecret");
             var tmnCode = GetRequiredSetting("Vnpay:TmnCode");
@@ -153,9 +153,15 @@ namespace Eshop.Services.VNPay
             throw new InvalidOperationException($"Thiếu cấu hình VNPay bắt buộc: {key}");
         }
 
-        private string ResolveVnPayReturnUrl()
+        private string ResolveVnPayReturnUrl(HttpContext context)
         {
-            return "https://warriorlike-herbert-galvanoplastically.ngrok-free.dev/Payment/PaymentCallbackVnpay";
+            var configuredReturnUrl = _configuration["PaymentCallBack:ReturnUrl"]?.Trim();
+            if (!string.IsNullOrWhiteSpace(configuredReturnUrl))
+            {
+                return configuredReturnUrl;
+            }
+
+            return $"{context.Request.Scheme}://{context.Request.Host}/Payment/PaymentCallbackVnpay";
         }
 
         private static string MaskSecret(string secret)

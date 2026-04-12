@@ -1,15 +1,19 @@
-﻿using CloudinaryDotNet;
+using CloudinaryDotNet;
 using Eshop.Areas.Admin.Repository;
 using Eshop.Constants;
 using Eshop.Helpers;
 using Eshop.Hubs;
+using Eshop.Jobs;
 using Eshop.Models;
 using Eshop.Models.Configurations;
 using Eshop.Models.Momo;
 using Eshop.Repository;
+using Eshop.Security;
 using Eshop.Services;
 using Eshop.Services.Momo;
 using Eshop.Services.VNPay;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -22,10 +26,47 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+ConfigureLocalConfiguration(builder);
+
+builder.Services.Configure<HangfireSettings>(
+    builder.Configuration.GetSection("Hangfire"));
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection("Smtp"));
+
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Thiếu ConnectionStrings:DefaultConnection trong cấu hình.");
+
 // DB
 builder.Services.AddDbContext<DataContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(defaultConnection);
+});
+
+// Hangfire
+builder.Services.AddHangfire((serviceProvider, configuration) =>
+{
+    var hangfireSettings = serviceProvider.GetRequiredService<IOptions<HangfireSettings>>().Value;
+
+    configuration
+        .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+        .UseSimpleAssemblyNameTypeSerializer()
+        .UseRecommendedSerializerSettings()
+        .UseSqlServerStorage(defaultConnection, new SqlServerStorageOptions
+        {
+            PrepareSchemaIfNecessary = true,
+            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+            QueuePollInterval = TimeSpan.FromSeconds(Math.Max(1, hangfireSettings.QueuePollIntervalSeconds)),
+            UseRecommendedIsolationLevel = true,
+            DisableGlobalLocks = true
+        });
+});
+
+builder.Services.AddHangfireServer(options =>
+{
+    var queuePollIntervalSeconds =
+        builder.Configuration.GetValue<int?>("Hangfire:QueuePollIntervalSeconds") ?? 15;
+    options.SchedulePollingInterval = TimeSpan.FromSeconds(Math.Max(1, queuePollIntervalSeconds));
 });
 
 // Serilog
@@ -76,9 +117,9 @@ builder.Services.AddScoped<IPcBuildShareService, PcBuildShareService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IOrderStateService, OrderStateService>();
 builder.Services.AddScoped<IProductCatalogRagSyncService, ProductCatalogRagSyncService>();
-builder.Services.AddHostedService<InventoryReservationCleanupHostedService>();
-builder.Services.AddHostedService<ProductCatalogRagSyncHostedService>();
-
+builder.Services.AddScoped<InventoryReservationCleanupJob>();
+builder.Services.AddScoped<OrderConfirmationEmailJob>();
+builder.Services.AddScoped<ProductCatalogRagSyncJob>();
 
 builder.Services.Configure<MomoOptionModel>(
     builder.Configuration.GetSection("MomoAPI")
@@ -146,14 +187,14 @@ builder.Services.AddSession(options =>
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
-//RAG Client
+// RAG Client
 builder.Services.AddHttpClient<ILlmChatClient, LlmChatClient>();
 builder.Services.AddHttpClient<RagClient>((sp, client) =>
 {
     var options = sp.GetRequiredService<IOptions<RagServiceOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
 });
-
 
 // Cloudinary
 builder.Services.Configure<CloudinarySettings>(
@@ -248,12 +289,19 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 // Google Login
-builder.Services.AddAuthentication()
-    .AddGoogle(options =>
+var authenticationBuilder = builder.Services.AddAuthentication();
+var googleClientId = builder.Configuration["GoogleKeys:ClientId"];
+var googleClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+
+if (!string.IsNullOrWhiteSpace(googleClientId) &&
+    !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    authenticationBuilder.AddGoogle(options =>
     {
-        options.ClientId = builder.Configuration["GoogleKeys:ClientId"];
-        options.ClientSecret = builder.Configuration["GoogleKeys:ClientSecret"];
+        options.ClientId = googleClientId;
+        options.ClientSecret = googleClientSecret;
     });
+}
 
 // SignalR
 builder.Services.AddSignalR(options =>
@@ -309,20 +357,40 @@ app.Use(async (context, next) =>
 
     if (context.User.Identity?.IsAuthenticated == true &&
         context.Request.Path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase) &&
-        !isPublicAdminEndpoint &&
-        !context.User.CanAccessBackOffice())
+        !isPublicAdminEndpoint)
     {
         var returnUrl = Uri.EscapeDataString(
             $"{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}");
 
-        context.Response.Redirect($"/Account/AccessDenied?returnUrl={returnUrl}");
-        return;
+        if (!context.User.CanAccessBackOffice())
+        {
+            context.Response.Redirect($"/Account/AccessDenied?returnUrl={returnUrl}");
+            return;
+        }
+
+        var userManager = context.RequestServices.GetRequiredService<UserManager<AppUserModel>>();
+        var currentUser = await userManager.GetUserAsync(context.User);
+
+        if (currentUser != null && !currentUser.TwoFactorEnabled)
+        {
+            context.Response.Redirect($"/Account/SetupAuthenticator?returnUrl={returnUrl}");
+            return;
+        }
     }
 
     await next();
 });
 
 app.UseAuthorization();
+
+var hangfireSettings = app.Services.GetRequiredService<IOptions<HangfireSettings>>().Value;
+
+app.MapHangfireDashboard(hangfireSettings.DashboardPath, new DashboardOptions
+{
+    AppPath = "/Admin",
+    DashboardTitle = "Eshop Job Dashboard",
+    Authorization = new[] { new HangfireDashboardAuthorizationFilter() }
+});
 
 // Routes
 app.MapControllerRoute(
@@ -347,4 +415,56 @@ app.MapHub<ChatHub>("/hubs/chat");
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<NotificationHub>("/hubs/notification");
 
+RecurringJob.AddOrUpdate<InventoryReservationCleanupJob>(
+    recurringJobId: "inventory-reservation-cleanup",
+    methodCall: job => job.RunAsync(),
+    cronExpression: hangfireSettings.InventoryReservationCleanupCron);
+
+if (!string.IsNullOrWhiteSpace(hangfireSettings.CatalogRecurringSyncCron))
+{
+    RecurringJob.AddOrUpdate<ProductCatalogRagSyncJob>(
+        recurringJobId: "catalog-rag-sync",
+        methodCall: job => job.RunFullSyncAsync(),
+        cronExpression: hangfireSettings.CatalogRecurringSyncCron);
+}
+else
+{
+    RecurringJob.RemoveIfExists("catalog-rag-sync");
+}
+
+if (app.Configuration.GetValue<bool>("RagService:StartupFullSyncEnabled"))
+{
+    BackgroundJob.Enqueue<ProductCatalogRagSyncJob>(job => job.RunFullSyncAsync());
+}
+
 app.Run();
+
+static void ConfigureLocalConfiguration(WebApplicationBuilder builder)
+{
+    var candidateDirectories = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        builder.Environment.ContentRootPath,
+        AppContext.BaseDirectory
+    };
+
+    foreach (var directory in candidateDirectories.Where(Directory.Exists))
+    {
+        AddOptionalJsonFile(builder.Configuration, directory, "appsettings.Local.json");
+        AddOptionalJsonFile(
+            builder.Configuration,
+            directory,
+            $"appsettings.{builder.Environment.EnvironmentName}.local.json");
+    }
+}
+
+static void AddOptionalJsonFile(
+    ConfigurationManager configuration,
+    string directory,
+    string fileName)
+{
+    var fullPath = Path.Combine(directory, fileName);
+    if (File.Exists(fullPath))
+    {
+        configuration.AddJsonFile(fullPath, optional: true, reloadOnChange: true);
+    }
+}

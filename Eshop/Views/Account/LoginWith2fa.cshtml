@@ -1,0 +1,53 @@
+@model LoginWith2faViewModel
+
+@{
+    ViewData["Title"] = "Xác thực 2 bước";
+}
+
+<section id="form" class="account-auth">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 col-sm-offset-3">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card">
+                        <span class="account-auth-badge">Admin Security</span>
+                        <h1 class="account-auth-title">Nhập mã xác thực từ ứng dụng Authenticator</h1>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
+
+                        <form asp-action="LoginWith2fa" asp-controller="Account" method="post" class="account-auth-form">
+                            @Html.AntiForgeryToken()
+                            <input asp-for="ReturnURL" type="hidden" />
+
+                            <div class="form-group">
+                                <label asp-for="TwoFactorCode">Mã 2FA</label>
+                                <input asp-for="TwoFactorCode" class="form-control" autocomplete="one-time-code" placeholder="Ví dụ: 123 456" />
+                                <span asp-validation-for="TwoFactorCode" class="text-danger"></span>
+                            </div>
+
+                            <div class="checkbox">
+                                <label>
+                                    <input asp-for="RememberMachine" />
+                                    Ghi nhớ thiết bị này
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-default account-auth-submit">Xác thực</button>
+                        </form>
+
+                        <div class="account-auth-links">
+                            <a asp-action="LoginWithRecoveryCode" asp-controller="Account" asp-route-returnUrl="@Model.ReturnURL">Dùng recovery code</a>
+                            <a asp-action="Login" asp-controller="Account" asp-route-returnUrl="@Model.ReturnURL">Quay lại đăng nhập</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

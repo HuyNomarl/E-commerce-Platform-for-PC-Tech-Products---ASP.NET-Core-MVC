@@ -45,6 +45,10 @@ namespace Eshop.Areas.Admin.Models.ViewModels
         [Display(Name = "Xác nhận mật khẩu")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        public bool IsBackOfficeUser { get; set; }
+        public bool TwoFactorEnabled { get; set; }
+        public bool RequiresTwoFactorEnrollment { get; set; }
+
         public bool IsEditMode => !string.IsNullOrWhiteSpace(Id);
     }
 }

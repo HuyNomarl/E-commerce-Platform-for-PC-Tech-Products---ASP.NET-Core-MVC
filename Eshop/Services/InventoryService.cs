@@ -2,6 +2,7 @@
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -12,18 +13,18 @@ namespace Eshop.Services
     {
         private readonly DataContext _context;
         private readonly ICartService _cartService;
-        private readonly IProductCatalogRagSyncService _productCatalogRagSyncService;
+        private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly ILogger<InventoryService> _logger;
 
         public InventoryService(
             DataContext context,
             ICartService cartService,
-            IProductCatalogRagSyncService productCatalogRagSyncService,
+            IBackgroundJobClient backgroundJobClient,
             ILogger<InventoryService> logger)
         {
             _context = context;
             _cartService = cartService;
-            _productCatalogRagSyncService = productCatalogRagSyncService;
+            _backgroundJobClient = backgroundJobClient;
             _logger = logger;
         }
 
@@ -883,7 +884,7 @@ namespace Eshop.Services
             product.Quantity = available < 0 ? 0 : available;
 
             await _context.SaveChangesAsync();
-            await TrySyncProductRagAsync(productId);
+            QueueProductRagSync(new[] { productId });
         }
 
         private async Task SyncProductsCacheAsync(List<int> productIds)
@@ -898,26 +899,32 @@ namespace Eshop.Services
             }
 
             await _context.SaveChangesAsync();
-
-            foreach (var product in products)
-            {
-                await TrySyncProductRagAsync(product.Id);
-            }
+            QueueProductRagSync(products.Select(x => x.Id));
         }
 
-        private async Task TrySyncProductRagAsync(int productId)
+        private void QueueProductRagSync(IEnumerable<int> productIds)
         {
+            var ids = productIds
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (!ids.Any())
+            {
+                return;
+            }
+
             try
             {
-                var synced = await _productCatalogRagSyncService.SyncProductAsync(productId);
-                if (!synced)
-                {
-                    _logger.LogWarning("Dong bo ton kho sang RAG that bai cho product {ProductId}.", productId);
-                }
+                _backgroundJobClient.Enqueue<Eshop.Jobs.ProductCatalogRagSyncJob>(
+                    job => job.SyncProductsAsync(ids));
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Dong bo ton kho sang RAG loi cho product {ProductId}.", productId);
+                _logger.LogWarning(
+                    ex,
+                    "Khong the enqueue dong bo ton kho sang RAG cho cac product {ProductIds}.",
+                    string.Join(",", ids));
             }
         }
     }

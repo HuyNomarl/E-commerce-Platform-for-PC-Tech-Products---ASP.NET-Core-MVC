@@ -239,7 +239,7 @@ namespace Eshop.Controllers
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Danh sach compare hien dang chua nhieu nhom san pham cu. Vui long xoa bot de so sanh lai cung mot nhom."
+                        message = "Danh sách compare hiện đang chứa nhiều nhóm sản phẩm cũ. Vui lòng xóa bớt để so sánh lại cùng một nhóm."
                     });
                 }
 
@@ -251,7 +251,7 @@ namespace Eshop.Controllers
                     return BadRequest(new
                     {
                         success = false,
-                        message = $"Danh sach compare hien tai dang la {currentGroup.Label}. Ban chi nen them san pham cung nhom nhu {targetGroup.Label}."
+                        message = $"Danh sách Compare hiện tại là {currentGroup.Label}. Bạn chỉ nên thêm sản phẩm cùng nhóm như {targetGroup.Label}."
                     });
                 }
             }

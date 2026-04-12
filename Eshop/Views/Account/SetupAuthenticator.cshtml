@@ -1,0 +1,205 @@
+@model SetupAuthenticatorViewModel
+
+@{
+    ViewData["Title"] = "Cài đặt Authenticator";
+}
+
+<section id="form" class="account-auth">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2">
+                <div class="account-auth-shell">
+                    <div class="account-auth-card account-auth-card--wide">
+                        <span class="account-auth-badge">Back-office Security</span>
+                        <h1 class="account-auth-title">Thiết lập xác thực 2 bước cho khu vực quản trị</h1>
+
+                        @if (Model.IsSetupComplete)
+                        {
+                            <div class="alert alert-success">
+                                Đã bật xác thực 2 bước thành công. Hãy lưu lại các recovery code dưới đây ở nơi an toàn.
+                            </div>
+
+                            <div class="recovery-codes-grid">
+                                @foreach (var code in Model.RecoveryCodes)
+                                {
+                                    <div class="recovery-code-item">@code</div>
+                                }
+                            </div>
+
+                            <div class="account-auth-links account-auth-links--stack">
+                                @if (!string.IsNullOrWhiteSpace(Model.ReturnURL) && Url.IsLocalUrl(Model.ReturnURL))
+                                {
+                                    <a class="btn btn-default account-auth-submit" href="@Model.ReturnURL">Tiếp tục vào trang đích</a>
+                                }
+                                else
+                                {
+                                    <a class="btn btn-default account-auth-submit" asp-area="Admin" asp-controller="Portal" asp-action="Index">Vào khu vực quản trị</a>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div asp-validation-summary="ModelOnly" class="text-danger account-auth-validation"></div>
+
+                            <div class="setup-grid">
+                                <div class="setup-grid__panel">
+                                    <h3>1. Quét QR code</h3>
+                                    <p>Cài Google Authenticator hoặc Microsoft Authenticator trên điện thoại, sau đó quét mã QR bên dưới.</p>
+                                    <div id="qrCode" class="qr-code-box" data-url="@Model.AuthenticatorUri"></div>
+                                </div>
+
+                                <div class="setup-grid__panel">
+                                    <h3>2. Nhập mã đầu tiên</h3>
+                                    <p>Nếu không quét được QR, hãy nhập thủ công mã khóa sau:</p>
+                                    <div class="shared-key-box">@Model.SharedKey</div>
+
+                                    <form asp-action="SetupAuthenticator" asp-controller="Account" method="post" class="account-auth-form">
+                                        @Html.AntiForgeryToken()
+                                        <input asp-for="ReturnURL" type="hidden" />
+
+                                        <div class="form-group">
+                                            <label asp-for="Code">Mã từ ứng dụng Authenticator</label>
+                                            <input asp-for="Code" class="form-control" autocomplete="one-time-code" placeholder="Ví dụ: 123456" />
+                                            <span asp-validation-for="Code" class="text-danger"></span>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-default account-auth-submit">Bật 2FA cho admin</button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="setup-notes">
+                                <div class="setup-note-item">Sau khi bật xong, hệ thống sẽ sinh recovery codes để bạn dùng khi mất điện thoại.</div>
+                                <div class="setup-note-item">Từ lần đăng nhập sau, tài khoản back-office sẽ cần mật khẩu và mã Authenticator để vào `/Admin`.</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .account-auth-card--wide {
+        max-width: 100%;
+    }
+
+    .setup-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        margin-top: 20px;
+    }
+
+    .setup-grid__panel {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 20px;
+        background: #fff;
+    }
+
+    .setup-grid__panel h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 18px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .qr-code-box {
+        min-height: 260px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed #d1d5db;
+        border-radius: 16px;
+        background: #f9fafb;
+        padding: 20px;
+    }
+
+    .shared-key-box {
+        display: inline-flex;
+        align-items: center;
+        padding: 12px 14px;
+        margin-bottom: 18px;
+        border-radius: 12px;
+        background: #111827;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: .08em;
+        word-break: break-all;
+    }
+
+    .setup-notes {
+        margin-top: 20px;
+        display: grid;
+        gap: 10px;
+    }
+
+    .setup-note-item {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #f8fafc;
+        color: #475569;
+    }
+
+    .recovery-codes-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .recovery-code-item {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #111827;
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-align: center;
+    }
+
+    .account-auth-links--stack {
+        justify-content: center;
+    }
+
+    @@media (max-width: 767px) {
+        .setup-grid,
+        .recovery-codes-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    @if (!Model.IsSetupComplete)
+    {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        <script>
+            (function () {
+                const qrCodeHost = document.getElementById("qrCode");
+                if (!qrCodeHost) {
+                    return;
+                }
+
+                const qrCodeUrl = qrCodeHost.dataset.url;
+                if (!qrCodeUrl || typeof QRCode === "undefined") {
+                    qrCodeHost.textContent = "Không tạo được QR code.";
+                    return;
+                }
+
+                new QRCode(qrCodeHost, {
+                    text: qrCodeUrl,
+                    width: 220,
+                    height: 220
+                });
+            })();
+        </script>
+    }
+}

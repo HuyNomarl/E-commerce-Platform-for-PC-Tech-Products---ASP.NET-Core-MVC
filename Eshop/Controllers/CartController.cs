@@ -80,6 +80,11 @@ namespace Eshop.Controllers
         {
             await ReleaseActiveReservationIfAnyAsync("Giỏ hàng thay đổi: thêm sản phẩm.");
 
+            bool isAjax = string.Equals(
+                Request.Headers["X-Requested-With"],
+                "XMLHttpRequest",
+                StringComparison.OrdinalIgnoreCase);
+
             if (model.SelectedOptions == null)
             {
                 model.SelectedOptions = new List<SelectedOptionViewModel>();
@@ -92,9 +97,17 @@ namespace Eshop.Controllers
                 .WhereVisibleOnStorefront(_dataContext)
                 .FirstOrDefaultAsync(p => p.Id == model.ProductId);
 
-
             if (product == null)
             {
+                if (isAjax)
+                {
+                    return NotFound(new
+                    {
+                        success = false,
+                        message = "Sản phẩm không tồn tại."
+                    });
+                }
+
                 TempData["Error"] = "Sản phẩm không tồn tại.";
                 return RedirectToAction("Index");
             }
@@ -111,10 +124,20 @@ namespace Eshop.Controllers
 
             if (newCartItem.Quantity > availableStock)
             {
-                TempData["Error"] = $"Sản phẩm chỉ còn {availableStock} trong kho.";
+                var message = $"Sản phẩm chỉ còn {availableStock} trong kho.";
+
+                if (isAjax)
+                {
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message
+                    });
+                }
+
+                TempData["Error"] = message;
                 return RedirectToAction("Details", "Product", new { id = product.Id });
             }
-
 
             foreach (var selected in model.SelectedOptions)
             {
@@ -141,16 +164,33 @@ namespace Eshop.Controllers
                 .Where(x => x.ProductId == newCartItem.ProductId && !IsSameCartLine(x, newCartItem))
                 .Sum(x => x.Quantity);
 
+            string responseMessage;
+
             if (existingItem == null)
             {
                 if (quantityInOtherLines + newCartItem.Quantity > availableStock)
                 {
-                    TempData["Error"] = $"Tổng số lượng sản phẩm này trong giỏ đã chạm mức tồn kho ({availableStock}).";
+                    responseMessage = $"Tổng số lượng sản phẩm này trong giỏ đã chạm mức tồn kho ({availableStock}).";
+
+                    if (isAjax)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = responseMessage
+                        });
+                    }
+
+                    TempData["Error"] = responseMessage;
                     return RedirectToAction("Details", "Product", new { id = product.Id });
                 }
 
                 cart.Add(newCartItem);
-                TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng.";
+                responseMessage = "Đã thêm sản phẩm vào giỏ hàng.";
+                if (!isAjax)
+                {
+                    TempData["Success"] = responseMessage;
+                }
             }
             else
             {
@@ -160,20 +200,50 @@ namespace Eshop.Controllers
                 if (newQuantity > maxAllowedForCurrentLine)
                 {
                     existingItem.Quantity = maxAllowedForCurrentLine;
+
                     if (existingItem.Quantity <= 0)
                     {
                         cart.Remove(existingItem);
                     }
-                    TempData["Error"] = "Không thể thêm quá số lượng tồn kho.";
+
+                    responseMessage = "Không thể thêm quá số lượng tồn kho.";
+
+                    await _cartService.SaveCartAsync(HttpContext, cart);
+
+                    if (isAjax)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = responseMessage
+                        });
+                    }
+
+                    TempData["Error"] = responseMessage;
+                    return RedirectToAction("Details", "Product", new { id = product.Id });
                 }
-                else
+
+                existingItem.Quantity = newQuantity;
+                responseMessage = "Đã thêm sản phẩm vào giỏ hàng.";
+                if (!isAjax)
                 {
-                    existingItem.Quantity = newQuantity;
-                    TempData["Success"] = "Đã thêm sản phẩm vào giỏ hàng.";
+                    TempData["Success"] = responseMessage;
                 }
             }
 
             await _cartService.SaveCartAsync(HttpContext, cart);
+
+            if (isAjax)
+            {
+                var totalItems = cart.Sum(x => x.Quantity);
+
+                return Json(new
+                {
+                    success = true,
+                    message = responseMessage,
+                    totalItems
+                });
+            }
 
             return RedirectToAction("Index");
         }

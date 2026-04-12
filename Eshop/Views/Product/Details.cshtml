@@ -182,7 +182,7 @@
                             }
                         </div>
 
-                        <form asp-action="Add" asp-controller="Cart" method="post">
+                        <form id="productDetailAddToCartForm" asp-action="Add" asp-controller="Cart" method="post">
                             @Html.AntiForgeryToken()
                             <input type="hidden" asp-for="ProductId" value="@product.Id" />
 
@@ -619,4 +619,145 @@
             });
         })();
     </script>
+    <script>
+    (function () {
+        const basePrice = @basePrice;
+        const optionInputs = document.querySelectorAll('.option-price-input');
+        const finalPriceTop = document.getElementById('displayFinalPrice');
+        const finalPriceBottom = document.getElementById('displayFinalPriceBottom');
+        const upgradePriceText = document.getElementById('displayUpgradePrice');
+
+        function formatVnd(value) {
+            return new Intl.NumberFormat('vi-VN').format(value) + ' đ';
+        }
+
+        function calculateSelectedUpgradePrice() {
+            let totalUpgrade = 0;
+            optionInputs.forEach(function (input) {
+                if (input.checked) totalUpgrade += parseFloat(input.dataset.price || '0');
+            });
+            const finalPrice = basePrice + totalUpgrade;
+            if (finalPriceTop) finalPriceTop.textContent = formatVnd(finalPrice);
+            if (finalPriceBottom) finalPriceBottom.textContent = formatVnd(finalPrice);
+            if (upgradePriceText) upgradePriceText.textContent = 'Nâng cấp: +' + formatVnd(totalUpgrade);
+        }
+
+        optionInputs.forEach(function (input) {
+            input.addEventListener('change', calculateSelectedUpgradePrice);
+        });
+        calculateSelectedUpgradePrice();
+
+        const thumbItems = document.querySelectorAll('.pd-thumb');
+        const mainImage = document.getElementById('mainProductImage');
+        thumbItems.forEach(function (item) {
+            item.addEventListener('click', function () {
+                if (mainImage) {
+                    mainImage.src = this.getAttribute('data-image');
+                    mainImage.alt = this.getAttribute('data-alt') || '';
+                }
+                thumbItems.forEach(function (x) { x.classList.remove('active'); });
+                this.classList.add('active');
+            });
+        });
+
+        const mediaInput = document.getElementById('reviewMediaInput');
+        const mediaPreview = document.getElementById('reviewMediaPreview');
+        if (mediaInput && mediaPreview) {
+            mediaInput.addEventListener('change', function () {
+                mediaPreview.innerHTML = '';
+                Array.from(this.files || []).forEach(function (file) {
+                    const item = document.createElement('div');
+                    item.className = 'pd-preview-item';
+                    const url = URL.createObjectURL(file);
+                    if ((file.type || '').startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.controls = true;
+                        video.src = url;
+                        item.appendChild(video);
+                    } else {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = file.name;
+                        item.appendChild(img);
+                    }
+                    const caption = document.createElement('span');
+                    caption.textContent = file.name;
+                    item.appendChild(caption);
+                    mediaPreview.appendChild(item);
+                });
+            });
+        }
+
+        function showFeedback(icon, title, text) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon, title, text });
+            } else {
+                alert(text);
+            }
+        }
+
+        function postAction(url, productId) {
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : '';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: { productId: productId, __RequestVerificationToken: token },
+                success: function (response) {
+                    showFeedback('success', 'Thành công', response.message || 'Thao tác thành công.');
+                },
+                error: function (xhr) {
+                    const message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : (xhr.responseText || 'Không thể thực hiện thao tác này.');
+                    showFeedback('error', 'Có lỗi xảy ra', message);
+                }
+            });
+        }
+
+        $('.js-add-wishlist').on('click', function () {
+            postAction('@Url.Action("AddWishlist", "Home")', $(this).data('product-id'));
+        });
+        $('.js-add-compare').on('click', function () {
+            postAction('@Url.Action("AddCompare", "Home")', $(this).data('product-id'));
+        });
+
+        const addToCartForm = document.getElementById('productDetailAddToCartForm');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const submitButton = addToCartForm.querySelector('.pd-submit');
+                if (submitButton && submitButton.disabled) return;
+
+                const formData = $(addToCartForm).serialize();
+
+                $.ajax({
+                    url: addToCartForm.action,
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (response) {
+                        if (response && typeof response.totalItems !== 'undefined') {
+                            window.updateCartBadge(response.totalItems);
+                         }
+                        showFeedback(
+                            'success',
+                            'Thành công',
+                            response && response.message ? response.message : 'Đã thêm vào giỏ hàng.'
+                        );
+                    },
+                    error: function (xhr) {
+                        const message = xhr.responseJSON && xhr.responseJSON.message
+                            ? xhr.responseJSON.message
+                            : (xhr.responseText || 'Không thể thêm vào giỏ hàng.');
+                        showFeedback('error', 'Có lỗi xảy ra', message);
+                    }
+                });
+            });
+        }
+    })();
+</script>
 }

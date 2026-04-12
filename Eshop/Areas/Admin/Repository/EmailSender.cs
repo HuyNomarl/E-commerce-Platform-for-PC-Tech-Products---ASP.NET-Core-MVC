@@ -1,25 +1,45 @@
-﻿using System.Net;
+using Eshop.Models.Configurations;
+using Microsoft.Extensions.Options;
+using System.Net;
 using System.Net.Mail;
 
 namespace Eshop.Areas.Admin.Repository
 {
     public class EmailSender : IEmailSender
     {
+        private readonly SmtpSettings _smtpSettings;
+
+        public EmailSender(IOptions<SmtpSettings> smtpOptions)
+        {
+            _smtpSettings = smtpOptions.Value;
+        }
+
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            var client = new SmtpClient("smtp.gmail.com", 587)
+            if (string.IsNullOrWhiteSpace(_smtpSettings.Host) ||
+                string.IsNullOrWhiteSpace(_smtpSettings.SenderEmail) ||
+                string.IsNullOrWhiteSpace(_smtpSettings.UserName) ||
+                string.IsNullOrWhiteSpace(_smtpSettings.Password))
             {
-                EnableSsl = true,
+                throw new InvalidOperationException("Thiếu cấu hình SMTP. Hãy kiểm tra section Smtp trong cấu hình bí mật.");
+            }
+
+            var client = new SmtpClient(_smtpSettings.Host, _smtpSettings.Port)
+            {
+                EnableSsl = _smtpSettings.EnableSsl,
                 UseDefaultCredentials = false,
-                Credentials = new NetworkCredential("techshopvn365@gmail.com", "gcoofuqidbilnktm"),
+                Credentials = new NetworkCredential(_smtpSettings.UserName, _smtpSettings.Password),
             };
 
-            var mail = new MailMessage();
-            mail.From = new MailAddress("techshopvn365@gmail.com", "Eshop");
+            var mail = new MailMessage
+            {
+                From = new MailAddress(_smtpSettings.SenderEmail, _smtpSettings.SenderName),
+                Subject = subject,
+                Body = htmlMessage,
+                IsBodyHtml = true
+            };
+
             mail.To.Add(email);
-            mail.Subject = subject;
-            mail.Body = htmlMessage;
-            mail.IsBodyHtml = true;
 
             return client.SendMailAsync(mail);
         }

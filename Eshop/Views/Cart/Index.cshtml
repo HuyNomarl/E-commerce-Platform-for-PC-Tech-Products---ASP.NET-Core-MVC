@@ -77,6 +77,59 @@
         font-size: 15px;
     }
 
+    .product-upgrades {
+        margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .product-upgrades-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0b6a77;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .product-upgrade-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 12px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: #f8fbfc;
+        border: 1px solid #e2edf0;
+    }
+
+    .product-upgrade-name {
+        color: #1f2937;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .product-upgrade-price {
+        color: #d62828;
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .price-stack {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .price-note {
+        font-size: 13px;
+        color: #64748b;
+        text-align: right;
+    }
+
     .price-text,
     .line-total {
         font-size: 17px;
@@ -400,6 +453,14 @@
         .line-total {
             text-align: left;
         }
+
+        .price-stack {
+            align-items: flex-start;
+        }
+
+        .price-note {
+            text-align: left;
+        }
     }
 
     @@media (max-width: 768px) {
@@ -445,10 +506,40 @@
                         <div>
                             <div class="product-name">@item.ProductName</div>
                             <div class="product-sub">Bảo hành: 36 Tháng</div>
+
+                            @if (item.SelectedOptions != null && item.SelectedOptions.Count > 0)
+                            {
+                                <div class="product-upgrades">
+                                    <div class="product-upgrades-title">Cấu hình nâng cấp</div>
+                                    @foreach (var option in item.SelectedOptions.OrderBy(x => x.OptionGroupId).ThenBy(x => x.OptionValueId))
+                                    {
+                                        var groupName = string.IsNullOrWhiteSpace(option.GroupName) ? "Tùy chọn" : option.GroupName;
+                                        var valueName = string.IsNullOrWhiteSpace(option.ValueName) ? "Chưa chọn" : option.ValueName;
+                                        <div class="product-upgrade-line">
+                                            <span class="product-upgrade-name">@groupName: @valueName</span>
+                                            <span class="product-upgrade-price">
+                                                @(option.AdditionalPrice > 0 ? "+" + option.AdditionalPrice.ToString("N0") + " đ" : "+0 đ")
+                                            </span>
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
 
                         <div>
-                            <span class="price-text">@item.Price.ToString("N0") đ</span>
+                            <div class="price-stack">
+                                <span class="price-text">@item.Price.ToString("N0") đ</span>
+                                @if (item.SelectedOptions != null && item.SelectedOptions.Count > 0)
+                                {
+                                    <span class="price-note">
+                                        Giá gốc @item.BasePrice.ToString("N0") đ
+                                        @if (item.OptionPrice > 0)
+                                        {
+                                            <text> + nâng cấp @item.OptionPrice.ToString("N0") đ</text>
+                                        }
+                                    </span>
+                                }
+                            </div>
                         </div>
 
                         <div>
@@ -546,56 +637,6 @@
                                         <label class="form-label-custom">Ghi chú</label>
                                         <textarea name="Note" class="form-textarea-custom"></textarea>
                                     </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label-custom">Phương thức thanh toán<span class="required-star">*</span></label>
-
-                                        <div class="payment-method-buttons">
-                                            <label>
-                                                <input type="radio" name="PaymentMethod" value="COD" checked />
-                                                <span class="payment-method-btn">
-                                                    <i class="fa fa-money me-2"></i> Thanh toán khi nhận hàng
-                                                </span>
-                                            </label>
-
-                                            <label>
-                                                <input type="radio" name="PaymentMethod" value="VNPAY" />
-                                                <span class="payment-method-btn">
-                                                    <i class="fa fa-credit-card me-2"></i> Thanh toán qua VNPAY
-                                                </span>
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div class="shipping-calc-wrap">
-                                        <button type="button" class="btn-ship btn-add-shipping">
-                                            <i class="fa fa-truck me-1"></i> Tính phí ship
-                                        </button>
-                                    </div>
-
-                                    <div class="policy-check">
-                                        <input type="checkbox" id="policyCheck" />
-                                        <label for="policyCheck">Tôi đã đọc và đồng ý với các Điều kiện giao dịch chung của website</label>
-                                    </div>
-
-                                    <div class="action-grid">
-                                        <button type="button" class="btn-darkgreen">
-                                            <i class="fa fa-print me-1"></i> IN BÁO GIÁ
-                                        </button>
-
-                                        <button type="button" class="btn-darkgreen">
-                                            <i class="fa fa-file-excel me-1"></i> TẢI FILE EXCEL
-                                        </button>
-
-                                        <button type="submit" class="btn-submit-order">
-                                            <i class="fa fa-credit-card me-1"></i> ĐẶT HÀNG
-                                        </button>
-
-                                        <button type="button" class="btn-blue">
-                                            <span><i class="fa fa-credit-card me-1"></i> TRẢ GÓP QUA HỒ SƠ</span>
-                                            <small>CHỈ TỪ 3.690.667 Đ/THÁNG</small>
-                                        </button>
-                                    </div>
                                 </form>
                             }
                             else
@@ -621,16 +662,16 @@
                                     else
                                     {
                                         <a asp-controller="Account"
-                                           asp-action="Login"
-                                           asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
-                                           class="btn-submit-order text-decoration-none">
+                                               asp-action="Login"
+                                               asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)"
+                                               class="btn-submit-order text-decoration-none">
                                             <i class="fa fa-sign-in me-1"></i> ĐĂNG NHẬP ĐỂ ĐẶT HÀNG
                                         </a>
                                     }
 
                                     <a asp-controller="Account"
-                                       asp-action="Register"
-                                       class="btn-darkgreen text-decoration-none">
+                                           asp-action="Register"
+                                           class="btn-darkgreen text-decoration-none">
                                         <i class="fa fa-user-plus me-1"></i> TẠO TÀI KHOẢN
                                     </a>
                                 </div>
@@ -662,19 +703,19 @@
                                             <i class="fa fa-tag me-1"></i> Chọn mã voucher
                                         </button>
                                     </div>
-
-                                    @if (!string.IsNullOrEmpty(Model.CouponCode))
-                                    {
-                                        <div class="mt-2 text-end">
-                                            <form asp-action="RemoveCoupon" asp-controller="Cart" method="post" style="display:inline-block;">
-                                                @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                    Bỏ mã
-                                                </button>
-                                            </form>
-                                        </div>
-                                    }
                                 </form>
+
+                                @if (!string.IsNullOrEmpty(Model.CouponCode))
+                                {
+                                    <div class="mt-2 text-end">
+                                        <form asp-action="RemoveCoupon" asp-controller="Cart" method="post" style="display:inline-block;">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                Bỏ mã
+                                            </button>
+                                        </form>
+                                    </div>
+                                }
                             </div>
 
                             <div class="summary-line">
@@ -700,6 +741,59 @@
                             </div>
 
                             <div class="vat-note">(Giá đã bao gồm VAT)</div>
+
+                            @if (canCheckout)
+                            {
+                                <div class="shipping-calc-wrap">
+                                    <button type="button" class="btn-ship btn-add-shipping">
+                                        <i class="fa fa-truck me-1"></i> Tính phí ship
+                                    </button>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label-custom">Phương thức thanh toán<span class="required-star">*</span></label>
+
+                                    <div class="payment-method-buttons">
+                                        <label>
+                                            <input type="radio" name="PaymentMethod" value="COD" checked form="checkout-form" />
+                                            <span class="payment-method-btn">
+                                                <i class="fa fa-money me-2"></i> Thanh toán khi nhận hàng
+                                            </span>
+                                        </label>
+
+                                        <label>
+                                            <input type="radio" name="PaymentMethod" value="VNPAY" form="checkout-form" />
+                                            <span class="payment-method-btn">
+                                                <i class="fa fa-credit-card me-2"></i> Thanh toán qua VNPAY
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="policy-check">
+                                    <input type="checkbox" id="policyCheck" />
+                                    <label for="policyCheck">Tôi đã đọc và đồng ý với các Điều kiện giao dịch chung của website</label>
+                                </div>
+
+                                <div class="action-grid">
+                                    <button type="button" class="btn-darkgreen">
+                                        <i class="fa fa-print me-1"></i> IN BÁO GIÁ
+                                    </button>
+
+                                    <button type="button" class="btn-darkgreen">
+                                        <i class="fa fa-file-excel me-1"></i> TẢI FILE EXCEL
+                                    </button>
+
+                                    <button type="submit" class="btn-submit-order" form="checkout-form">
+                                        <i class="fa fa-credit-card me-1"></i> ĐẶT HÀNG
+                                    </button>
+
+                                    <button type="button" class="btn-blue">
+                                        <span><i class="fa fa-credit-card me-1"></i> TRẢ GÓP QUA HỒ SƠ</span>
+                                        <small>CHỈ TỪ 3.690.667 Đ/THÁNG</small>
+                                    </button>
+                                </div>
+                            }
 
                             <div class="mt-3 text-end">
                                 <form asp-action="Clear" asp-controller="Cart" method="post" style="display:inline-block;">

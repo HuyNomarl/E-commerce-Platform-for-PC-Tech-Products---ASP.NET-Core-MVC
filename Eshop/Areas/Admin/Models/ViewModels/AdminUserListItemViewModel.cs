@@ -13,5 +13,7 @@ namespace Eshop.Areas.Admin.Models.ViewModels
         public bool IsLocked { get; set; }
         public string? LockoutEndText { get; set; }
         public bool IsCurrentUser { get; set; }
+        public bool TwoFactorEnabled { get; set; }
+        public bool RequiresTwoFactorEnrollment { get; set; }
     }
 }

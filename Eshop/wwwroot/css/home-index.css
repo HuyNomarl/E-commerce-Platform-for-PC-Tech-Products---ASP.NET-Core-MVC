@@ -75,13 +75,15 @@
 }
 
 .deal-carousel-box {
+    position: relative;
     background: rgba(255,255,255,.16);
     border-radius: 10px;
-    padding: 10px;
+    padding: 10px 44px;
+    overflow: hidden;
 }
 
 .carousel-inner-custom {
-    padding: 0 2px;
+    padding: 0;
 }
 
 .slide-row {
@@ -89,24 +91,36 @@
     gap: 14px;
 }
 
+.deal-carousel-viewport {
+    overflow: hidden;
+    width: 100%;
+}
+
+.deal-carousel-track {
+    display: flex;
+    gap: 14px;
+    transition: transform .35s ease;
+    will-change: transform;
+}
+
 .deal-col {
-    width: calc(25% - 10.5px);
-    min-width: calc(25% - 10.5px);
+    flex: 0 0 calc((100% - 42px) / 4);
+    min-width: calc((100% - 42px) / 4);
+    width: calc((100% - 42px) / 4);
 }
 
 .products-scroll-wrap {
     position: relative;
-    padding: 14px;
+    padding: 14px 42px;
+    overflow: hidden;
 }
 
 .products-scroll {
     display: flex;
     gap: 14px;
-    overflow-x: auto;
+    overflow-x: hidden;
     overflow-y: hidden;
-    scroll-behavior: smooth;
-    padding-bottom: 4px;
-    scrollbar-width: none;
+    width: 100%;
 }
 
     .products-scroll::-webkit-scrollbar {
@@ -114,8 +128,17 @@
     }
 
 .category-col {
-    flex: 0 0 calc(25% - 10.5px);
-    min-width: calc(25% - 10.5px);
+    flex: 0 0 calc((100% - 42px) / 4);
+    min-width: calc((100% - 42px) / 4);
+    width: calc((100% - 42px) / 4);
+}
+
+.scroll-nav.prev {
+    left: 4px;
+}
+
+.scroll-nav.next {
+    right: 4px;
 }
 
 .product-card {
@@ -368,6 +391,7 @@
         background: #ffe5e5;
         color: #d62828;
     }
+
 .mini-actions {
     display: flex;
     gap: 8px;
@@ -422,7 +446,7 @@
     background: rgba(255,255,255,.95);
     color: #222;
     box-shadow: 0 2px 8px rgba(0,0,0,.10);
-    z-index: 3;
+    z-index: 5;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -433,11 +457,11 @@
     }
 
     .scroll-nav.prev {
-        left: 6px;
+        left: 4px;
     }
 
     .scroll-nav.next {
-        right: 6px;
+        right: 4px;
     }
 
     .scroll-nav.hidden {
@@ -447,18 +471,26 @@
 @media (max-width: 1199px) {
     .deal-col,
     .category-col {
-        width: calc(33.333% - 9.5px);
-        min-width: calc(33.333% - 9.5px);
-        flex-basis: calc(33.333% - 9.5px);
+        width: calc((100% - 28px) / 3);
+        min-width: calc((100% - 28px) / 3);
+        flex-basis: calc((100% - 28px) / 3);
     }
 }
 
 @media (max-width: 991px) {
+    .deal-carousel-box {
+        padding: 10px 40px;
+    }
+
+    .products-scroll-wrap {
+        padding: 14px 38px;
+    }
+
     .deal-col,
     .category-col {
-        width: calc(50% - 7px);
-        min-width: calc(50% - 7px);
-        flex-basis: calc(50% - 7px);
+        width: calc((100% - 14px) / 2);
+        min-width: calc((100% - 14px) / 2);
+        flex-basis: calc((100% - 14px) / 2);
     }
 
     .product-card {
@@ -503,6 +535,10 @@
             border-bottom: 24px solid transparent;
             border-left: 24px solid transparent;
         }
+
+    .deal-carousel-box {
+        padding: 8px;
+    }
 
     .products-scroll-wrap {
         padding: 10px;

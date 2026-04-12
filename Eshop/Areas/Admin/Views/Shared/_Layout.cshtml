@@ -27,6 +27,7 @@
     }
 
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentPath = ViewContext.HttpContext.Request.Path.Value ?? string.Empty;
     var adminName = User.Identity?.Name;
     var adminEmail = User.FindFirst(ClaimTypes.Email)?.Value;
     var adminDisplayName = !string.IsNullOrWhiteSpace(adminName)
@@ -816,6 +817,11 @@
                                                         <li>
                                                             <a asp-controller="Role" asp-action="Index" class="@(currentController == "Role" ? "active" : "")">
                                                                 <i class="fa fa-user-secret"></i> <span>Roles</span>
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="/Admin/Jobs" class="@(currentPath.StartsWith("/Admin/Jobs", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                                                                <i class="fa fa-tasks"></i> <span>Jobs</span>
                                                             </a>
                                                         </li>
                                                     }

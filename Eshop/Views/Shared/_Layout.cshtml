@@ -1,9 +1,16 @@
-﻿<!DOCTYPE html>
+﻿@using Eshop.Helpers
+@using Eshop.Models
+@using Eshop.Repository
+
 @{
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
     var isBackOfficeUser = User.CanAccessBackOffice();
     var canUseWishlistCompareLinks = !isBackOfficeUser || User.CanUseWishlistAndCompare();
+
+    var cartItems = Context.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+    var cartCount = cartItems.Sum(x => x.Quantity);
 }
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -19,7 +26,6 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.2/themes/base/jquery-ui.css" />
 
-
     <link href="~/css/prettyPhoto.css" rel="stylesheet" />
     <link href="~/css/price-range.css" rel="stylesheet" />
     <link href="~/css/animate.css" rel="stylesheet" />
@@ -29,6 +35,38 @@
     <link href="~/css/typography.css" rel="stylesheet" />
 
     <link rel="shortcut icon" href="~/images/ico/favicon.ico" />
+
+    <style>
+            .tt-cart-item {
+                position: relative;
+            }
+
+                .tt-cart-item .tt-action-icon {
+                    position: relative;
+                }
+
+            .tt-cart-count-badge {
+                position: absolute;
+                top: -8px;
+                right: -10px;
+                min-width: 20px;
+                height: 20px;
+                padding: 0 6px;
+                border-radius: 999px;
+                background: #e60000;
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                line-height: 20px;
+                text-align: center;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+                z-index: 2;
+            }
+
+                .tt-cart-count-badge.tt-hidden {
+                    display: none;
+                }
+    </style>
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -145,6 +183,7 @@
                         <a asp-controller="Cart" asp-action="Index" class="tt-action-item tt-cart-item">
                             <div class="tt-action-icon">
                                 <i class="fa fa-shopping-cart"></i>
+                                <span id="cartCountBadge" class="tt-cart-count-badge @(cartCount > 0 ? "" : "tt-hidden")">@cartCount</span>
                             </div>
                             <div class="tt-action-text">
                                 <strong>Giỏ hàng</strong>
@@ -224,6 +263,23 @@
     <script src="~/js/main.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
     <script src="~/js/support-chat.js"></script>
+
+    <script>
+        window.updateCartBadge = function (count) {
+        var badge = document.getElementById('cartCountBadge');
+        if (!badge) return;
+
+        count = parseInt(count || 0);
+
+        if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('tt-hidden');
+        } else {
+        badge.textContent = '0';
+        badge.classList.add('tt-hidden');
+        }
+        };
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

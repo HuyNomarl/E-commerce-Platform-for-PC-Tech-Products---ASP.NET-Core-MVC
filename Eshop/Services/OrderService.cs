@@ -1,9 +1,11 @@
 using Eshop.Areas.Admin.Repository;
 using Eshop.Helpers;
 using Eshop.Hubs;
+using Eshop.Jobs;
 using Eshop.Models;
 using Eshop.Models.ViewModel;
 using Eshop.Repository;
+using Hangfire;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -16,6 +18,7 @@ namespace Eshop.Services
     {
         private readonly DataContext _dataContext;
         private readonly IEmailSender _emailSender;
+        private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly IHubContext<NotificationHub> _notificationHub;
         private readonly IInventoryService _inventoryService;
         private readonly ICheckoutPricingService _checkoutPricingService;
@@ -25,6 +28,7 @@ namespace Eshop.Services
         public OrderService(
             DataContext dataContext,
             IEmailSender emailSender,
+            IBackgroundJobClient backgroundJobClient,
             IHubContext<NotificationHub> notificationHub,
             IInventoryService inventoryService,
             ICheckoutPricingService checkoutPricingService,
@@ -33,6 +37,7 @@ namespace Eshop.Services
         {
             _dataContext = dataContext;
             _emailSender = emailSender;
+            _backgroundJobClient = backgroundJobClient;
             _notificationHub = notificationHub;
             _inventoryService = inventoryService;
             _checkoutPricingService = checkoutPricingService;
@@ -230,7 +235,7 @@ namespace Eshop.Services
                 _checkoutPricingService.ClearShippingSelection(httpContext);
 
                 await TryPushAdminNotificationAsync(orderCode, model.FullName, model.Phone, totalAmount, createdAt);
-                await TrySendOrderConfirmationEmailAsync(httpContext, order, createdDetails);
+                EnqueueOrderConfirmationEmail(httpContext, order);
 
                 return orderCode;
             }
@@ -260,6 +265,25 @@ namespace Eshop.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Không thể gửi realtime notification cho đơn hàng {OrderCode}.", orderCode);
+            }
+        }
+
+        private void EnqueueOrderConfirmationEmail(HttpContext httpContext, OrderModel order)
+        {
+            if (string.IsNullOrWhiteSpace(order.Email))
+            {
+                return;
+            }
+
+            try
+            {
+                var baseUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}";
+                _backgroundJobClient.Enqueue<OrderConfirmationEmailJob>(
+                    job => job.SendAsync(order.OrderCode, baseUrl));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Khong the enqueue email xac nhan cho don hang {OrderCode}.", order.OrderCode);
             }
         }
 

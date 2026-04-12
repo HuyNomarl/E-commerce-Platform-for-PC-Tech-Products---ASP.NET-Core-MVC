@@ -47,6 +47,7 @@ namespace Eshop.Areas.Admin.Controllers
                     PhoneNumber = user.PhoneNumber,
                     RoleId = user.RoleId,
                     PasswordHash = user.PasswordHash,
+                    TwoFactorEnabled = user.TwoFactorEnabled,
                     LockoutEnabled = user.LockoutEnabled,
                     LockoutEnd = user.LockoutEnd
                 })
@@ -106,11 +107,17 @@ namespace Eshop.Areas.Admin.Controllers
                         authMethods.Insert(0, "Mật khẩu");
                     }
 
+                    if (user.TwoFactorEnabled)
+                    {
+                        authMethods.Add("Authenticator 2FA");
+                    }
+
                     if (authMethods.Count == 0)
                     {
                         authMethods.Add("Chưa cấu hình");
                     }
 
+                    var isBackOfficeUser = assignedRoleNames.Any(RoleNames.IsBackOfficeRole);
                     var isLocked = IsUserLocked(user);
 
                     return new AdminUserListItemViewModel
@@ -134,6 +141,8 @@ namespace Eshop.Areas.Admin.Controllers
                         LockoutEndText = isLocked && user.LockoutEnd.HasValue
                             ? user.LockoutEnd.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                             : null,
+                        TwoFactorEnabled = user.TwoFactorEnabled,
+                        RequiresTwoFactorEnrollment = isBackOfficeUser && !user.TwoFactorEnabled,
                         IsCurrentUser = string.Equals(user.Id, currentUserId, StringComparison.Ordinal)
                     };
                 })
@@ -252,8 +261,12 @@ namespace Eshop.Areas.Admin.Controllers
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 Address = user.Address ?? string.Empty,
                 Occupation = user.Occupation ?? string.Empty,
-                RoleId = await ResolveSelectedRoleIdAsync(user) ?? string.Empty
+                RoleId = await ResolveSelectedRoleIdAsync(user) ?? string.Empty,
+                TwoFactorEnabled = user.TwoFactorEnabled
             };
+
+            model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+            model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
 
             await PopulateRolesAsync(model.RoleId);
             return View(model);
@@ -318,6 +331,9 @@ namespace Eshop.Areas.Admin.Controllers
 
             if (!ModelState.IsValid)
             {
+                model.TwoFactorEnabled = user.TwoFactorEnabled;
+                model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                 await PopulateRolesAsync(model.RoleId);
                 return View(model);
             }
@@ -337,6 +353,9 @@ namespace Eshop.Areas.Admin.Controllers
             {
                 await transaction.RollbackAsync();
                 AddErrors(updateUserResult);
+                model.TwoFactorEnabled = user.TwoFactorEnabled;
+                model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                 await PopulateRolesAsync(model.RoleId);
                 return View(model);
             }
@@ -348,6 +367,9 @@ namespace Eshop.Areas.Admin.Controllers
                 {
                     await transaction.RollbackAsync();
                     AddErrors(passwordResult);
+                    model.TwoFactorEnabled = user.TwoFactorEnabled;
+                    model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                    model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                     await PopulateRolesAsync(model.RoleId);
                     return View(model);
                 }
@@ -362,6 +384,9 @@ namespace Eshop.Areas.Admin.Controllers
                     {
                         await transaction.RollbackAsync();
                         AddErrors(removeFromRolesResult);
+                        model.TwoFactorEnabled = user.TwoFactorEnabled;
+                        model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                        model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                         await PopulateRolesAsync(model.RoleId);
                         return View(model);
                     }
@@ -372,6 +397,9 @@ namespace Eshop.Areas.Admin.Controllers
                 {
                     await transaction.RollbackAsync();
                     AddErrors(addToRoleResult);
+                    model.TwoFactorEnabled = user.TwoFactorEnabled;
+                    model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                    model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                     await PopulateRolesAsync(model.RoleId);
                     return View(model);
                 }
@@ -386,6 +414,9 @@ namespace Eshop.Areas.Admin.Controllers
                 {
                     await transaction.RollbackAsync();
                     AddErrors(syncRoleResult);
+                    model.TwoFactorEnabled = user.TwoFactorEnabled;
+                    model.IsBackOfficeUser = await IsBackOfficeUserAsync(user);
+                    model.RequiresTwoFactorEnrollment = model.IsBackOfficeUser && !model.TwoFactorEnabled;
                     await PopulateRolesAsync(model.RoleId);
                     return View(model);
                 }
@@ -521,6 +552,49 @@ namespace Eshop.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetTwoFactor(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["ErrorMessage"] = "Id người dùng không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "Người dùng không tồn tại.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var disableTwoFactorResult = await _userManager.SetTwoFactorEnabledAsync(user, false);
+            if (!disableTwoFactorResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(" | ", disableTwoFactorResult.Errors.Select(x => x.Description));
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            var resetKeyResult = await _userManager.ResetAuthenticatorKeyAsync(user);
+            if (!resetKeyResult.Succeeded)
+            {
+                TempData["ErrorMessage"] = string.Join(" | ", resetKeyResult.Errors.Select(x => x.Description));
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
+            _ = await _userManager.UpdateSecurityStampAsync(user);
+
+            var currentUserId = _userManager.GetUserId(User);
+            if (string.Equals(currentUserId, user.Id, StringComparison.Ordinal))
+            {
+                await _signInManager.RefreshSignInAsync(user);
+            }
+
+            TempData["SuccessMessage"] = "Đã reset xác thực 2 bước. Người dùng sẽ phải cài đặt lại authenticator khi vào khu vực quản trị.";
+            return RedirectToAction(nameof(Edit), new { id });
+        }
+
         private async Task PopulateRolesAsync(string? selectedRoleId = null)
         {
             var roles = (await _roleManager.Roles
@@ -559,6 +633,12 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             return user.RoleId;
+        }
+
+        private async Task<bool> IsBackOfficeUserAsync(AppUserModel user)
+        {
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            return currentRoles.Any(RoleNames.IsBackOfficeRole);
         }
 
         private async Task<string?> GetRoleIdByNameAsync(string roleName)

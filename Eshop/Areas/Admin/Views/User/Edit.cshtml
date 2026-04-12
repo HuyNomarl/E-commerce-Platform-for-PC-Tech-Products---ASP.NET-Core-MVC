@@ -15,7 +15,7 @@
             <div class="admin-ui-hero__meta">
                 <span class="admin-ui-chip">Thông tin tài khoản và vai trò</span>
                 <span class="admin-ui-chip">Hỗ trợ đặt lại mật khẩu</span>
-                <span class="admin-ui-chip">Không đổi logic cập nhật</span>
+                <span class="admin-ui-chip">Theo dõi trạng thái 2FA</span>
             </div>
         </div>
 
@@ -26,93 +26,121 @@
     </section>
 
     <div class="row g-3 user-upsert-page">
-    <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
-            <div>
-                <h4 class="mb-1">Chỉnh sửa người dùng</h4>
-                <div class="small page-subtitle">Cập nhật thông tin tài khoản, vai trò và đặt lại mật khẩu khi cần.</div>
-            </div>
+        <div class="col-12">
+            <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+                <div>
+                    <h4 class="mb-1">Chỉnh sửa người dùng</h4>
+                    <div class="small page-subtitle">Cập nhật thông tin tài khoản, vai trò và đặt lại mật khẩu khi cần.</div>
+                </div>
 
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                <i class="fa fa-arrow-left me-1"></i> Quay lại
-            </a>
-        </div>
-    </div>
-
-    <div class="col-12 col-xl-9">
-        <div class="card-soft form-card">
-            <div class="card-body-custom">
-                <form asp-action="Edit" method="post">
-                    @Html.AntiForgeryToken()
-                    <input asp-for="Id" type="hidden" />
-
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label asp-for="UserName" class="form-label"></label>
-                            <input asp-for="UserName" class="form-control input-soft" />
-                            <span asp-validation-for="UserName" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Email" class="form-label"></label>
-                            <input asp-for="Email" class="form-control input-soft" />
-                            <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="PhoneNumber" class="form-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control input-soft" />
-                            <span asp-validation-for="PhoneNumber" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="RoleId" class="form-label"></label>
-                            <select asp-for="RoleId" class="form-select input-soft" asp-items="ViewBag.Roles"></select>
-                            <span asp-validation-for="RoleId" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Address" class="form-label"></label>
-                            <input asp-for="Address" class="form-control input-soft" />
-                            <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Occupation" class="form-label"></label>
-                            <input asp-for="Occupation" class="form-control input-soft" />
-                            <span asp-validation-for="Occupation" class="text-danger small d-block mt-1"></span>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Password" class="form-label">Mật khẩu mới</label>
-                            <input asp-for="Password" class="form-control input-soft" autocomplete="new-password" />
-                            <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
-                            <div class="form-note">Để trống nếu không muốn thay đổi mật khẩu hiện tại.</div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
-                            <input asp-for="ConfirmPassword" class="form-control input-soft" autocomplete="new-password" />
-                            <span asp-validation-for="ConfirmPassword" class="text-danger small d-block mt-1"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-actions mt-4">
-                        <button type="submit" class="btn btn-accent">
-                            <i class="fa fa-floppy-o me-1"></i> Cập nhật
-                        </button>
-
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            Quay lại danh sách
-                        </a>
-                    </div>
-                </form>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fa fa-arrow-left me-1"></i> Quay lại
+                </a>
             </div>
         </div>
+
+        <div class="col-12 col-xl-9">
+            <div class="card-soft form-card">
+                <div class="card-body-custom">
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input asp-for="Id" type="hidden" />
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="UserName" class="form-label"></label>
+                                <input asp-for="UserName" class="form-control input-soft" />
+                                <span asp-validation-for="UserName" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control input-soft" />
+                                <span asp-validation-for="Email" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label"></label>
+                                <input asp-for="PhoneNumber" class="form-control input-soft" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="RoleId" class="form-label"></label>
+                                <select asp-for="RoleId" class="form-select input-soft" asp-items="ViewBag.Roles"></select>
+                                <span asp-validation-for="RoleId" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Address" class="form-label"></label>
+                                <input asp-for="Address" class="form-control input-soft" />
+                                <span asp-validation-for="Address" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Occupation" class="form-label"></label>
+                                <input asp-for="Occupation" class="form-control input-soft" />
+                                <span asp-validation-for="Occupation" class="text-danger small d-block mt-1"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Password" class="form-label">Mật khẩu mới</label>
+                                <input asp-for="Password" class="form-control input-soft" autocomplete="new-password" />
+                                <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
+                                <div class="form-note">Để trống nếu không muốn thay đổi mật khẩu hiện tại.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                                <input asp-for="ConfirmPassword" class="form-control input-soft" autocomplete="new-password" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small d-block mt-1"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-actions mt-4">
+                            <button type="submit" class="btn btn-accent">
+                                <i class="fa fa-floppy-o me-1"></i> Cập nhật
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                Quay lại danh sách
+                            </a>
+                        </div>
+                    </form>
+
+                    @if (Model.IsBackOfficeUser)
+                    {
+                        <div class="security-panel">
+                            <div class="security-panel__copy">
+                                <div class="security-panel__title">Bảo mật khu vực quản trị</div>
+                                @if (Model.TwoFactorEnabled)
+                                {
+                                    <div class="security-panel__desc">Tài khoản này đang bật authenticator 2FA cho khu vực admin.</div>
+                                }
+                                else
+                                {
+                                    <div class="security-panel__desc security-panel__desc--danger">Tài khoản này thuộc nhóm back-office nhưng chưa hoàn tất 2FA. Khi đăng nhập, hệ thống sẽ buộc cài đặt authenticator trước khi vào `/Admin`.</div>
+                                }
+                            </div>
+
+                            <form asp-action="ResetTwoFactor"
+                                  asp-controller="User"
+                                  asp-route-id="@Model.Id"
+                                  method="post"
+                                  class="security-panel__actions">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger">
+                                    <i class="fa fa-shield"></i> Reset 2FA
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
-</div>
 </div>
 
 <style>
@@ -165,6 +193,37 @@
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+    }
+
+    .security-panel {
+        margin-top: 24px;
+        padding: 18px;
+        border: 1px dashed #d1d5db;
+        border-radius: 14px;
+        background: #f9fafb;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .security-panel__title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 6px;
+    }
+
+    .security-panel__desc {
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.6;
+        max-width: 720px;
+    }
+
+    .security-panel__desc--danger {
+        color: #b91c1c;
     }
 
     .btn-accent {

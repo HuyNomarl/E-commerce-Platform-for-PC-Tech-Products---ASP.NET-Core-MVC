@@ -108,6 +108,18 @@
 
                                     <td>
                                         <span class="badge bg-light text-dark auth-badge">@user.AuthMethods</span>
+                                        @if (user.TwoFactorEnabled)
+                                        {
+                                            <div class="cell-sub status-note">2FA đang bật</div>
+                                        }
+                                        else if (user.RequiresTwoFactorEnrollment)
+                                        {
+                                            <div class="cell-sub status-note text-danger">Tài khoản quản trị chưa bật 2FA</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="cell-sub status-note">2FA chưa bật</div>
+                                        }
                                     </td>
 
                                     <td>
@@ -145,6 +157,22 @@
 
                                             @if (!user.IsCurrentUser)
                                             {
+                                                @if (user.TwoFactorEnabled || user.RequiresTwoFactorEnrollment)
+                                                {
+                                                    <form asp-action="ResetTwoFactor"
+                                                          asp-controller="User"
+                                                          asp-route-id="@user.Id"
+                                                          method="post"
+                                                          class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit"
+                                                                class="icon-btn icon-security"
+                                                                title="Reset 2FA">
+                                                            <i class="fa fa-shield"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+
                                                 <form asp-action="ToggleLock"
                                                       asp-controller="User"
                                                       asp-route-id="@user.Id"
@@ -380,6 +408,10 @@
 
     .icon-unlock {
         color: #15803d;
+    }
+
+    .icon-security {
+        color: #2563eb;
     }
 
     .icon-delete {

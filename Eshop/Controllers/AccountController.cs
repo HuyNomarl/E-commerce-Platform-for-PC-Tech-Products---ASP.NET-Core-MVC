@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Security.Claims;
+using System.Text;
 
 namespace Eshop.Controllers
 {
@@ -67,16 +68,56 @@ namespace Eshop.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            var signedInUser = await ResolveUserByLoginIdentifierAsync(model.UserName);
+            if (signedInUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "Đăng nhập không thành công!");
+                return View(model);
+            }
+
+            var isBackOfficeUser = await IsBackOfficeUserAsync(signedInUser);
+
+            if (isBackOfficeUser && !signedInUser.TwoFactorEnabled)
+            {
+                var initialCheckResult = await _signInManager.CheckPasswordSignInAsync(
+                    signedInUser,
+                    model.Password,
+                    lockoutOnFailure: true);
+
+                if (initialCheckResult.Succeeded)
+                {
+                    await _signInManager.SignInAsync(signedInUser, isPersistent: false);
+                    TempData["warning"] = "Tài khoản nội bộ cần bật xác thực 2 bước trước khi vào khu vực quản trị.";
+                    return RedirectToAction(nameof(SetupAuthenticator), new { returnUrl = model.ReturnURL });
+                }
+
+                if (initialCheckResult.IsLockedOut)
+                {
+                    ModelState.AddModelError(string.Empty, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.");
+                    return View(model);
+                }
+
+                ModelState.AddModelError(string.Empty, "Đăng nhập không thành công!");
+                return View(model);
+            }
+
             var result = await _signInManager.PasswordSignInAsync(
-                model.UserName,
+                signedInUser,
                 model.Password,
                 isPersistent: false,
                 lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
-                var signedInUser = await ResolveUserByLoginIdentifierAsync(model.UserName);
                 return await RedirectAfterSuccessfulSignInAsync(signedInUser, model.ReturnURL);
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction(nameof(LoginWith2fa), new
+                {
+                    returnUrl = model.ReturnURL
+                });
             }
 
             if (result.IsLockedOut)
@@ -89,6 +130,207 @@ namespace Eshop.Controllers
             return View(model);
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> LoginWith2fa(string? returnUrl = null)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                TempData["error"] = "Phiên xác thực 2 bước đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
+            return View(new LoginWith2faViewModel
+            {
+                ReturnURL = returnUrl ?? string.Empty
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginWith2fa(LoginWith2faViewModel model)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                TempData["error"] = "Phiên xác thực 2 bước đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Login), new { returnUrl = model.ReturnURL });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var authenticatorCode = model.TwoFactorCode.Replace(" ", string.Empty).Replace("-", string.Empty);
+
+            var result = await _signInManager.TwoFactorAuthenticatorSignInAsync(
+                authenticatorCode,
+                isPersistent: false,
+                rememberClient: model.RememberMachine);
+
+            if (result.Succeeded)
+            {
+                TempData["success"] = "Xác thực 2 bước thành công.";
+                return await RedirectAfterSuccessfulSignInAsync(user, model.ReturnURL);
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.");
+                return View(model);
+            }
+
+            ModelState.AddModelError(string.Empty, "Mã xác thực không hợp lệ.");
+            return View(model);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> LoginWithRecoveryCode(string? returnUrl = null)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                TempData["error"] = "Phiên xác thực 2 bước đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
+            return View(new LoginWithRecoveryCodeViewModel
+            {
+                ReturnURL = returnUrl ?? string.Empty
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginWithRecoveryCode(LoginWithRecoveryCodeViewModel model)
+        {
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                TempData["error"] = "Phiên xác thực 2 bước đã hết hạn. Vui lòng đăng nhập lại.";
+                return RedirectToAction(nameof(Login), new { returnUrl = model.ReturnURL });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var recoveryCode = model.RecoveryCode.Replace(" ", string.Empty);
+
+            var result = await _signInManager.TwoFactorRecoveryCodeSignInAsync(recoveryCode);
+            if (result.Succeeded)
+            {
+                TempData["success"] = "Đăng nhập bằng recovery code thành công.";
+                return await RedirectAfterSuccessfulSignInAsync(user, model.ReturnURL);
+            }
+
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản tạm thời bị khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau.");
+                return View(model);
+            }
+
+            ModelState.AddModelError(string.Empty, "Recovery code không hợp lệ.");
+            return View(model);
+        }
+
+        [Authorize(Policy = PolicyNames.BackOfficeAccess)]
+        [HttpGet]
+        public async Task<IActionResult> SetupAuthenticator(string? returnUrl = null)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
+            if (currentUser.TwoFactorEnabled)
+            {
+                if (IsAllowedReturnUrl(returnUrl, isBackOfficeUser: true))
+                {
+                    return LocalRedirect(returnUrl!);
+                }
+
+                return RedirectToAction("Index", "Portal", new { area = "Admin" });
+            }
+
+            return View(await BuildSetupAuthenticatorViewModelAsync(currentUser, returnUrl));
+        }
+
+        [Authorize(Policy = PolicyNames.BackOfficeAccess)]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetupAuthenticator(SetupAuthenticatorViewModel model)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = model.ReturnURL });
+            }
+
+            if (currentUser.TwoFactorEnabled)
+            {
+                if (IsAllowedReturnUrl(model.ReturnURL, isBackOfficeUser: true))
+                {
+                    return LocalRedirect(model.ReturnURL);
+                }
+
+                return RedirectToAction("Index", "Portal", new { area = "Admin" });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var invalidModel = await BuildSetupAuthenticatorViewModelAsync(currentUser, model.ReturnURL);
+                invalidModel.Code = model.Code;
+                return View(invalidModel);
+            }
+
+            var verificationCode = model.Code.Replace(" ", string.Empty).Replace("-", string.Empty);
+            var isValid = await _userManager.VerifyTwoFactorTokenAsync(
+                currentUser,
+                TokenOptions.DefaultAuthenticatorProvider,
+                verificationCode);
+
+            if (!isValid)
+            {
+                ModelState.AddModelError(nameof(model.Code), "Mã xác thực không hợp lệ.");
+                var invalidTokenModel = await BuildSetupAuthenticatorViewModelAsync(currentUser, model.ReturnURL);
+                invalidTokenModel.Code = model.Code;
+                return View(invalidTokenModel);
+            }
+
+            var enableTwoFactorResult = await _userManager.SetTwoFactorEnabledAsync(currentUser, true);
+            if (!enableTwoFactorResult.Succeeded)
+            {
+                foreach (var error in enableTwoFactorResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                var failedEnableModel = await BuildSetupAuthenticatorViewModelAsync(currentUser, model.ReturnURL);
+                failedEnableModel.Code = model.Code;
+                return View(failedEnableModel);
+            }
+
+            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(currentUser, 10);
+
+            await _signInManager.RefreshSignInAsync(currentUser);
+
+            var completedModel = await BuildSetupAuthenticatorViewModelAsync(currentUser, model.ReturnURL);
+            completedModel.IsSetupComplete = true;
+            completedModel.RecoveryCodes = recoveryCodes.ToArray();
+            completedModel.Code = string.Empty;
+
+            TempData["success"] = "Đã bật xác thực 2 bước cho tài khoản quản trị.";
+            return View(completedModel);
+        }
+
         // Alias để layout đang gọi asp-action="Register" vẫn chạy được
         [AllowAnonymous]
         [HttpGet]
@@ -97,7 +339,7 @@ namespace Eshop.Controllers
             return RedirectToAction(nameof(Create));
         }
 
-        // Giữ lại để không phải đổi view Create.cshtml hiện tại
+
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Create()
@@ -539,8 +781,17 @@ namespace Eshop.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult LoginByGoogle(string? returnUrl = null)
+        public async Task<IActionResult> LoginByGoogle(string? returnUrl = null)
         {
+            var googleSchemeConfigured = (await _signInManager.GetExternalAuthenticationSchemesAsync())
+                .Any(x => string.Equals(x.Name, "Google", StringComparison.OrdinalIgnoreCase));
+
+            if (!googleSchemeConfigured)
+            {
+                TempData["error"] = "Đăng nhập Google chưa được cấu hình trên môi trường hiện tại.";
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+
             var redirectUrl = Url.Action(nameof(GoogleResponse), "Account", new { returnUrl });
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return Challenge(properties, "Google");
@@ -562,7 +813,7 @@ namespace Eshop.Controllers
                 info.LoginProvider,
                 info.ProviderKey,
                 isPersistent: false,
-                bypassTwoFactor: true);
+                bypassTwoFactor: false);
 
             if (result.Succeeded)
             {
@@ -582,6 +833,11 @@ namespace Eshop.Controllers
 
                 TempData["success"] = "Đăng nhập thành công.";
                 return await RedirectAfterSuccessfulSignInAsync(linkedUser, returnUrl);
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction(nameof(LoginWith2fa), new { returnUrl });
             }
 
             var email = info.Principal.FindFirstValue(ClaimTypes.Email);
@@ -615,6 +871,13 @@ namespace Eshop.Controllers
             {
                 user.EmailConfirmed = true;
                 await _userManager.UpdateAsync(user);
+            }
+
+            var isBackOfficeAccount = await IsBackOfficeUserAsync(user);
+            if (isBackOfficeAccount)
+            {
+                TempData["error"] = "Tài khoản nội bộ không tự động liên kết Google trong lần đăng nhập đầu tiên. Vui lòng đăng nhập bằng mật khẩu để hoàn tất xác thực 2 bước.";
+                return RedirectToAction(nameof(Login), new { returnUrl });
             }
 
             var checkLogin = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
@@ -684,6 +947,11 @@ namespace Eshop.Controllers
 
             var isBackOfficeUser = roles.Any(RoleNames.IsBackOfficeRole);
 
+             if (isBackOfficeUser && user != null && !user.TwoFactorEnabled)
+            {
+                return RedirectToAction(nameof(SetupAuthenticator), new { returnUrl });
+            }
+
             if (IsAllowedReturnUrl(returnUrl, isBackOfficeUser))
             {
                 return LocalRedirect(returnUrl!);
@@ -705,6 +973,64 @@ namespace Eshop.Controllers
             }
 
             return !returnUrl.StartsWith("/Admin", StringComparison.OrdinalIgnoreCase) || isBackOfficeUser;
+        }
+
+        private async Task<bool> IsBackOfficeUserAsync(AppUserModel user)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            return roles.Any(RoleNames.IsBackOfficeRole);
+        }
+
+        private async Task<SetupAuthenticatorViewModel> BuildSetupAuthenticatorViewModelAsync(
+            AppUserModel user,
+            string? returnUrl = null)
+        {
+            var authenticatorKey = await _userManager.GetAuthenticatorKeyAsync(user);
+            if (string.IsNullOrWhiteSpace(authenticatorKey))
+            {
+                await _userManager.ResetAuthenticatorKeyAsync(user);
+                authenticatorKey = await _userManager.GetAuthenticatorKeyAsync(user);
+            }
+
+            var email = user.Email ?? user.UserName ?? "admin";
+
+            return new SetupAuthenticatorViewModel
+            {
+                SharedKey = FormatAuthenticatorKey(authenticatorKey ?? string.Empty),
+                AuthenticatorUri = GenerateQrCodeUri(email, authenticatorKey ?? string.Empty),
+                ReturnURL = returnUrl ?? string.Empty
+            };
+        }
+
+        private static string FormatAuthenticatorKey(string unformattedKey)
+        {
+            if (string.IsNullOrWhiteSpace(unformattedKey))
+            {
+                return string.Empty;
+            }
+
+            var result = new StringBuilder();
+            var currentPosition = 0;
+
+            while (currentPosition + 4 < unformattedKey.Length)
+            {
+                result.Append(unformattedKey.AsSpan(currentPosition, 4)).Append(' ');
+                currentPosition += 4;
+            }
+
+            if (currentPosition < unformattedKey.Length)
+            {
+                result.Append(unformattedKey.AsSpan(currentPosition));
+            }
+
+            return result.ToString().ToLowerInvariant();
+        }
+
+        private static string GenerateQrCodeUri(string email, string unformattedKey)
+        {
+            const string issuer = "Eshop Admin";
+
+            return $"otpauth://totp/{Uri.EscapeDataString(issuer)}:{Uri.EscapeDataString(email)}?secret={Uri.EscapeDataString(unformattedKey)}&issuer={Uri.EscapeDataString(issuer)}&digits=6";
         }
 
         private async Task<IdentityResult> EnsureRoleAssignmentAsync(AppUserModel user, string defaultRoleName)
