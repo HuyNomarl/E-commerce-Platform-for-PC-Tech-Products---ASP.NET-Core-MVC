@@ -1,5 +1,6 @@
 ﻿using Eshop.Models;
 using Eshop.Repository;
+using Eshop.Helpers;
 using Eshop.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,16 +32,30 @@ namespace Eshop.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            if (!CanAccessOptionManagement(product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
+            }
+
+            ViewBag.CanCreateOptions = CanCreateOptions(product);
+            ViewBag.IsLegacyOptionCleanupMode = ProductCatalogAdminRules.HasLegacyOptions(product);
             return View(product);
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateGroup(int productId)
         {
-            var product = await _dataContext.Products.FindAsync(productId);
+            var product = await _dataContext.Products
+                .Include(p => p.OptionGroups)
+                .FirstOrDefaultAsync(p => p.Id == productId);
             if (product == null)
             {
                 return NotFound();
+            }
+
+            if (!CanCreateOptions(product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới được thêm option nâng cấp.");
             }
 
             ViewBag.Product = product;
@@ -51,10 +66,17 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateGroup(ProductOptionGroupModel model)
         {
-            var product = await _dataContext.Products.FindAsync(model.ProductId);
+            var product = await _dataContext.Products
+                .Include(p => p.OptionGroups)
+                .FirstOrDefaultAsync(p => p.Id == model.ProductId);
             if (product == null)
             {
                 return NotFound();
+            }
+
+            if (!CanCreateOptions(product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới được thêm option nâng cấp.");
             }
 
             if (!ModelState.IsValid)
@@ -82,6 +104,11 @@ namespace Eshop.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            if (!CanCreateOptions(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới được thêm option nâng cấp.");
+            }
+
             ViewBag.Group = group;
             return View(new ProductOptionValueModel { ProductOptionGroupId = groupId });
         }
@@ -97,6 +124,11 @@ namespace Eshop.Areas.Admin.Controllers
             if (group == null)
             {
                 return NotFound();
+            }
+
+            if (!CanCreateOptions(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới được thêm option nâng cấp.");
             }
 
             if (!ModelState.IsValid)
@@ -115,10 +147,17 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> EditGroup(int id)
         {
-            var group = await _dataContext.ProductOptionGroups.FindAsync(id);
+            var group = await _dataContext.ProductOptionGroups
+                .Include(g => g.Product)
+                .FirstOrDefaultAsync(g => g.Id == id);
             if (group == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             return View(group);
@@ -138,10 +177,17 @@ namespace Eshop.Areas.Admin.Controllers
                 return View(model);
             }
 
-            var group = await _dataContext.ProductOptionGroups.FindAsync(id);
+            var group = await _dataContext.ProductOptionGroups
+                .Include(g => g.Product)
+                .FirstOrDefaultAsync(g => g.Id == id);
             if (group == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             group.Name = model.Name;
@@ -157,10 +203,18 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> EditValue(int id)
         {
-            var value = await _dataContext.ProductOptionValues.FindAsync(id);
+            var value = await _dataContext.ProductOptionValues
+                .Include(x => x.ProductOptionGroup)
+                    .ThenInclude(g => g.Product)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (value == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(value.ProductOptionGroup.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             return View(value);
@@ -182,10 +236,16 @@ namespace Eshop.Areas.Admin.Controllers
 
             var value = await _dataContext.ProductOptionValues
                 .Include(x => x.ProductOptionGroup)
+                    .ThenInclude(g => g.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (value == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(value.ProductOptionGroup.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             value.Value = model.Value;
@@ -206,11 +266,17 @@ namespace Eshop.Areas.Admin.Controllers
         {
             var group = await _dataContext.ProductOptionGroups
                 .Include(g => g.OptionValues)
+                .Include(g => g.Product)
                 .FirstOrDefaultAsync(g => g.Id == id);
 
             if (group == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             int productId = group.ProductId;
@@ -228,16 +294,29 @@ namespace Eshop.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteValue(int id)
         {
-            var value = await _dataContext.ProductOptionValues.FindAsync(id);
+            var value = await _dataContext.ProductOptionValues
+                .Include(x => x.ProductOptionGroup)
+                    .ThenInclude(g => g.Product)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (value == null)
             {
                 return NotFound();
             }
 
-            var group = await _dataContext.ProductOptionGroups.FindAsync(value.ProductOptionGroupId);
+            if (!CanAccessOptionManagement(value.ProductOptionGroup.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
+            }
+
+            var group = value.ProductOptionGroup;
             if (group == null)
             {
                 return NotFound();
+            }
+
+            if (!CanAccessOptionManagement(group.Product))
+            {
+                return RedirectToProductIndexWithError("Chỉ PC dựng sẵn mới có khu vực quản lý option nâng cấp.");
             }
 
             int productId = group.ProductId;
@@ -247,6 +326,22 @@ namespace Eshop.Areas.Admin.Controllers
 
             TempData["success"] = "Xóa giá trị tùy chọn thành công!";
             return RedirectToAction(nameof(Index), new { productId });
+        }
+
+        private static bool CanCreateOptions(ProductModel? product)
+        {
+            return ProductCatalogAdminRules.CanConfigureOptions(product);
+        }
+
+        private static bool CanAccessOptionManagement(ProductModel? product)
+        {
+            return ProductCatalogAdminRules.CanAccessOptionManagement(product);
+        }
+
+        private IActionResult RedirectToProductIndexWithError(string message)
+        {
+            TempData["error"] = message;
+            return RedirectToAction("Index", "Product", new { area = "Admin" });
         }
     }
 }

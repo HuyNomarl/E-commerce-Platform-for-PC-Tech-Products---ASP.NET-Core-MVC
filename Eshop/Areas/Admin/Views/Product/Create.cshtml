@@ -1,5 +1,8 @@
 ﻿@model Eshop.Models.ViewModels.ProductUpsertViewModel
 
+@using Eshop.Helpers
+@using Eshop.Models.Enums
+
 @{
     ViewData["Title"] = "Tạo sản phẩm";
 }
@@ -102,17 +105,17 @@
                             </div>
 
                             <div class="col-12 form-col">
-                                <label asp-for="Product.IsPcBuild" class="form-label">Loại sản phẩm</label>
+                                <label asp-for="Product.ProductType" class="form-label">Loại sản phẩm</label>
 
                                 <div class="feature-box">
-                                    <div class="checkbox-wrap">
-                                        <input asp-for="Product.IsPcBuild" class="form-check-input-custom" />
-                                        <label asp-for="Product.IsPcBuild" class="form-check-label-custom mb-0">
-                                            Đây là PC có cấu hình nâng cấp
-                                        </label>
-                                    </div>
-                                    <div class="small helper-text mt-2">
-                                        Bật tùy chọn này nếu sản phẩm là bộ PC có thể nâng cấp cấu hình.
+                                    <select asp-for="Product.ProductType"
+                                            class="form-select input-soft"
+                                            asp-items="ViewBag.ProductTypes"
+                                            id="Product_ProductType">
+                                    </select>
+                                    <span asp-validation-for="Product.ProductType" class="text-danger small d-block mt-1"></span>
+                                    <div class="small helper-text mt-2" id="productTypeHelper">
+                                        @ProductCatalogAdminRules.GetProductTypeHelperText(Model.Product.ProductType)
                                     </div>
                                 </div>
                             </div>
@@ -176,7 +179,7 @@
                         </div>
 
                         <div class="action-note mt-3">
-                            Hãy kiểm tra lại thông tin, ảnh đại diện và tài liệu kỹ thuật trước khi tạo mới.
+                            Nếu chọn PC dựng sẵn, bạn sẽ có thêm mục quản lý option nâng cấp sau khi lưu sản phẩm.
                         </div>
                     </div>
                 </div>
@@ -422,6 +425,8 @@
         const btnAdd = document.getElementById("btnAddCreateImages");
         const primaryIndexInput = document.getElementById("PrimaryNewImageIndex");
         const widgetImagesInput = document.getElementById("WidgetImagesJson");
+        const productTypeSelect = document.getElementById("Product_ProductType");
+        const productTypeHelper = document.getElementById("productTypeHelper");
 
         let images = [];
         let primaryId = null;
@@ -429,6 +434,14 @@
         function uid() {
         if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
         return "img_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+        }
+
+        function syncProductTypeHelper() {
+        if (!productTypeSelect || !productTypeHelper) return;
+
+        productTypeHelper.textContent = productTypeSelect.value === "@((int)ProductType.PcPrebuilt)"
+        ? "PC dựng sẵn sẽ có thêm mục quản lý option nâng cấp sau khi lưu."
+        : "Sản phẩm thường không có option nâng cấp riêng.";
         }
 
         function syncHidden() {
@@ -562,6 +575,11 @@
         render();
         });
 
+        if (productTypeSelect) {
+        productTypeSelect.addEventListener("change", syncProductTypeHelper);
+        }
+
+        syncProductTypeHelper();
         render();
         });
     </script>

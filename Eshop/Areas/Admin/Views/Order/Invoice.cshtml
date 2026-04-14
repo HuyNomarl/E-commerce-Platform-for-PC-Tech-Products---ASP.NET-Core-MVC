@@ -1,0 +1,532 @@
+@model Eshop.Models.ViewModels.OrderDetailViewModel
+@using Eshop.Helpers
+
+@{
+    Layout = null;
+    var printedAt = DateTime.Now;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoa don @Model.OrderCode</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --text: #0f172a;
+            --muted: #64748b;
+            --line: #dbe2ea;
+            --soft: #f8fafc;
+            --accent: #0f766e;
+            --accent-soft: #ecfeff;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: #eef2f7;
+        }
+
+        .page {
+            max-width: 980px;
+            margin: 32px auto;
+            padding: 0 20px 40px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: #fff;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toolbar-btn--primary {
+            border-color: #0f766e;
+            background: #0f766e;
+            color: #fff;
+        }
+
+        .invoice {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 48px rgba(15, 23, 42, 0.08);
+        }
+
+        .invoice-head {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            padding: 28px 30px 24px;
+            border-bottom: 1px solid var(--line);
+            background: linear-gradient(135deg, #ffffff 0%, #f4fffd 100%);
+        }
+
+        .brand-name {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .brand-sub {
+            margin-top: 8px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .invoice-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .invoice-title {
+            text-align: right;
+        }
+
+        .invoice-title h1 {
+            margin: 12px 0 8px;
+            font-size: 30px;
+        }
+
+        .invoice-meta {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .invoice-body {
+            padding: 26px 30px 30px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-card {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            background: var(--soft);
+        }
+
+        .info-card h2 {
+            margin: 0 0 12px;
+            font-size: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 7px 0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+        }
+
+        .info-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--muted);
+            min-width: 110px;
+        }
+
+        .status-badge,
+        .payment-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .status-badge {
+            border-color: var(--line);
+            background: #f8fafc;
+        }
+
+        .badge-warn { color: #b45309; }
+        .badge-info { color: #0284c7; }
+        .badge-show { color: #2563eb; }
+        .badge-success { color: #047857; }
+        .badge-success-dark { color: #166534; }
+        .badge-delete { color: #991b1b; }
+        .badge-secondary { color: #64748b; }
+
+        .payment-badge-cod {
+            background: #ecfdf5;
+            color: #047857;
+            border-color: #a7f3d0;
+        }
+
+        .payment-badge-vnpay {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #bfdbfe;
+        }
+
+        .payment-badge-momo {
+            background: #fdf2f8;
+            color: #be185d;
+            border-color: #fbcfe8;
+        }
+
+        .payment-badge-bank {
+            background: #eef2ff;
+            color: #4338ca;
+            border-color: #c7d2fe;
+        }
+
+        .payment-badge-default {
+            background: #f3f4f6;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+
+        .table-wrap {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+        }
+
+        thead th {
+            background: #f8fafc;
+            text-align: left;
+            font-size: 13px;
+            letter-spacing: 0.02em;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .item-name {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .item-sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .totals {
+            margin-left: auto;
+            width: min(100%, 360px);
+            margin-top: 22px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 16px 18px;
+            background: #fcfffe;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+        }
+
+        .total-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .total-row--grand {
+            font-size: 18px;
+            font-weight: 800;
+            color: #b91c1c;
+        }
+
+        .invoice-note {
+            margin-top: 22px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+            line-height: 1.6;
+        }
+
+        @@media (max-width: 767px) {
+            .page {
+                margin: 20px auto;
+                padding: 0 12px 28px;
+            }
+
+            .invoice-head,
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .invoice-title {
+                text-align: left;
+            }
+
+            th,
+            td {
+                padding: 12px;
+            }
+        }
+
+        @@media print {
+            body {
+                background: #fff;
+            }
+
+            .page {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+            }
+
+            .toolbar {
+                display: none !important;
+            }
+
+            .invoice {
+                border: 0;
+                box-shadow: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="toolbar">
+            <div>
+                <strong>Hoa don in tu admin</strong>
+                <div style="color:#64748b; margin-top:4px;">Ban co the in truc tiep hoac Save as PDF tu trinh duyet.</div>
+            </div>
+
+            <div class="toolbar-actions">
+                <a asp-area="Admin"
+                   asp-controller="Order"
+                   asp-action="ViewOrder"
+                   asp-route-orderCode="@Model.OrderCode"
+                   class="toolbar-btn">
+                    Quay lai chi tiet don
+                </a>
+                <button type="button" class="toolbar-btn toolbar-btn--primary" onclick="window.print()">
+                    In hoa don
+                </button>
+            </div>
+        </div>
+
+        <main class="invoice">
+            <section class="invoice-head">
+                <div>
+                    <span class="invoice-chip">ADMIN INVOICE</span>
+                    <div class="brand-name">ESHOP</div>
+                    <div class="brand-sub">
+                        He thong thuong mai dien tu ban san pham cong nghe, PC dung san va linh kien build PC.<br />
+                        Hoa don nay duoc xuat tu khu vuc quan tri don hang.
+                    </div>
+                </div>
+
+                <div class="invoice-title">
+                    <h1>Hoa don</h1>
+                    <ul class="invoice-meta">
+                        <li><strong>So hoa don:</strong> @Model.InvoiceCode</li>
+                        <li><strong>Ma don:</strong> @Model.OrderCode</li>
+                        <li><strong>Ngay dat:</strong> @Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</li>
+                        <li><strong>Ngay xuat:</strong> @printedAt.ToString("dd/MM/yyyy HH:mm")</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section class="invoice-body">
+                <div class="info-grid">
+                    <section class="info-card">
+                        <h2>Thong tin nguoi nhan</h2>
+                        <div class="info-row">
+                            <span class="info-label">Khach hang</span>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.CustomerDisplayName) ? "-" : Model.CustomerDisplayName)</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Tai khoan</span>
+                            <strong>@Model.UserName</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">So dien thoai</span>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.Phone) ? "-" : Model.Phone)</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Email</span>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Dia chi</span>
+                            <strong>@(string.IsNullOrWhiteSpace(Model.ShippingAddressDisplay) ? "-" : Model.ShippingAddressDisplay)</strong>
+                        </div>
+                    </section>
+
+                    <section class="info-card">
+                        <h2>Thong tin thanh toan</h2>
+                        <div class="info-row">
+                            <span class="info-label">Trang thai</span>
+                            <span class="status-badge @OrderDisplayHelper.GetSoftBadgeClass(Model.Status)">
+                                @OrderDisplayHelper.GetStatusLabel(Model.Status)
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Thanh toan</span>
+                            <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(Model.PaymentMethod)">
+                                @OrderDisplayHelper.GetPaymentMethodLabel(Model.PaymentMethod)
+                            </span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Tam tinh</span>
+                            <strong>@Model.SubTotal.ToString("N0") d</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Giam gia</span>
+                            <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Van chuyen</span>
+                            <strong>@Model.ShippingCost.ToString("N0") d</strong>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">#</th>
+                                <th>San pham</th>
+                                <th class="text-right" style="width:140px;">Don gia</th>
+                                <th class="text-right" style="width:90px;">SL</th>
+                                <th class="text-right" style="width:160px;">Thanh tien</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.OrderDetails.Any())
+                            {
+                                var index = 1;
+                                foreach (var item in Model.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>@index</td>
+                                        <td>
+                                            <div class="item-name">@item.ProductName</div>
+                                            @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
+                                            {
+                                                <div class="item-sub">
+                                                    @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
+                                                    @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
+                                                    {
+                                                        <span> - @item.ComponentType</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                        <td class="text-right">@item.Price.ToString("N0") d</td>
+                                        <td class="text-right">@item.Quantity</td>
+                                        <td class="text-right">@item.LineTotal.ToString("N0") d</td>
+                                    </tr>
+
+                                    index++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color:#64748b;">Khong co chi tiet san pham.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <section class="totals">
+                    <div class="total-row">
+                        <span>Tam tinh</span>
+                        <strong>@Model.SubTotal.ToString("N0") d</strong>
+                    </div>
+                    <div class="total-row">
+                        <span>Giam gia</span>
+                        <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+                    </div>
+                    <div class="total-row">
+                        <span>Phi van chuyen</span>
+                        <strong>@Model.ShippingCost.ToString("N0") d</strong>
+                    </div>
+                    <div class="total-row total-row--grand">
+                        <span>Tong thanh toan</span>
+                        <strong>@Model.TotalAmount.ToString("N0") d</strong>
+                    </div>
+                </section>
+
+                <div class="invoice-note">
+                    <strong>Ghi chu:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.Note) ? "Khong co ghi chu tu khach hang." : Model.Note)
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

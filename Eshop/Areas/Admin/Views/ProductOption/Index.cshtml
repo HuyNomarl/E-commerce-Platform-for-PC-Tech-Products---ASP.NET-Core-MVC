@@ -1,11 +1,14 @@
 @model Eshop.Models.ProductModel
 @using System.Linq
+@using Eshop.Helpers
 
 @{
     ViewData["Title"] = "Quản lý tùy chọn sản phẩm";
     var groups = Model.OptionGroups?.ToList() ?? new List<Eshop.Models.ProductOptionGroupModel>();
     var totalValues = groups.Sum(x => x.OptionValues?.Count ?? 0);
     var requiredGroups = groups.Count(x => x.IsRequired);
+    var canCreateOptions = ViewBag.CanCreateOptions is bool value && value;
+    var isLegacyOptionCleanupMode = ViewBag.IsLegacyOptionCleanupMode is bool cleanup && cleanup;
 }
 
 <div class="admin-ui-page admin-ui-page--amber">
@@ -24,10 +27,13 @@
         </div>
 
         <div class="admin-ui-actions">
+            @if (canCreateOptions)
+            {
             <a asp-action="CreateGroup" asp-route-productId="@Model.Id" class="admin-ui-btn admin-ui-btn--primary">
                 <i class="fa fa-plus"></i>
                 Thêm nhóm
             </a>
+            }
 
             <a asp-controller="Product" asp-action="Index" class="admin-ui-back">
                 <i class="fa fa-arrow-left"></i>
@@ -35,6 +41,17 @@
             </a>
         </div>
     </section>
+
+    @if (isLegacyOptionCleanupMode)
+    {
+        <section class="admin-ui-panel">
+            <div class="admin-ui-panel__body">
+                <div class="admin-ui-empty">
+                    Sản phẩm này không còn thuộc loại PC dựng sẵn. Bạn vẫn có thể sửa hoặc xóa option cũ để dọn dữ liệu legacy, nhưng không thể thêm option mới.
+                </div>
+            </div>
+        </section>
+    }
 
     <div class="admin-ui-stats">
         <article class="admin-ui-stat">
@@ -80,10 +97,13 @@
                         </div>
 
                         <div class="admin-ui-table-actions">
+                            @if (canCreateOptions)
+                            {
                             <a asp-action="CreateValue" asp-route-groupId="@group.Id" class="admin-ui-btn admin-ui-btn--primary">
                                 <i class="fa fa-plus"></i>
                                 Thêm giá trị
                             </a>
+                            }
 
                             <a asp-action="EditGroup" asp-route-id="@group.Id" class="admin-ui-btn admin-ui-btn--soft">
                                 <i class="fa fa-pencil"></i>

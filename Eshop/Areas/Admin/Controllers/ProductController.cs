@@ -1,5 +1,6 @@
 ﻿using Eshop.Constants;
 using Eshop.Models;
+using Eshop.Helpers;
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
@@ -45,10 +46,12 @@ namespace Eshop.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var products = await _dataContext.Products
+                .Where(p => p.ProductType == ProductType.Normal || p.ProductType == ProductType.PcPrebuilt)
                 .OrderByDescending(p => p.Id)
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
+                .Include(p => p.OptionGroups)
                 .ToListAsync();
 
             return View(products);
@@ -57,10 +60,14 @@ namespace Eshop.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            LoadViewBags();
+            LoadViewBags(selectedProductType: ProductType.Normal);
             return View(new ProductUpsertViewModel
             {
-                Product = new ProductModel()
+                Product = new ProductModel
+                {
+                    ProductType = ProductType.Normal,
+                    IsPcBuild = false
+                }
             });
         }
 
@@ -69,7 +76,9 @@ namespace Eshop.Areas.Admin.Controllers
         public async Task<IActionResult> Create(ProductUpsertViewModel vm)
         {
             vm.Product ??= new ProductModel();
-            LoadViewBags(vm.Product.CategoryId, vm.Product.PublisherId);
+            ApplyCatalogProductRules(vm.Product);
+            LoadViewBags(vm.Product.CategoryId, vm.Product.PublisherId, vm.Product.ProductType);
+            ValidateCatalogProductType(vm.Product.ProductType);
 
             if (!ModelState.IsValid)
             {
@@ -133,12 +142,19 @@ namespace Eshop.Areas.Admin.Controllers
             var product = await _dataContext.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.TechnicalAsset)
+                .Include(p => p.OptionGroups)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
                 return NotFound();
 
-            LoadViewBags(product.CategoryId, product.PublisherId);
+            if (ProductCatalogAdminRules.IsPcBuilderManaged(product))
+            {
+                TempData["warning"] = "Linh kiện build PC được quản lý ở phân hệ Linh kiện build PC.";
+                return RedirectToAction("Edit", "PcComponentAdmin", new { area = "Admin", id });
+            }
+
+            LoadViewBags(product.CategoryId, product.PublisherId, product.ProductType);
 
             var vm = new ProductUpsertViewModel
             {
@@ -163,15 +179,32 @@ namespace Eshop.Areas.Admin.Controllers
             if (id != vm.Product.Id)
                 return NotFound();
 
-            LoadViewBags(vm.Product.CategoryId, vm.Product.PublisherId);
+            ApplyCatalogProductRules(vm.Product);
+            LoadViewBags(vm.Product.CategoryId, vm.Product.PublisherId, vm.Product.ProductType);
 
             var existingProduct = await _dataContext.Products
                 .Include(p => p.ProductImages)
                 .Include(p => p.TechnicalAsset)
+                .Include(p => p.OptionGroups)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (existingProduct == null)
                 return NotFound();
+
+            if (ProductCatalogAdminRules.IsPcBuilderManaged(existingProduct))
+            {
+                TempData["warning"] = "Linh kiện build PC được quản lý ở phân hệ Linh kiện build PC.";
+                return RedirectToAction("Edit", "PcComponentAdmin", new { area = "Admin", id });
+            }
+
+            ValidateCatalogProductType(vm.Product.ProductType);
+
+            if (existingProduct.OptionGroups.Any() && !ProductCatalogAdminRules.CanConfigureOptions(vm.Product.ProductType))
+            {
+                ModelState.AddModelError(
+                    "Product.ProductType",
+                    "Chỉ PC dựng sẵn mới được giữ option nâng cấp. Hãy xóa các option hiện có trước khi đổi loại sản phẩm.");
+            }
 
             existingProduct.ProductImages ??= new List<ProductImageModel>();
 
@@ -199,7 +232,9 @@ namespace Eshop.Areas.Admin.Controllers
             existingProduct.Price = vm.Product.Price;
             existingProduct.CategoryId = vm.Product.CategoryId;
             existingProduct.PublisherId = vm.Product.PublisherId;
-            existingProduct.IsPcBuild = vm.Product.IsPcBuild;
+            existingProduct.ProductType = vm.Product.ProductType;
+            existingProduct.ComponentType = null;
+            existingProduct.IsPcBuild = ProductCatalogAdminRules.CanConfigureOptions(vm.Product.ProductType);
             existingProduct.Status = vm.Product.Status;
 
             await DeleteMarkedProductImagesAsync(existingProduct, vm.DeletedImageIds);
@@ -278,6 +313,12 @@ namespace Eshop.Areas.Admin.Controllers
             if (product == null)
                 return NotFound();
 
+            if (!ProductCatalogAdminRules.IsCatalogManaged(product))
+            {
+                TempData["error"] = "Sản phẩm này đang thuộc phân hệ Linh kiện build PC.";
+                return RedirectToAction("Index", "PcComponentAdmin", new { area = "Admin" });
+            }
+
             if (product.ProductImages != null && product.ProductImages.Any())
             {
                 foreach (var image in product.ProductImages)
@@ -323,7 +364,7 @@ namespace Eshop.Areas.Admin.Controllers
         public async Task<IActionResult> ToggleVisibility(int id)
         {
             var product = await _dataContext.Products.FirstOrDefaultAsync(x => x.Id == id);
-            if (product == null)
+            if (product == null || !ProductCatalogAdminRules.IsCatalogManaged(product))
             {
                 TempData["error"] = "Không tìm thấy sản phẩm.";
                 return RedirectToAction(nameof(Index));
@@ -368,10 +409,14 @@ namespace Eshop.Areas.Admin.Controllers
         }
 
 
-        private void LoadViewBags(object? selectedCategory = null, object? selectedPublisher = null)
+        private void LoadViewBags(
+            object? selectedCategory = null,
+            object? selectedPublisher = null,
+            ProductType selectedProductType = ProductType.Normal)
         {
             ViewBag.Categories = new SelectList(_dataContext.Categories.ToList(), "Id", "Name", selectedCategory);
             ViewBag.Publishers = new SelectList(_dataContext.Publishers.ToList(), "Id", "Name", selectedPublisher);
+            ViewBag.ProductTypes = new SelectList(BuildCatalogProductTypeOptions(), "Value", "Text", (int)selectedProductType);
         }
 
         private string GenerateSlug(string name)
@@ -623,6 +668,7 @@ namespace Eshop.Areas.Admin.Controllers
         {
             vm.Product.Image = existingProduct.Image;
             vm.Product.Slug = existingProduct.Slug;
+            vm.Product.OptionGroups = existingProduct.OptionGroups?.ToList() ?? new List<ProductOptionGroupModel>();
             vm.Product.ProductImages = existingProduct.ProductImages
                 .OrderBy(x => x.SortOrder)
                 .ThenBy(x => x.Id)
@@ -756,6 +802,34 @@ namespace Eshop.Areas.Admin.Controllers
             if (!deleted)
             {
                 TempData["warning"] = "Sản phẩm đã được cập nhật nhưng chưa xóa khỏi RAG Service. Hãy kiểm tra rag-service hoặc chạy full-sync.";
+            }
+        }
+
+        private static IEnumerable<object> BuildCatalogProductTypeOptions()
+        {
+            return new[]
+            {
+                new { Value = (int)ProductType.Normal, Text = ProductCatalogAdminRules.GetAdminProductTypeLabel(ProductType.Normal) },
+                new { Value = (int)ProductType.PcPrebuilt, Text = ProductCatalogAdminRules.GetAdminProductTypeLabel(ProductType.PcPrebuilt) }
+            };
+        }
+
+        private static void ApplyCatalogProductRules(ProductModel product)
+        {
+            if (product == null)
+            {
+                return;
+            }
+
+            product.ComponentType = null;
+            product.IsPcBuild = ProductCatalogAdminRules.CanConfigureOptions(product.ProductType);
+        }
+
+        private void ValidateCatalogProductType(ProductType productType)
+        {
+            if (!Enum.IsDefined(typeof(ProductType), productType) || !ProductCatalogAdminRules.IsCatalogManaged(productType))
+            {
+                ModelState.AddModelError("Product.ProductType", "Yêu cầu chọn loại sản phẩm hợp lệ trong Catalog.");
             }
         }
 

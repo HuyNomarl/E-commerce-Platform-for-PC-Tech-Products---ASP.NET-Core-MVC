@@ -1,8 +1,14 @@
 ﻿@model Eshop.Models.ViewModels.ProductUpsertViewModel
 
+@using Eshop.Helpers
+@using Eshop.Models.Enums
+
 @{
     ViewData["Title"] = "Sửa sản phẩm";
     var hasProductImages = Model.Product.ProductImages != null && Model.Product.ProductImages.Any();
+    var canConfigureOptions = ProductCatalogAdminRules.CanConfigureOptions(Model.Product);
+    var hasLegacyOptions = ProductCatalogAdminRules.HasLegacyOptions(Model.Product);
+    var canOpenOptionManagement = ProductCatalogAdminRules.CanAccessOptionManagement(Model.Product);
 }
 
 <div class="admin-ui-page admin-ui-page--blue">
@@ -115,17 +121,17 @@
                             </div>
 
                             <div class="col-12 form-col">
-                                <label asp-for="Product.IsPcBuild" class="form-label">Loại sản phẩm</label>
+                                <label asp-for="Product.ProductType" class="form-label">Loại sản phẩm</label>
 
                                 <div class="feature-box">
-                                    <div class="checkbox-wrap">
-                                        <input asp-for="Product.IsPcBuild" class="form-check-input-custom" />
-                                        <label asp-for="Product.IsPcBuild" class="form-check-label-custom mb-0">
-                                            Đây là PC có cấu hình nâng cấp
-                                        </label>
-                                    </div>
-                                    <div class="small helper-text mt-2">
-                                        Bật tùy chọn này nếu sản phẩm là bộ PC có thể nâng cấp cấu hình.
+                                    <select asp-for="Product.ProductType"
+                                            class="form-select input-soft"
+                                            asp-items="ViewBag.ProductTypes"
+                                            id="Product_ProductType">
+                                    </select>
+                                    <span asp-validation-for="Product.ProductType" class="text-danger small d-block mt-1"></span>
+                                    <div class="small helper-text mt-2" id="productTypeHelper">
+                                        @ProductCatalogAdminRules.GetProductTypeHelperText(Model.Product.ProductType)
                                     </div>
                                 </div>
                             </div>
@@ -235,7 +241,52 @@
                         </div>
 
                         <div class="action-note mt-3">
-                            Hãy kiểm tra lại thông tin, ảnh đại diện và tài liệu kỹ thuật trước khi lưu.
+                            @if (canConfigureOptions)
+                            {
+                                <span>PC dựng sẵn có thể cấu hình option nâng cấp riêng cho CPU, RAM, SSD...</span>
+                            }
+                            else if (hasLegacyOptions)
+                            {
+                                <span>Sản phẩm đang có option cũ nhưng không còn là PC dựng sẵn. Hãy rà soát và dọn dữ liệu option trước khi đổi nghiệp vụ.</span>
+                            }
+                            else
+                            {
+                                <span>Sản phẩm thường không có option nâng cấp riêng.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-soft form-card mt-3">
+                    <div class="card-body-custom">
+                        <div class="section-heading mb-3">Tùy chọn nâng cấp</div>
+
+                        @if (canOpenOptionManagement)
+                        {
+                            <div class="action-box">
+                                <a asp-area="Admin"
+                                   asp-controller="ProductOption"
+                                   asp-action="Index"
+                                   asp-route-productId="@Model.Product.Id"
+                                   class="btn btn-outline-primary w-100">
+                                    @(canConfigureOptions ? "Quản lý option nâng cấp" : "Rà soát option cũ")
+                                </a>
+                            </div>
+                        }
+
+                        <div class="action-note mt-3">
+                            @if (canConfigureOptions)
+                            {
+                                <span>Chỉ PC dựng sẵn mới được thêm option mới trong admin.</span>
+                            }
+                            else if (hasLegacyOptions)
+                            {
+                                <span>Bạn chỉ nên sửa hoặc xóa option cũ để đưa sản phẩm về đúng chuẩn mới.</span>
+                            }
+                            else
+                            {
+                                <span>Muốn dùng option nâng cấp, hãy đổi loại sản phẩm sang PC dựng sẵn rồi lưu lại.</span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -530,6 +581,8 @@
         const deleteLegacyImageInput = document.getElementById("DeleteLegacyImage");
         const deletedIdsBox = document.getElementById("deleted-image-ids-box");
         const widgetImagesInput = document.getElementById("WidgetImagesJson");
+        const productTypeSelect = document.getElementById("Product_ProductType");
+        const productTypeHelper = document.getElementById("productTypeHelper");
 
         const existingImages = Array.from(document.querySelectorAll(".js-existing-image")).map(el => ({
         key: el.dataset.key,
@@ -548,6 +601,14 @@
         function uid() {
         if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
         return "img_" + Date.now() + "_" + Math.random().toString(36).substring(2, 10);
+        }
+
+        function syncProductTypeHelper() {
+        if (!productTypeSelect || !productTypeHelper) return;
+
+        productTypeHelper.textContent = productTypeSelect.value === "@((int)ProductType.PcPrebuilt)"
+        ? "PC dựng sẵn mới được phép giữ và thêm option nâng cấp."
+        : "Sản phẩm thường không có option nâng cấp riêng.";
         }
 
         function getExistingByKey(key) {
@@ -1006,6 +1067,11 @@
         };
         }
 
+        if (productTypeSelect) {
+        productTypeSelect.addEventListener("change", syncProductTypeHelper);
+        }
+
+        syncProductTypeHelper();
         render();
         });
     </script>

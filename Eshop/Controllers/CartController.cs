@@ -112,6 +112,49 @@ namespace Eshop.Controllers
                 return RedirectToAction("Index");
             }
 
+            var supportsUpgradeOptions = ProductCatalogAdminRules.CanConfigureOptions(product);
+            var activeOptionGroups = supportsUpgradeOptions
+                ? product.OptionGroups
+                    .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
+                    .ToList()
+                : new List<ProductOptionGroupModel>();
+
+            var selectedOptionMap = supportsUpgradeOptions
+                ? model.SelectedOptions
+                    .Where(x => x != null)
+                    .GroupBy(x => x.GroupId)
+                    .ToDictionary(g => g.Key, g => g.Last().ValueId)
+                : new Dictionary<int, int>(); 
+
+            if (supportsUpgradeOptions)
+            {
+                var missingRequiredGroup = activeOptionGroups.FirstOrDefault(group =>
+                    group.IsRequired &&
+                    (!selectedOptionMap.TryGetValue(group.Id, out var selectedValueId)
+                     || !group.OptionValues.Any(value => value.Id == selectedValueId && value.Status == 1)));
+
+                if (missingRequiredGroup != null)
+                {
+                    var message = $"Vui lòng chọn option cho mục \"{missingRequiredGroup.Name}\".";
+
+                    if (isAjax)
+                    {
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message
+                        });
+                    }
+
+                    TempData["Error"] = message;
+                    return RedirectToAction("Details", "Product", new { id = product.Id });
+                }
+            }
+            else
+            {
+                model.SelectedOptions.Clear();
+            }
+
             List<CartItemModel> cart = await _cartService.GetCartAsync(HttpContext);
 
             var newCartItem = new CartItemModel(product)
@@ -139,12 +182,12 @@ namespace Eshop.Controllers
                 return RedirectToAction("Details", "Product", new { id = product.Id });
             }
 
-            foreach (var selected in model.SelectedOptions)
+            foreach (var selected in selectedOptionMap)
             {
-                var group = product.OptionGroups.FirstOrDefault(g => g.Id == selected.GroupId);
+                var group = product.OptionGroups.FirstOrDefault(g => g.Id == selected.Key);
                 if (group == null) continue;
 
-                var value = group.OptionValues.FirstOrDefault(v => v.Id == selected.ValueId);
+                var value = group.OptionValues.FirstOrDefault(v => v.Id == selected.Value && v.Status == 1);
                 if (value == null) continue;
 
                 newCartItem.SelectedOptions.Add(new CartItemOptionModel

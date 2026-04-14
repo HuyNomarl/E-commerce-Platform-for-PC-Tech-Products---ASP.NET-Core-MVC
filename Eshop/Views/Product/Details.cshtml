@@ -1,3 +1,4 @@
+@using Eshop.Helpers
 @model Eshop.Models.ViewModels.ProductDetailViewModel
 
 @functions {
@@ -17,10 +18,13 @@
 @{
     var product = Model.ProductDetail!;
     var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
-    var optionGroups = product.OptionGroups?
-        .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
-        .ToList()
-        ?? new List<Eshop.Models.ProductOptionGroupModel>();
+    var canConfigureOptions = ProductCatalogAdminRules.CanConfigureOptions(product);
+    var optionGroups = canConfigureOptions
+        ? product.OptionGroups?
+            .Where(g => g.OptionValues != null && g.OptionValues.Any(v => v.Status == 1))
+            .ToList()
+            ?? new List<Eshop.Models.ProductOptionGroupModel>()
+        : new List<Eshop.Models.ProductOptionGroupModel>();
     var basePrice = product.Price;
     var availableQuantity = Model.InventorySummary?.AvailableQuantity ?? 0;
     var galleryItems = Model.GalleryItems ?? new List<Eshop.Models.ViewModels.ProductGalleryItemViewModel>();
@@ -166,7 +170,7 @@
                             </div>
                             <div class="pd-info-item">
                                 <span>Loại sản phẩm</span>
-                                <strong>@product.ProductType</strong>
+                                <strong>@ProductCatalogAdminRules.GetAdminProductTypeLabel(product.ProductType)</strong>
                             </div>
                             <div class="pd-info-item">
                                 <span>Review của bạn</span>

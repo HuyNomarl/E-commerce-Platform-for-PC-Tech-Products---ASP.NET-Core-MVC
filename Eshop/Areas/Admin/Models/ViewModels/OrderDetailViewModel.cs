@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 
 namespace Eshop.Models.ViewModels
 {
@@ -22,6 +23,17 @@ namespace Eshop.Models.ViewModels
         public decimal ShippingCost { get; set; }
         public decimal TotalAmount { get; set; }
 
+        public string CustomerDisplayName => string.IsNullOrWhiteSpace(FullName) ? UserName : FullName;
+
+        public string ShippingAddressDisplay => string.Join(", ", new[]
+        {
+            Address,
+            Ward,
+            District,
+            Province
+        }.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x!.Trim()));
+
+        public string InvoiceCode => $"INV-{OrderCode}";
 
         public int Status { get; set; }
 

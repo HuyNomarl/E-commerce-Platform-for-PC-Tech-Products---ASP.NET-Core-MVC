@@ -1,39 +1,53 @@
 @model Eshop.Models.ViewModels.OrderDetailViewModel
+@using Eshop.Helpers
 
 @{
-    ViewData["title"] = "Chi tiết đơn hàng";
+    ViewData["Title"] = "Chi tiet don hang";
     var canChangeStatus = Model.StatusList.Count > 1;
 }
 
 <div class="row g-3 order-detail-page">
     <div class="col-12">
-        <div class="d-flex align-items-start align-items-md-center justify-content-between gap-2 flex-column flex-md-row">
+        <div class="page-head">
             <div>
-                <h4 class="mb-1">Chi tiết đơn hàng</h4>
-                <div class="small page-subtitle">Theo dõi khách hàng, thanh toán, tổng tiền và quy trình xử lý đơn</div>
+                <h4 class="mb-1">Chi tiet don hang</h4>
+                <div class="page-subtitle">Theo doi thong tin khach hang, thanh toan, trang thai va cac san pham trong don.</div>
             </div>
 
-            <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-outline-secondary">
-                <i class="fa fa-arrow-left me-1"></i> Quay lại
-            </a>
+            <div class="page-actions">
+                <a asp-action="ExportInvoice"
+                   asp-controller="Order"
+                   asp-area="Admin"
+                   asp-route-orderCode="@Model.OrderCode"
+                   target="_blank"
+                   rel="noopener"
+                   class="btn btn-primary">
+                    <i class="fa fa-print me-1"></i> Xuat hoa don
+                </a>
+
+                <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-outline-secondary">
+                    <i class="fa fa-arrow-left me-1"></i> Quay lai
+                </a>
+            </div>
         </div>
     </div>
 
-    <div class="col-12">
+    <div class="col-12 col-xl-7">
         <div class="card-soft info-card">
+            <div class="section-title">Thong tin don hang</div>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">Mã đơn</div>
+                    <div class="info-label">Ma don</div>
                     <div class="info-value code-pill">@Model.OrderCode</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Ngày đặt</div>
+                    <div class="info-label">Ngay dat</div>
                     <div class="info-value">@Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Trạng thái hiện tại</div>
+                    <div class="info-label">Trang thai</div>
                     <div class="info-value">
                         <span class="status-pill @OrderDisplayHelper.GetSoftBadgeClass(Model.Status)">
                             @OrderDisplayHelper.GetStatusLabel(Model.Status)
@@ -42,7 +56,7 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Phương thức thanh toán</div>
+                    <div class="info-label">Thanh toan</div>
                     <div class="info-value">
                         <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(Model.PaymentMethod)">
                             @OrderDisplayHelper.GetPaymentMethodLabel(Model.PaymentMethod)
@@ -51,17 +65,17 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Tài khoản</div>
+                    <div class="info-label">Tai khoan</div>
                     <div class="info-value">@Model.UserName</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Người nhận</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.FullName) ? "-" : Model.FullName)</div>
+                    <div class="info-label">Nguoi nhan</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.CustomerDisplayName) ? "-" : Model.CustomerDisplayName)</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-label">So dien thoai</div>
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Phone) ? "-" : Model.Phone)</div>
                 </div>
 
@@ -70,16 +84,71 @@
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</div>
                 </div>
 
-                <div class="info-item full-row">
-                    <div class="info-label">Địa chỉ giao hàng</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Address) ? "-" : Model.Address)</div>
+                <div class="info-item info-item--full">
+                    <div class="info-label">Dia chi giao hang</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.ShippingAddressDisplay) ? "-" : Model.ShippingAddressDisplay)</div>
                 </div>
 
-                <div class="info-item full-row">
-                    <div class="info-label">Ghi chú</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Không có ghi chú" : Model.Note)</div>
+                <div class="info-item info-item--full">
+                    <div class="info-label">Ghi chu</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Khong co ghi chu" : Model.Note)</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card-soft summary-card">
+            <div class="section-title">Tong quan thanh toan</div>
+
+            <div class="summary-row">
+                <span>Tam tinh</span>
+                <strong>@Model.SubTotal.ToString("N0") d</strong>
+            </div>
+            <div class="summary-row">
+                <span>Giam gia</span>
+                <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+            </div>
+            <div class="summary-row">
+                <span>Phi van chuyen</span>
+                <strong>@Model.ShippingCost.ToString("N0") d</strong>
+            </div>
+            <div class="summary-row summary-row--total">
+                <span>Tong thanh toan</span>
+                <strong>@Model.TotalAmount.ToString("N0") d</strong>
+            </div>
+
+            <form id="updateForm" class="mt-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="orderCode" value="@Model.OrderCode" />
+
+                <label for="orderStatus" class="form-label fw-bold">Cap nhat trang thai</label>
+                @if (canChangeStatus)
+                {
+                    <select asp-for="Status"
+                            asp-items="Model.StatusList"
+                            id="orderStatus"
+                            data-current-status="@Model.Status"
+                            class="form-control input-soft status-select">
+                    </select>
+                }
+                else
+                {
+                    <select asp-for="Status"
+                            asp-items="Model.StatusList"
+                            id="orderStatus"
+                            data-current-status="@Model.Status"
+                            class="form-control input-soft status-select"
+                            disabled>
+                    </select>
+                }
+
+                <div class="status-helper">
+                    @(canChangeStatus
+                        ? "Chon trang thai moi va xac nhan. He thong se dong bo lai giao dien sau khi cap nhat."
+                        : "Don hang dang o trang thai cuoi, khong the cap nhat them.")
+                </div>
+            </form>
         </div>
     </div>
 
@@ -87,152 +156,108 @@
         <div class="card-soft table-card">
             <div class="table-toolbar">
                 <div>
-                    <div class="section-title mb-0">Sản phẩm trong đơn</div>
-                    <div class="section-subtitle">Kiểm tra snapshot sản phẩm, số lượng và các khoản thanh toán của đơn hàng</div>
+                    <div class="section-title mb-0">San pham trong don</div>
+                    <div class="section-subtitle">Kiem tra snapshot san pham, so luong va tong tien tung dong.</div>
                 </div>
             </div>
 
-            <form id="updateForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" id="orderCode" value="@Model.OrderCode" />
-
-                <div class="table-responsive">
-                    <table class="table detail-table" id="detail_order">
-                        <thead>
-                            <tr>
-                                <th>Sản phẩm</th>
-                                <th class="text-right">Giá</th>
-                                <th class="text-center">Số lượng</th>
-                                <th class="text-right">Thành tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.OrderDetails.Any())
+            <div class="table-responsive">
+                <table class="table detail-table" id="detail_order">
+                    <thead>
+                        <tr>
+                            <th>San pham</th>
+                            <th class="text-end">Gia</th>
+                            <th class="text-center">So luong</th>
+                            <th class="text-end">Thanh tien</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.OrderDetails.Any())
+                        {
+                            foreach (var item in Model.OrderDetails)
                             {
-                                foreach (var item in Model.OrderDetails)
-                                {
-                                    <tr>
-                                        <td>
-                                            @{
-                                                var imageSrc = ProductImageHelper.ResolveAssetUrl(item.ProductImage)
-                                                    ?? ProductImageHelper.ResolveProductImage(item.Product);
+                                var imageSrc = ProductImageHelper.ResolveAssetUrl(item.ProductImage)
+                                    ?? ProductImageHelper.ResolveProductImage(item.Product);
+
+                                <tr>
+                                    <td>
+                                        <div class="order-item-cell">
+                                            @if (!string.IsNullOrWhiteSpace(imageSrc))
+                                            {
+                                                <img src="@imageSrc"
+                                                     alt="@item.ProductName"
+                                                     class="order-item-thumb"
+                                                     loading="lazy" />
                                             }
-                                            <div class="order-item-cell">
-                                                @if (!string.IsNullOrWhiteSpace(imageSrc))
+                                            else
+                                            {
+                                                <div class="order-item-thumb order-item-thumb--placeholder" aria-hidden="true">
+                                                    <i class="fa fa-picture-o"></i>
+                                                </div>
+                                            }
+
+                                            <div class="order-item-body">
+                                                <div class="cell-main">@item.ProductName</div>
+                                                @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
                                                 {
-                                                    <img src="@imageSrc"
-                                                         alt="@item.ProductName"
-                                                         class="order-item-thumb"
-                                                         loading="lazy" />
-                                                }
-                                                else
-                                                {
-                                                    <div class="order-item-thumb order-item-thumb--placeholder" aria-hidden="true">
-                                                        <i class="fa fa-picture-o"></i>
+                                                    <div class="cell-sub">
+                                                        @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
+                                                        @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
+                                                        {
+                                                            <span> - @item.ComponentType</span>
+                                                        }
                                                     </div>
                                                 }
-
-                                                <div class="order-item-body">
-                                                    <div class="cell-main">@item.ProductName</div>
-                                                    @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
-                                                    {
-                                                        <div class="cell-sub">
-                                                            @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
-                                                            @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
-                                                            {
-                                                                <span> - @item.ComponentType</span>
-                                                            }
-                                                        </div>
-                                                    }
-                                                </div>
                                             </div>
-                                        </td>
-                                        <td class="text-right">
-                                            <span class="money-text">@item.Price.ToString("N0") đ</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="qty-pill">@item.Quantity</span>
-                                        </td>
-                                        <td class="text-right">
-                                            <span class="money-text">@((item.Price * item.Quantity).ToString("N0")) đ</span>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="4" class="empty-cell text-center">
-                                        <div class="empty-wrap">
-                                            <i class="fa fa-folder-open-o empty-icon"></i>
-                                            <div>Không có chi tiết đơn hàng.</div>
                                         </div>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="money-text">@item.Price.ToString("N0") d</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="qty-pill">@item.Quantity</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="money-text">@((item.Price * item.Quantity).ToString("N0")) d</span>
                                     </td>
                                 </tr>
                             }
-                        </tbody>
-
-                        <tfoot>
+                        }
+                        else
+                        {
                             <tr>
-                                <th colspan="3" class="text-right">Tạm tính:</th>
-                                <th class="text-right"><span class="total-text">@Model.SubTotal.ToString("N0") đ</span></th>
-                            </tr>
-                            <tr>
-                                <th colspan="3" class="text-right">Giảm giá:</th>
-                                <th class="text-right">-@Model.DiscountAmount.ToString("N0") đ</th>
-                            </tr>
-                            <tr>
-                                <th colspan="3" class="text-right">Phí vận chuyển:</th>
-                                <th class="text-right">@Model.ShippingCost.ToString("N0") đ</th>
-                            </tr>
-                            <tr>
-                                <th colspan="3" class="text-right">Tổng thanh toán:</th>
-                                <th class="text-right"><span class="total-text text-danger">@Model.TotalAmount.ToString("N0") đ</span></th>
-                            </tr>
-                            <tr>
-                                <th colspan="3" class="text-right">Cập nhật trạng thái:</th>
-                                <th>
-                                    @if (canChangeStatus)
-                                    {
-                                        <select asp-for="Status"
-                                                asp-items="Model.StatusList"
-                                                id="orderStatus"
-                                                data-current-status="@Model.Status"
-                                                class="form-control input-soft status-select">
-                                        </select>
-                                    }
-                                    else
-                                    {
-                                        <select asp-for="Status"
-                                                asp-items="Model.StatusList"
-                                                id="orderStatus"
-                                                data-current-status="@Model.Status"
-                                                class="form-control input-soft status-select"
-                                                disabled>
-                                        </select>
-                                    }
-                                    <div class="status-helper">
-                                        @(canChangeStatus
-                                            ? "Chọn trạng thái mới, xác nhận. Sau đó hệ thống sẽ đồng bộ lại trạng thái."
-                                            : "Đơn hàng đang ở trạng thái cuối, không thể cập nhật thêm.")
+                                <td colspan="4" class="empty-cell text-center">
+                                    <div class="empty-wrap">
+                                        <i class="fa fa-folder-open-o empty-icon"></i>
+                                        <div>Khong co chi tiet don hang.</div>
                                     </div>
-                                </th>
+                                </td>
                             </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </form>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    .info-item.full-row {
-        min-width: 100%;
+    .page-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
     }
 
-    .order-detail-page .page-subtitle {
-        opacity: .75;
+    .page-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .page-subtitle {
+        color: #6b7280;
     }
 
     .card-soft {
@@ -242,22 +267,33 @@
         box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
     }
 
-    .info-card {
-        padding: 20px 22px;
+    .info-card,
+    .summary-card {
+        padding: 22px;
+        height: 100%;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
     }
 
     .info-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
+        gap: 18px;
     }
 
-    .info-item.full-row {
+    .info-item--full {
         grid-column: 1 / -1;
-    }
-
-    .info-item {
-        min-width: 220px;
     }
 
     .info-label {
@@ -268,202 +304,36 @@
     }
 
     .info-value {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
         color: #111827;
     }
 
-    .code-pill {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 999px;
-        background: #111827;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .status-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 12px;
-        border-radius: 999px;
-        border: 1px solid #dbe3ee;
-        background: #f8fafc;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .table-card {
-        overflow: hidden;
-    }
-
-    .table-toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        padding: 22px 22px 0 22px;
-        flex-wrap: wrap;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #111827;
-        margin-bottom: 4px;
-    }
-
-    .section-subtitle {
-        color: #6b7280;
-        font-size: 13px;
-        margin-bottom: 18px;
-    }
-
-    .detail-table {
-        margin-bottom: 0;
-    }
-
-    .detail-table thead th {
-        background: #f8fafc;
-        color: #374151;
-        font-weight: 700;
-        border-bottom: 1px solid #e5e7eb !important;
-        vertical-align: middle !important;
-        padding: 14px 12px !important;
-    }
-
-    .detail-table tbody td,
-    .detail-table tfoot th {
-        vertical-align: middle !important;
-        padding: 14px 12px !important;
-        border-top: 1px solid #eef2f7 !important;
-    }
-
-    .detail-table tbody tr:hover {
-        background: #fafafa;
-    }
-
-    .order-item-cell {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-    }
-
-    .order-item-body {
-        min-width: 0;
-    }
-
-    .order-item-thumb {
-        width: 64px;
-        height: 64px;
-        border-radius: 14px;
-        object-fit: cover;
-        flex-shrink: 0;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-    }
-
-    .order-item-thumb--placeholder {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: #f8fafc;
-        color: #94a3b8;
-        font-size: 20px;
-    }
-
-    .cell-main {
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .cell-sub {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 4px;
-    }
-
-    .money-text {
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .total-text {
-        font-weight: 800;
-        color: #111827;
-        font-size: 16px;
-    }
-
-    .qty-pill {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 38px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: #111827;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 700;
-    }
-
-    .input-soft {
-        border-radius: 12px;
-        border: 1px solid #d1d5db;
-        box-shadow: none;
-        min-height: 44px;
-        background: #fff;
-    }
-
-    .input-soft:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
-    }
-
-    .status-select {
-        min-width: 220px;
-    }
-
-    .status-select.is-updating {
-        opacity: .7;
-        cursor: wait;
-    }
-
-    .status-helper {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #6b7280;
-        line-height: 1.5;
-    }
-
-    .btn-outline-secondary {
-        border-radius: 12px;
-        padding: 10px 18px;
-    }
-
-    .empty-cell {
-        padding: 40px 20px !important;
-    }
-
-    .empty-wrap {
-        color: #6b7280;
-    }
-
-    .empty-icon {
-        font-size: 28px;
-        margin-bottom: 8px;
-        display: block;
-    }
-
+    .code-pill,
+    .qty-pill,
+    .status-pill,
     .payment-badge {
         display: inline-flex;
         align-items: center;
-        padding: 6px 12px;
         border-radius: 999px;
         font-size: 12px;
         font-weight: 700;
+    }
+
+    .code-pill {
+        padding: 6px 12px;
+        background: #111827;
+        color: #fff;
+    }
+
+    .status-pill {
+        padding: 6px 12px;
+        border: 1px solid #dbe3ee;
+        background: #f8fafc;
+    }
+
+    .payment-badge {
+        padding: 6px 12px;
         border: 1px solid transparent;
     }
 
@@ -497,17 +367,138 @@
         border-color: #d1d5db;
     }
 
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 12px 0;
+        border-bottom: 1px solid #eef2f7;
+        color: #374151;
+    }
+
+    .summary-row--total {
+        color: #b91c1c;
+        font-size: 16px;
+    }
+
+    .table-card {
+        overflow: hidden;
+    }
+
+    .table-toolbar {
+        padding: 22px 22px 0 22px;
+    }
+
+    .detail-table {
+        margin-bottom: 0;
+    }
+
+    .detail-table thead th {
+        background: #f8fafc;
+        color: #374151;
+        font-weight: 700;
+        border-bottom: 1px solid #e5e7eb !important;
+        padding: 14px 12px !important;
+    }
+
+    .detail-table tbody td {
+        vertical-align: middle !important;
+        padding: 14px 12px !important;
+        border-top: 1px solid #eef2f7 !important;
+    }
+
+    .order-item-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .order-item-thumb {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .order-item-thumb--placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        color: #94a3b8;
+        font-size: 20px;
+    }
+
+    .cell-main {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .cell-sub {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 12px;
+    }
+
+    .money-text {
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .qty-pill {
+        justify-content: center;
+        min-width: 38px;
+        padding: 6px 10px;
+        background: #111827;
+        color: #fff;
+    }
+
+    .input-soft {
+        border-radius: 12px;
+        border: 1px solid #d1d5db;
+        box-shadow: none;
+        min-height: 44px;
+        background: #fff;
+    }
+
+    .input-soft:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .12);
+    }
+
+    .status-helper {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .empty-cell {
+        padding: 40px 20px !important;
+    }
+
+    .empty-wrap {
+        color: #6b7280;
+    }
+
+    .empty-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
     @@media (max-width: 767px) {
-        .info-card {
-            padding: 16px 18px;
+        .info-card,
+        .summary-card {
+            padding: 18px;
         }
 
         .table-toolbar {
             padding: 18px 18px 0 18px;
-        }
-
-        .status-select {
-            min-width: 100%;
         }
     }
 </style>
@@ -531,10 +522,10 @@
             }
 
             const confirmResult = await showAppConfirm({
-                title: 'Cập nhật trạng thái đơn hàng?',
-                text: `Đơn sẽ chuyển từ "${previousText}" sang "${selectedText}".`,
-                confirmButtonText: 'Cập nhật',
-                cancelButtonText: 'Hủy'
+                title: 'Cap nhat trang thai don hang?',
+                text: `Don se chuyen tu "${previousText}" sang "${selectedText}".`,
+                confirmButtonText: 'Cap nhat',
+                cancelButtonText: 'Huy'
             });
 
             if (!confirmResult.isConfirmed) {
@@ -556,17 +547,17 @@
                 success: async function (res) {
                     if (res.success) {
                         $statusSelect.attr('data-current-status', status);
-                        await showAppAlert(res.message || `Đã cập nhật trạng thái sang "${res.statusLabel}".`, 'success');
+                        await showAppAlert(res.message || `Da cap nhat trang thai sang "${res.statusLabel}".`, 'success');
                         window.location.href = res.reloadUrl || window.location.href;
                     } else {
-                        await showAppAlert(res.message || 'Không thể cập nhật trạng thái.', 'error');
+                        await showAppAlert(res.message || 'Khong the cap nhat trang thai.', 'error');
                         $statusSelect.val(previousValue);
                         $statusSelect.prop('disabled', false).removeClass('is-updating');
                         isUpdatingOrderStatus = false;
                     }
                 },
                 error: async function (xhr) {
-                    const message = xhr.responseJSON?.message || 'Cập nhật trạng thái thất bại.';
+                    const message = xhr.responseJSON?.message || 'Cap nhat trang thai that bai.';
                     await showAppAlert(message, 'error');
                     $statusSelect.val(previousValue);
                     $statusSelect.prop('disabled', false).removeClass('is-updating');

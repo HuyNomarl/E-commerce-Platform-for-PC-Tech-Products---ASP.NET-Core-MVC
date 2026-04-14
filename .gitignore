@@ -366,5 +366,7 @@ FodyWeavers.xsd
 .artifacts/
 
 # Ignore local configuration files
-appsettings.json
-appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+Eshop/appsettings.Local.json
+Eshop/appsettings.*.local.json

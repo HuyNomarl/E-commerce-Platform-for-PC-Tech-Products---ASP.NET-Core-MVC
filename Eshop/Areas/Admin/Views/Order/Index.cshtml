@@ -203,6 +203,17 @@
                                             </a>
 
                                             <a asp-area="Admin"
+                                               asp-action="ExportInvoice"
+                                               asp-controller="Order"
+                                               asp-route-orderCode="@item.OrderCode"
+                                               target="_blank"
+                                               rel="noopener"
+                                               class="icon-btn icon-print"
+                                               title="Xuất hóa đơn">
+                                                <i class="fa fa-print"></i>
+                                            </a>
+
+                                            <a asp-area="Admin"
                                                asp-action="Delete"
                                                asp-controller="Order"
                                                asp-route-id="@item.OrderId"
@@ -516,6 +527,7 @@
     }
 
     .icon-view { color: #2563eb; }
+    .icon-print { color: #0f766e; }
     .icon-delete { color: #ef4444; }
 
     .empty-cell {
@@ -638,7 +650,8 @@
             layout: {
                 topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] },
                 topEnd: null
-            }
+            },
+            order: [[2, 'desc']]
         });
 
         const searchInput = document.getElementById('tableSearch');

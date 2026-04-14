@@ -1,5 +1,7 @@
 ﻿@using System.Globalization
 @model IEnumerable<Eshop.Models.ProductModel>
+@using Eshop.Helpers
+@using Eshop.Models.Enums
 
 @{
     ViewData["Title"] = "Product Index";
@@ -19,6 +21,15 @@
         .Distinct()
         .OrderBy(x => x)
         .ToList();
+
+    var productTypes = productList
+        .Select(x => ProductCatalogAdminRules.GetAdminProductTypeLabel(x.ProductType))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+
+    var normalCount = productList.Count(x => x.ProductType == ProductType.Normal);
+    var prebuiltCount = productList.Count(x => x.ProductType == ProductType.PcPrebuilt);
 }
 
 <div class="admin-ui-page admin-ui-page--blue">
@@ -31,6 +42,8 @@
             </p>
             <div class="admin-ui-hero__meta">
                 <span class="admin-ui-chip">@productList.Count sản phẩm</span>
+                <span class="admin-ui-chip">@normalCount sản phẩm thường</span>
+                <span class="admin-ui-chip">@prebuiltCount PC dựng sẵn</span>
                 <span class="admin-ui-chip">@categories.Count danh mục</span>
                 <span class="admin-ui-chip">@publishers.Count thương hiệu</span>
             </div>
@@ -104,6 +117,17 @@
                 </div>
 
                 <div class="col-12 col-md-6 col-lg-3">
+                    <label class="filter-label">Loại catalog</label>
+                    <select id="filterProductType" class="form-select filter-control">
+                        <option value="">Tất cả</option>
+                        @foreach (var productType in productTypes)
+                        {
+                            <option value="@productType">@productType</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
                     <label class="filter-label">Thương hiệu</label>
                     <select id="filterPublisher" class="form-select filter-control">
                         <option value="">Tất cả</option>
@@ -167,7 +191,11 @@
                     <tbody>
                         @foreach (var item in productList)
                         {
-                            <tr>
+                            var productTypeLabel = ProductCatalogAdminRules.GetAdminProductTypeLabel(item.ProductType);
+                            var canOpenOptionManagement = ProductCatalogAdminRules.CanAccessOptionManagement(item);
+                            var hasLegacyOptions = ProductCatalogAdminRules.HasLegacyOptions(item);
+
+                            <tr data-product-type="@productTypeLabel">
                                 <td>
                                     <span class="code-pill">P@item.Id</span>
                                 </td>
@@ -194,6 +222,15 @@
                                 <td>
                                     <div class="name-cell">
                                         <div class="name-main">@item.Name</div>
+                                        <div class="name-tags">
+                                            <span class="type-badge @(item.ProductType == ProductType.PcPrebuilt ? "type-badge--prebuilt" : "type-badge--normal")">
+                                                @productTypeLabel
+                                            </span>
+                                            @if (hasLegacyOptions)
+                                            {
+                                                <span class="type-badge type-badge--legacy">Option cũ</span>
+                                            }
+                                        </div>
                                         <div class="name-sub text-muted">
                                             @item.Description
                                         </div>
@@ -259,14 +296,17 @@
                                             <i class="fa fa-pencil-square-o"></i>
                                         </a>
 
-                                        <a asp-area="Admin"
+                                        @if (canOpenOptionManagement)
+                                        {
+                                            <a asp-area="Admin"
                                                asp-controller="ProductOption"
                                                asp-action="Index"
                                                asp-route-productId="@item.Id"
                                                class="icon-btn icon-option"
-                                               title="Option">
-                                            <i class="fa fa-sliders"></i>
-                                        </a>
+                                               title="@(item.ProductType == ProductType.PcPrebuilt ? "Option nâng cấp" : "Rà soát option cũ")">
+                                                <i class="fa fa-sliders"></i>
+                                            </a>
+                                        }
 
                                         <form asp-action="ToggleVisibility"
                                               asp-controller="Product"
@@ -499,6 +539,41 @@
         margin-bottom: 4px;
     }
 
+    .name-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 6px;
+    }
+
+    .type-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        border: 1px solid transparent;
+    }
+
+    .type-badge--normal {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+
+    .type-badge--prebuilt {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
+        color: #15803d;
+    }
+
+    .type-badge--legacy {
+        background: #fff7ed;
+        border-color: #fed7aa;
+        color: #c2410c;
+    }
+
     .name-sub {
         font-size: 12px;
         line-height: 1.45;
@@ -646,6 +721,7 @@
         const totalEl = document.getElementById('totalRows');
 
         const filterCategory = document.getElementById('filterCategory');
+        const filterProductType = document.getElementById('filterProductType');
         const filterPublisher = document.getElementById('filterPublisher');
         const filterStock = document.getElementById('filterStock');
         const filterSold = document.getElementById('filterSold');
@@ -665,10 +741,13 @@
             const rowStock = parseNumber(data[3]);
             const rowSold = parseNumber(data[4]);
             const rowPrice = parseNumber(data[5]);
+            const rowNode = table.row(dataIndex).node();
+            const rowProductType = (rowNode?.getAttribute('data-product-type') || '').trim();
             const rowCategory = (data[7] || '').trim();
             const rowPublisher = (data[8] || '').trim();
 
             const selectedCategory = (filterCategory?.value || '').trim();
+            const selectedProductType = (filterProductType?.value || '').trim();
             const selectedPublisher = (filterPublisher?.value || '').trim();
             const selectedStock = (filterStock?.value || '').trim();
             const selectedSold = (filterSold?.value || '').trim();
@@ -678,6 +757,7 @@
             const maxPrice = parseNumber(maxPriceRaw);
 
             if (selectedCategory && rowCategory !== selectedCategory) return false;
+            if (selectedProductType && rowProductType !== selectedProductType) return false;
             if (selectedPublisher && rowPublisher !== selectedPublisher) return false;
 
             if (selectedStock === 'in' && rowStock <= 0) return false;
@@ -700,6 +780,7 @@
 
         [
             filterCategory,
+            filterProductType,
             filterPublisher,
             filterStock,
             filterSold
@@ -726,6 +807,7 @@
             resetFiltersBtn.addEventListener('click', function () {
                 if (searchInput) searchInput.value = '';
                 if (filterCategory) filterCategory.value = '';
+                if (filterProductType) filterProductType.value = '';
                 if (filterPublisher) filterPublisher.value = '';
                 if (filterStock) filterStock.value = '';
                 if (filterSold) filterSold.value = '';
