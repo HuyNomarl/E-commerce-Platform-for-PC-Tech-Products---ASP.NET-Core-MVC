@@ -1,8 +1,15 @@
 ﻿@{
     ViewData["Title"] = "Build PC";
+    ViewData["BodyClass"] = "page-pc-builder";
 }
 
 <style>
+    body.page-pc-builder {
+        --pc-builder-dock-width: 430px;
+        --pc-builder-collapsed-width: 296px;
+        --pc-builder-dock-gap: 24px;
+    }
+
     .pc-builder-page {
         background: linear-gradient(180deg, #dbe3ea 0%, #cfd8e2 100%);
         padding: 24px 0 36px;
@@ -766,7 +773,7 @@
         position: fixed;
         right: 20px;
         bottom: 20px;
-        width: 460px;
+        width: min(var(--pc-builder-dock-width), calc(100vw - 24px));
         max-height: 78vh;
         background: #dde5ec;
         border: 1px solid #bfcbd7;
@@ -777,6 +784,11 @@
         z-index: 1300;
         overflow: hidden;
     }
+
+        .build-chatbox.collapsed {
+            width: min(var(--pc-builder-collapsed-width), calc(100vw - 24px));
+            max-height: none;
+        }
 
         .build-chatbox.collapsed .build-chatbox-body,
         .build-chatbox.collapsed .build-chatbox-actions,
@@ -794,6 +806,27 @@
         justify-content: space-between;
         gap: 12px;
         position: relative;
+    }
+
+    .build-chatbox-header-main {
+        min-width: 0;
+    }
+
+    .build-chatbox-title {
+        font-size: 18px;
+        line-height: 1.2;
+    }
+
+    .build-chatbox-subtitle {
+        font-size: 12px;
+        font-weight: 600;
+        opacity: .85;
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+
+    .build-chatbox.collapsed .build-chatbox-subtitle {
+        display: none;
     }
 
         .build-chatbox-header::after {
@@ -817,6 +850,9 @@
             font-weight: 800;
             flex: 0 0 auto;
             transition: background .18s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
             .build-chatbox-header button:hover {
@@ -906,38 +942,40 @@
     .chat-product-panel {
         margin-top: 6px !important;
         border: 1px solid #c8d2dc !important;
-        border-radius: 10px !important;
-        background: #e9eef3 !important;
+        border-radius: 15px !important;
+        background: #e8eef4 !important;
         overflow: hidden !important;
-        box-shadow: 0 2px 8px rgba(15, 23, 42, .04) !important;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .08) !important;
     }
 
     .chat-product-panel-head {
-        padding: 7px 10px !important;
+        display: grid !important;
+        gap: 3px !important;
+        padding: 8px 11px !important;
         background: #dde5ec !important;
         border-bottom: 1px solid #d3dbe3 !important;
     }
 
     .chat-product-panel-title {
-        font-size: 12px !important;
+        font-size: 12.5px !important;
         font-weight: 800 !important;
-        line-height: 1.2 !important;
+        line-height: 1.25 !important;
         margin: 0 !important;
     }
 
     .chat-product-panel-sub {
-        font-size: 10px !important;
-        margin-top: 2px !important;
-        line-height: 1.2 !important;
+        font-size: 10.5px !important;
+        margin-top: 0 !important;
+        line-height: 1.35 !important;
         color: #64748b !important;
     }
 
     .chat-product-list {
         display: grid !important;
         grid-template-columns: 1fr !important;
-        gap: 6px !important;
-        padding: 8px !important;
-        max-height: 190px !important;
+        gap: 10px !important;
+        padding: 9px !important;
+        max-height: min(34vh, 220px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         align-content: start !important;
@@ -945,39 +983,47 @@
 
     .chat-product-card {
         display: grid !important;
-        grid-template-columns: 16px 44px minmax(0, 1fr) !important;
-        gap: 8px !important;
+        grid-template-columns: 20px 68px minmax(0, 1fr) !important;
+        gap: 12px !important;
         align-items: start !important;
-        padding: 7px 8px !important;
+        padding: 12px !important;
         border: 1px solid #d5dde5 !important;
-        border-radius: 8px !important;
+        border-radius: 15px !important;
         background: #f8fafc !important;
         min-width: 0 !important;
+        cursor: pointer;
+        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .chat-product-card:hover {
+        border-color: #aebdcb !important;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, .08) !important;
+        transform: translateY(-1px);
     }
 
     .chat-product-check-wrap {
         display: flex;
         align-items: flex-start;
         justify-content: center;
-        padding-top: 3px;
+        padding-top: 4px;
     }
 
     .chat-product-check {
-        width: 12px !important;
-        height: 12px !important;
+        width: 14px !important;
+        height: 14px !important;
         margin: 0 !important;
         accent-color: #b95a34;
         flex: 0 0 auto;
     }
 
     .chat-product-thumb {
-        width: 44px !important;
-        height: 44px !important;
+        width: 68px !important;
+        height: 68px !important;
         object-fit: contain;
         background: #f8fafc;
         border: 1px solid #ccd6df;
-        border-radius: 7px !important;
-        padding: 2px !important;
+        border-radius: 12px !important;
+        padding: 6px !important;
         display: block;
         flex: 0 0 auto;
     }
@@ -986,24 +1032,25 @@
         min-width: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        gap: 4px !important;
+        gap: 7px !important;
         align-self: start !important;
     }
 
     .chat-product-top {
         display: grid !important;
         grid-template-columns: minmax(0, 1fr) auto !important;
-        gap: 6px !important;
+        gap: 8px !important;
         align-items: start !important;
         min-width: 0 !important;
     }
 
     .chat-product-name {
-        font-size: 11px !important;
-        line-height: 1.3 !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
         font-weight: 800 !important;
         min-width: 0 !important;
         word-break: break-word !important;
+        overflow-wrap: anywhere !important;
         display: -webkit-box !important;
         -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
@@ -1013,9 +1060,9 @@
 
     .chat-product-price {
         color: #b9382d;
-        font-weight: 800;
-        font-size: 11px !important;
-        line-height: 1.2 !important;
+        font-weight: 900;
+        font-size: 13px !important;
+        line-height: 1.3 !important;
         white-space: nowrap !important;
         text-align: right;
         flex: 0 0 auto;
@@ -1032,10 +1079,10 @@
         display: inline-flex;
         align-items: center;
         border-radius: 999px;
-        padding: 1px 6px !important;
-        font-size: 9.5px !important;
+        padding: 3px 8px !important;
+        font-size: 10.5px !important;
         font-weight: 700;
-        line-height: 1.15 !important;
+        line-height: 1.25 !important;
     }
 
     .chat-product-badge {
@@ -1054,19 +1101,20 @@
     }
 
     .chat-product-reason {
-        font-size: 10px !important;
+        font-size: 11.5px !important;
         color: #1d4ed8;
-        line-height: 1.3 !important;
+        line-height: 1.45 !important;
         word-break: break-word;
+        overflow-wrap: anywhere;
         display: -webkit-box !important;
-        -webkit-line-clamp: 1 !important;
+        -webkit-line-clamp: 2 !important;
         -webkit-box-orient: vertical !important;
         overflow: hidden !important;
         margin: 0 !important;
     }
 
     .chat-product-actions {
-        padding: 6px !important;
+        padding: 8px 9px 9px !important;
         border-top: 1px solid #cad4de;
         background: #e1e8ef !important;
     }
@@ -1074,20 +1122,27 @@
     .chat-product-add-btn {
         width: 100%;
         border: none;
-        border-radius: 7px !important;
+        border-radius: 12px !important;
         background: linear-gradient(180deg, #d15d52, #bb3d34);
         color: #fff;
         font-weight: 800;
-        font-size: 11px !important;
-        padding: 8px 10px !important;
+        font-size: 11.5px !important;
+        line-height: 1.35 !important;
+        padding: 10px 14px !important;
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        white-space: normal;
         box-shadow: none;
     }
 
     .build-chatbox-actions {
         padding: 8px 10px !important;
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px !important;
-        flex-wrap: wrap;
         border-top: 1px solid #c5d0da;
         background: #d7e0e8;
     }
@@ -1101,6 +1156,10 @@
         font-weight: 800;
         color: #0f172a;
         transition: all .18s ease;
+        width: 100%;
+        min-height: 42px;
+        text-align: center;
+        line-height: 1.35;
     }
 
         .chat-quick-btn:hover {
@@ -1156,8 +1215,8 @@
             grid-template-columns: repeat(2, 1fr);
         }
 
-        .build-chatbox {
-            width: 450px;
+        body.page-pc-builder {
+            --pc-builder-dock-width: 400px;
         }
     }
 
@@ -1178,8 +1237,9 @@
             left: 16px;
             right: 16px;
             width: auto;
-            bottom: 16px;
+            bottom: 92px;
             max-width: none;
+            max-height: calc(100vh - 128px);
         }
     }
 
@@ -1188,21 +1248,27 @@
             left: 10px !important;
             right: 10px !important;
             width: auto !important;
+            bottom: 86px !important;
+            max-height: calc(100vh - 110px);
+        }
+
+        .build-chatbox.collapsed {
+            width: calc(100vw - 20px) !important;
         }
 
         .chat-product-list {
-            max-height: 155px !important;
+            max-height: min(31vh, 204px) !important;
         }
 
         .chat-product-card {
-            grid-template-columns: 14px 40px minmax(0, 1fr) !important;
-            gap: 6px !important;
-            padding: 6px !important;
+            grid-template-columns: 18px 58px minmax(0, 1fr) !important;
+            gap: 9px !important;
+            padding: 10px !important;
         }
 
         .chat-product-thumb {
-            width: 40px !important;
-            height: 40px !important;
+            width: 58px !important;
+            height: 58px !important;
         }
 
         .chat-product-top {
@@ -1215,7 +1281,35 @@
         }
 
         .chat-product-name {
+            font-size: 12.5px !important;
             -webkit-line-clamp: 3 !important;
+        }
+
+        .chat-product-reason {
+            font-size: 11px !important;
+        }
+
+        .build-chatbox-actions {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 420px) {
+        .build-chatbox-header {
+            padding: 12px 14px;
+        }
+
+        .build-chatbox-title {
+            font-size: 16px;
+        }
+
+        .build-chatbox-subtitle {
+            font-size: 11px;
+        }
+
+        .chat-product-add-btn {
+            font-size: 11px !important;
+            padding: 10px 12px !important;
         }
     }
 </style>
@@ -1285,13 +1379,16 @@
 
 <div class="build-chatbox" id="buildChatbox">
     <div class="build-chatbox-header">
-        <div>
-            <div style="font-size:18px; line-height:1.2;">Hỗ trợ build PC</div>
-            <div style="font-size:12px; font-weight:600; opacity:.85; margin-top:4px; line-height:1.4;">
+        <div class="build-chatbox-header-main">
+            <div class="build-chatbox-title">Hỗ trợ build PC</div>
+            <div class="build-chatbox-subtitle">
                 Tư vấn build mới, nâng cấp cấu hình và gợi ý linh kiện phù hợp
             </div>
         </div>
-        <button type="button" id="toggleBuildChatbox">−</button>
+        <button type="button"
+                id="toggleBuildChatbox"
+                aria-label="Thu gọn khung hỗ trợ build PC"
+                aria-expanded="true">−</button>
     </div>
 
     <div class="build-chatbox-body" id="buildChatMessages">
@@ -1447,6 +1544,30 @@
         const btnConfirmShareBuild = document.getElementById("btnConfirmShareBuild");
         const sharedBuildList = document.getElementById("sharedBuildList");
 
+        function syncBuildChatboxState() {
+            if (!buildChatbox || !toggleBuildChatbox) {
+                return;
+            }
+
+            const isCollapsed = buildChatbox.classList.contains("collapsed");
+            toggleBuildChatbox.textContent = isCollapsed ? "+" : "−";
+            toggleBuildChatbox.setAttribute("aria-expanded", String(!isCollapsed));
+            toggleBuildChatbox.setAttribute(
+                "aria-label",
+                isCollapsed ? "Mở rộng khung hỗ trợ build PC" : "Thu gọn khung hỗ trợ build PC");
+
+            document.body.classList.toggle("pc-builder-assistant-collapsed", isCollapsed);
+        }
+
+        function collapseBuildChatbox() {
+            if (!buildChatbox) {
+                return;
+            }
+
+            buildChatbox.classList.add("collapsed");
+            syncBuildChatboxState();
+        }
+
         function initPcBuilderPage() {
             document.getElementById("btnClosePicker")?.addEventListener("click", closePicker);
             document.getElementById("btnCancelPicker")?.addEventListener("click", closePicker);
@@ -1498,7 +1619,13 @@
 
             toggleBuildChatbox?.addEventListener("click", () => {
                 buildChatbox.classList.toggle("collapsed");
-                toggleBuildChatbox.textContent = buildChatbox.classList.contains("collapsed") ? "+" : "−";
+                syncBuildChatboxState();
+            });
+
+            window.addEventListener("eshop:support-chat-opened", () => {
+                if (window.innerWidth <= 1199) {
+                    collapseBuildChatbox();
+                }
             });
 
             shareReceiverKeyword?.addEventListener("keydown", (e) => {
@@ -1512,6 +1639,7 @@
             renderMessages();
             renderShareReceiverResults();
             renderSharedBuildList();
+            syncBuildChatboxState();
 
             if (userIsAuthenticated) {
                 loadSharedBuilds();
@@ -2676,16 +2804,20 @@
             }).join("");
 
             return `
-               
+                <div class="chat-product-panel" data-chat-response-id="${messageId}">
+                    <div class="chat-product-panel-head">
+                        <div class="chat-product-panel-title">Linh kiện gợi ý từ trợ lý build PC</div>
+                        <div class="chat-product-panel-sub">Tick một hoặc nhiều mục phù hợp rồi thêm nhanh vào cấu hình hiện tại.</div>
+                    </div>
                     <div class="chat-product-list">
                         ${cardHtml}
                     </div>
-                    <div >
+                    <div class="chat-product-actions">
                         <button type="button" class="chat-product-add-btn" onclick="applyChatSelections(${messageId})">
-                            Thêm đã chọn
+                            Thêm lựa chọn vào cấu hình
                         </button>
                     </div>
-             
+                </div>
             `;
         }
 

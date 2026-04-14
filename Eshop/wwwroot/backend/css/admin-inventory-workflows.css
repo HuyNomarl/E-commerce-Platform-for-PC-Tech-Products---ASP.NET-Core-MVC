@@ -61,5 +61,53 @@
 .inventory-adjust-page .info-list{margin:16px 0 0;padding-left:18px;color:#334155}
 .inventory-adjust-page .info-list li{margin-bottom:10px;line-height:1.6}
 .inventory-adjust-page .info-list li:last-child{margin-bottom:0}
+.inventory-adjust-page .adjust-panel{overflow:visible}
+.inventory-adjust-page .adjust-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(320px,1fr);gap:18px;align-items:start}
+.inventory-adjust-page .adjust-layout__main,.inventory-adjust-page .adjust-layout__side{min-width:0}
+.inventory-adjust-page .adjust-workflow-form{display:grid;gap:18px}
+.inventory-adjust-page .adjust-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.inventory-adjust-page .adjust-metric-card{padding:16px 18px;border:1px solid #f3e0b5;border-radius:18px;background:linear-gradient(180deg,#fffdf7 0%,#fff7e7 100%);box-shadow:0 10px 24px rgba(245,158,11,.08)}
+.inventory-adjust-page .adjust-metric-label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#b45309}
+.inventory-adjust-page .adjust-metric-value{display:block;margin-top:8px;font-size:18px;line-height:1.2;color:#0f172a}
+.inventory-adjust-page .adjust-metric-text{margin:8px 0 0;color:#6b7280;font-size:13px;line-height:1.55}
+.inventory-adjust-page .adjust-step-row{margin-bottom:0}
+.inventory-adjust-page .adjust-step-row .inv-step-chip{transition:all .18s ease}
+.inventory-adjust-page .adjust-step-row .inv-step-chip.is-complete{border-color:#f8cc67;background:#fff4d6;color:#9a6708;box-shadow:0 8px 16px rgba(245,158,11,.12)}
+.inventory-adjust-page .adjust-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.inventory-adjust-page .adjust-scope-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.inventory-adjust-page .adjust-field{min-width:0}
+.inventory-adjust-page .adjust-field .admin-select-filter{gap:10px}
+.inventory-adjust-page .adjust-field .admin-select-filter-input{height:46px;min-height:46px;padding:0 14px;border-radius:14px}
+.inventory-adjust-page .adjust-form-card{padding:18px;border:1px solid #ebeef3;border-radius:20px;background:linear-gradient(180deg,#fff 0%,#fcfdff 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.inventory-adjust-page .adjust-form-card--wide{grid-column:1/-1}
+.inventory-adjust-page .adjust-form-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.inventory-adjust-page .adjust-form-card__title{font-size:16px;font-weight:800;color:#0f172a}
+.inventory-adjust-page .adjust-form-card__desc{margin-top:4px;color:#6b7280;font-size:13px;line-height:1.55}
+.inventory-adjust-page .adjust-quantity-input{font-size:18px;font-weight:800;color:#92400e}
+.inventory-adjust-page .adjust-note-input{min-height:168px}
+.inventory-adjust-page .adjust-form-footer{align-items:center;justify-content:space-between;gap:16px}
+.inventory-adjust-page .adjust-footer-note{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #f3e0b5;border-radius:14px;background:#fff8e8;color:#8a5a00;font-size:13px;font-weight:700}
+.inventory-adjust-page .adjust-footer-note i{font-size:15px}
+.inventory-adjust-page .adjust-submit-btn{min-width:220px}
+.inventory-adjust-page .adjust-summary-card{height:100%}
+.inventory-adjust-page .adjust-summary-grid{display:grid;gap:12px;margin-top:18px}
+.inventory-adjust-page .adjust-summary-item{padding:14px 15px;border:1px solid #f0e4c0;border-radius:16px;background:rgba(255,255,255,.9)}
+.inventory-adjust-page .adjust-summary-item--note{background:#fffef9}
+.inventory-adjust-page .adjust-summary-label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#a16207}
+.inventory-adjust-page .adjust-summary-value{display:block;margin-top:7px;font-size:15px;line-height:1.5;color:#0f172a}
+.inventory-adjust-page .adjust-summary-note{margin-top:7px;color:#334155;font-size:13px;line-height:1.6;word-break:break-word}
+.inventory-adjust-page .adjust-summary-note.is-placeholder{color:#94a3b8}
+.inventory-adjust-page .adjust-checklist{margin-top:18px;padding:16px;border:1px solid #f5e7c2;border-radius:18px;background:linear-gradient(180deg,#fffaf0 0%,#fff 100%)}
+.inventory-adjust-page .adjust-checklist__title{font-size:14px;font-weight:800;color:#0f172a}
+.inventory-adjust-page .adjust-checklist__item{display:flex;align-items:flex-start;gap:10px;margin-top:12px;color:#475569;font-size:13px;line-height:1.55}
+.inventory-adjust-page .adjust-checklist__item i{margin-top:2px;color:#cbd5e1;font-size:16px;transition:color .18s ease}
+.inventory-adjust-page .adjust-checklist__item.is-complete{color:#854d0e}
+.inventory-adjust-page .adjust-checklist__item.is-complete i{color:#f59e0b}
+.inventory-adjust-page .adjust-tip-box{margin-top:18px;padding:15px 16px;border:1px dashed #ebcf8f;border-radius:16px;background:#fffaf0}
+.inventory-adjust-page .adjust-tip-box__title{font-size:14px;font-weight:800;color:#0f172a}
+.inventory-adjust-page .adjust-tip-box p{margin:8px 0 0;color:#6b7280;font-size:13px;line-height:1.6}
 @media (max-width:991px){.inv-hero{flex-direction:column}.inv-btn-back{width:100%}}
 @media (max-width:767px){.inv-hero{padding:20px;border-radius:20px}.inv-hero h4{font-size:24px}.inv-page .section-head,.inv-page .section-body{padding:18px}.inv-page .sub-toolbar{align-items:stretch}.inv-page .btn-add-soft,.inv-page .btn-submit-soft,.inv-page .btn-submit-blue,.inv-page .btn-submit-warning,.inventory-receive-page .btn-action-success,.inventory-receive-page .btn-action-danger{width:100%}.inv-page .form-footer{justify-content:stretch}.inventory-transfer-page .item-card .icon-btn{width:100%}}
+@media (max-width:1199px){.inventory-adjust-page .adjust-layout{grid-template-columns:1fr}.inventory-adjust-page .adjust-summary-card{height:auto}}
+@media (max-width:991px){.inventory-adjust-page .adjust-metric-grid,.inventory-adjust-page .adjust-form-grid,.inventory-adjust-page .adjust-scope-grid{grid-template-columns:1fr}.inventory-adjust-page .adjust-form-footer{align-items:stretch;flex-direction:column}}
+@media (max-width:767px){.inventory-adjust-page .adjust-metric-card,.inventory-adjust-page .adjust-form-card,.inventory-adjust-page .adjust-checklist,.inventory-adjust-page .adjust-tip-box{padding:16px}.inventory-adjust-page .adjust-footer-note,.inventory-adjust-page .adjust-submit-btn{width:100%}.inventory-adjust-page .adjust-summary-grid{margin-top:16px}}

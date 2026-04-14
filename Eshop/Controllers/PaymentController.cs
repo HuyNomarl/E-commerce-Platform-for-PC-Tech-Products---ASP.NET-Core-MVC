@@ -49,7 +49,6 @@ namespace Eshop.Controllers
         {
             if (!ModelState.IsValid)
             {
-                TempData["error"] = "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin Ä‘áº·t hÃ ng.";
                 TempData["error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
                 return RedirectToAction("Index", "Cart");
             }
@@ -57,13 +56,13 @@ namespace Eshop.Controllers
             var pricingSummary = await _checkoutPricingService.BuildSummaryAsync(HttpContext, checkoutModel);
             if (!pricingSummary.CartItems.Any())
             {
-                TempData["error"] = "Giá» hÃ ng Ä‘ang trá»‘ng.";
+                TempData["error"] = "Giỏ hàng đang trống.";
                 return RedirectToAction("Index", "Cart");
             }
 
             if (pricingSummary.TotalAmount <= 0)
             {
-                TempData["error"] = "Tá»•ng tiá»n thanh toÃ¡n VNPAY khÃ´ng há»£p lá»‡.";
+                TempData["error"] = "Tổng tiền thanh toán VNPAY không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -71,7 +70,7 @@ namespace Eshop.Controllers
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
             {
-                TempData["error"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng há»£p lá»‡. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                TempData["error"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Cart") });
             }
 
@@ -100,7 +99,7 @@ namespace Eshop.Controllers
                 {
                     OrderType = "other",
                     Amount = pricingSummary.TotalAmount,
-                    OrderDescription = $"Thanh toan don hang {reservationCode}",
+                    OrderDescription = $"Thanh toán đơn hàng {reservationCode}",
                     Name = checkoutModel.FullName,
                     TxnRef = reservationCode
                 };
@@ -112,7 +111,7 @@ namespace Eshop.Controllers
             {
                 if (!string.IsNullOrWhiteSpace(reservationCode))
                 {
-                    await _inventoryService.ReleaseReservationAsync(reservationCode, userId, "Táº¡o URL VNPAY tháº¥t báº¡i.");
+                    await _inventoryService.ReleaseReservationAsync(reservationCode, userId, "Tạo URL VNPAY thất bại.");
                     ClearPendingCheckoutState(reservationCode);
                 }
 
@@ -146,11 +145,11 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        "VNPAY khÃ´ng tráº£ vá» pháº£n há»“i.");
+                        "VNPAY không trả về phản hồi.");
                     ClearPendingCheckoutState(reservationCode);
                 }
 
-                TempData["error"] = "KhÃ´ng nháº­n Ä‘Æ°á»£c pháº£n há»“i tá»« VNPAY.";
+                TempData["error"] = "Không nhận được phản hồi từ VNPAY.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -180,13 +179,13 @@ namespace Eshop.Controllers
                     ClearPendingCheckoutState(reservationCode);
                 }
 
-                TempData["error"] = $"Thanh toÃ¡n VNPAY tháº¥t báº¡i. MÃ£ lá»—i: {response.VnPayResponseCode}";
+                TempData["error"] = $"Thanh toán VNPAY thất bại. Mã lỗi: {response.VnPayResponseCode}";
                 return RedirectToAction("Index", "Cart");
             }
 
             if (pendingState == null || string.IsNullOrWhiteSpace(reservationCode))
             {
-                TempData["error"] = $"Thanh toÃ¡n Ä‘Ã£ Ä‘Æ°á»£c xÃ¡c nháº­n nhÆ°ng khÃ´ng tÃ¬m tháº¥y dá»¯ liá»‡u checkout tÆ°Æ¡ng á»©ng{(string.IsNullOrWhiteSpace(reservationCode) ? string.Empty : $" ({reservationCode})")}.";
+                TempData["error"] = $"Thanh toán đã được xác nhận nhưng không tìm thấy dữ liệu checkout tương ứng{(string.IsNullOrWhiteSpace(reservationCode) ? string.Empty : $" ({reservationCode})")}.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -195,10 +194,10 @@ namespace Eshop.Controllers
                 await _inventoryService.ReleaseReservationAsync(
                     reservationCode,
                     pendingState.UserId,
-                    $"Sai lá»‡ch sá»‘ tiá»n VNPAY. Expected={pendingState.ExpectedTotal}, Actual={response.Amount}");
+                    $"Sai lệch số tiền VNPAY. Expected={pendingState.ExpectedTotal}, Actual={response.Amount}");
                 ClearPendingCheckoutState(reservationCode);
 
-                TempData["error"] = "Sá»‘ tiá»n thanh toÃ¡n khÃ´ng khá»›p vá»›i Ä‘Æ¡n hÃ ng.";
+                TempData["error"] = "Số tiền thanh toán không khớp với đơn hàng.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -216,15 +215,15 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         pendingState.UserId,
-                        "Táº¡o Ä‘Æ¡n sau VNPAY tháº¥t báº¡i.");
+                        "Tạo đơn sau VNPAY thất bại.");
                     ClearPendingCheckoutState(reservationCode);
 
-                    TempData["error"] = "Thanh toÃ¡n thÃ nh cÃ´ng nhÆ°ng khÃ´ng thá»ƒ táº¡o Ä‘Æ¡n hÃ ng.";
+                    TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
                     return RedirectToAction("Index", "Cart");
                 }
 
                 ClearPendingCheckoutState(reservationCode);
-                TempData["success"] = $"Thanh toÃ¡n VNPAY thÃ nh cÃ´ng. MÃ£ Ä‘Æ¡n: {orderCode}";
+                TempData["success"] = $"Thanh toán VNPAY thành công. Mã đơn: {orderCode}";
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -232,7 +231,7 @@ namespace Eshop.Controllers
                 await _inventoryService.ReleaseReservationAsync(
                     reservationCode,
                     pendingState.UserId,
-                    "Rollback sau lá»—i táº¡o Ä‘Æ¡n VNPAY.");
+                    "Rollback sau lỗi tạo đơn VNPAY.");
                 ClearPendingCheckoutState(reservationCode);
 
                 TempData["error"] = ex.Message;
@@ -247,7 +246,7 @@ namespace Eshop.Controllers
         {
             if (model == null)
             {
-                TempData["error"] = "Dá»¯ liá»‡u thanh toÃ¡n MoMo khÃ´ng há»£p lá»‡.";
+                TempData["error"] = "Dữ liệu thanh toán MoMo không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -258,20 +257,20 @@ namespace Eshop.Controllers
                 string.IsNullOrWhiteSpace(checkoutModel.tinh) ||
                 string.IsNullOrWhiteSpace(checkoutModel.phuong))
             {
-                TempData["error"] = "Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ thÃ´ng tin Ä‘áº·t hÃ ng.";
+                TempData["error"] = "Vui lòng nhập đầy đủ thông tin đặt hàng.";
                 return RedirectToAction("Index", "Cart");
             }
 
             var pricingSummary = await _checkoutPricingService.BuildSummaryAsync(HttpContext, checkoutModel);
             if (!pricingSummary.CartItems.Any())
             {
-                TempData["error"] = "Giá» hÃ ng Ä‘ang trá»‘ng.";
+                TempData["error"] = "Giỏ hàng đang trống.";
                 return RedirectToAction("Index", "Cart");
             }
 
             if (pricingSummary.TotalAmount <= 0)
             {
-                TempData["error"] = "Tá»•ng tiá»n thanh toÃ¡n MoMo khÃ´ng há»£p lá»‡.";
+                TempData["error"] = "Tổng tiền thanh toán MoMo không hợp lệ.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -279,7 +278,7 @@ namespace Eshop.Controllers
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userEmail))
             {
-                TempData["error"] = "PhiÃªn Ä‘Äƒng nháº­p khÃ´ng há»£p lá»‡. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.";
+                TempData["error"] = "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.";
                 return RedirectToAction("Login", "Account", new { returnUrl = Url.Action("Index", "Cart") });
             }
 
@@ -291,7 +290,7 @@ namespace Eshop.Controllers
                 model.FullName = checkoutModel.FullName;
                 model.Amount = (double)pricingSummary.TotalAmount;
                 model.OrderInfomation = string.IsNullOrWhiteSpace(model.OrderInfomation)
-                    ? $"Thanh toÃ¡n Ä‘Æ¡n hÃ ng qua MOMO cho {checkoutModel.FullName}"
+                    ? $"Thanh toán đơn hàng qua MOMO cho {checkoutModel.FullName}"
                     : model.OrderInfomation;
 
                 reservationCode = await _inventoryService.ReserveCartAsync(
@@ -319,9 +318,9 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         userId,
-                        "MoMo khÃ´ng tráº£ vá» payUrl.");
+                        "MoMo không trả về payUrl.");
                     ClearPendingCheckoutState(reservationCode);
-                    TempData["error"] = $"MoMo khÃ´ng tráº£ vá» payUrl. Message: {response?.Message}, ResultCode: {response?.ResultCode}";
+                    TempData["error"] = $"MoMo không trả về payUrl. Message: {response?.Message}, ResultCode: {response?.ResultCode}";
                     return RedirectToAction("Index", "Cart");
                 }
 
@@ -334,7 +333,7 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         userId,
-                        "Táº¡o URL MOMO tháº¥t báº¡i.");
+                        "Tạo URL MOMO thất bại.");
                     ClearPendingCheckoutState(reservationCode);
                 }
 
@@ -368,11 +367,11 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         pendingState?.UserId ?? User.FindFirstValue(ClaimTypes.NameIdentifier),
-                        "MOMO khÃ´ng tráº£ vá» pháº£n há»“i.");
+                        "MOMO không trả về phản hồi.");
                     ClearPendingCheckoutState(reservationCode);
                 }
 
-                TempData["error"] = "KhÃ´ng nháº­n Ä‘Æ°á»£c pháº£n há»“i tá»« MoMo.";
+                TempData["error"] = "Không nhận được phản hồi từ MoMo.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -387,13 +386,13 @@ namespace Eshop.Controllers
                     ClearPendingCheckoutState(reservationCode);
                 }
 
-                TempData["error"] = $"Thanh toÃ¡n MoMo tháº¥t báº¡i. MÃ£ lá»—i: {response.ResultCode}";
+                TempData["error"] = $"Thanh toán MoMo thất bại. Mã lỗi: {response.ResultCode}";
                 return RedirectToAction("Index", "Cart");
             }
 
             if (pendingState == null || string.IsNullOrWhiteSpace(reservationCode))
             {
-                TempData["error"] = "KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin checkout hoáº·c reservation.";
+                TempData["error"] = "Không tìm thấy thông tin checkout hoặc reservation.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -402,10 +401,10 @@ namespace Eshop.Controllers
                 await _inventoryService.ReleaseReservationAsync(
                     reservationCode,
                     pendingState.UserId,
-                    $"Sai lá»‡ch sá»‘ tiá»n MOMO. Expected={pendingState.ExpectedTotal}, Actual={response.Amount}");
+                    $"Sai lệch số tiền MOMO. Expected={pendingState.ExpectedTotal}, Actual={response.Amount}");
                 ClearPendingCheckoutState(reservationCode);
 
-                TempData["error"] = "Sá»‘ tiá»n thanh toÃ¡n khÃ´ng khá»›p vá»›i Ä‘Æ¡n hÃ ng.";
+                TempData["error"] = "Số tiền thanh toán không khớp với đơn hàng.";
                 return RedirectToAction("Index", "Cart");
             }
 
@@ -423,15 +422,15 @@ namespace Eshop.Controllers
                     await _inventoryService.ReleaseReservationAsync(
                         reservationCode,
                         pendingState.UserId,
-                        "Táº¡o Ä‘Æ¡n sau MOMO tháº¥t báº¡i.");
+                        "Tạo đơn sau MOMO thất bại.");
                     ClearPendingCheckoutState(reservationCode);
 
-                    TempData["error"] = "Thanh toÃ¡n thÃ nh cÃ´ng nhÆ°ng khÃ´ng thá»ƒ táº¡o Ä‘Æ¡n hÃ ng.";
+                    TempData["error"] = "Thanh toán thành công nhưng không thể tạo đơn hàng.";
                     return RedirectToAction("Index", "Cart");
                 }
 
                 ClearPendingCheckoutState(reservationCode);
-                TempData["success"] = $"Thanh toÃ¡n MOMO thÃ nh cÃ´ng. MÃ£ Ä‘Æ¡n: {orderCode}";
+                TempData["success"] = $"Thanh toán MOMO thành công. Mã đơn: {orderCode}";
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
@@ -439,7 +438,7 @@ namespace Eshop.Controllers
                 await _inventoryService.ReleaseReservationAsync(
                     reservationCode,
                     pendingState.UserId,
-                    "Rollback sau lá»—i táº¡o Ä‘Æ¡n MOMO.");
+                    "Rollback sau lỗi tạo đơn MOMO.");
                 ClearPendingCheckoutState(reservationCode);
 
                 TempData["error"] = ex.Message;

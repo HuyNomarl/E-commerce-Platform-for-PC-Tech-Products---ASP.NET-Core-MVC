@@ -1,0 +1,90 @@
+@model Eshop.Models.ViewModels.ProductCatalogSidebarViewModel
+
+<form id="catalogFilterForm" action="@Model.FormActionUrl" method="get" class="catalog-filter-panel">
+    @foreach (var routeValue in Model.PreservedRouteValues)
+    {
+        <input type="hidden" name="@routeValue.Key" value="@routeValue.Value" />
+    }
+
+    <div class="catalog-filter-head">
+        <div>
+            <span class="catalog-filter-caption">Bộ lọc danh mục</span>
+            <h3>Lọc sản phẩm</h3>
+        </div>
+
+        @if (Model.HasActiveFilters)
+        {
+            <a href="@Model.ClearFiltersUrl" class="catalog-filter-reset">Xóa lọc</a>
+        }
+    </div>
+
+    @if (Model.PriceRanges.Any())
+    {
+        <section class="catalog-filter-group">
+            <h4>Mức giá</h4>
+            @foreach (var option in Model.PriceRanges)
+            {
+                <label class="catalog-filter-option">
+                    <input class="js-filter-autosubmit" type="checkbox" name="price" value="@option.Value" checked="@option.Selected" />
+                    <span>@option.Label <small>(@option.Count)</small></span>
+                </label>
+            }
+        </section>
+    }
+
+    @if (Model.Publishers.Any())
+    {
+        <section class="catalog-filter-group">
+            <h4>Thương hiệu</h4>
+            @foreach (var option in Model.Publishers)
+            {
+                <label class="catalog-filter-option">
+                    <input class="js-filter-autosubmit" type="checkbox" name="publisher" value="@option.Value" checked="@option.Selected" />
+                    <span>@option.Label <small>(@option.Count)</small></span>
+                </label>
+            }
+        </section>
+    }
+
+    @if (Model.CpuOptions.Any())
+    {
+        <section class="catalog-filter-group">
+            <h4>Dòng CPU</h4>
+            @foreach (var option in Model.CpuOptions)
+            {
+                <label class="catalog-filter-option">
+                    <input class="js-filter-autosubmit" type="checkbox" name="cpu" value="@option.Value" checked="@option.Selected" />
+                    <span>@option.Label <small>(@option.Count)</small></span>
+                </label>
+            }
+        </section>
+    }
+
+    @if (Model.RamOptions.Any())
+    {
+        <section class="catalog-filter-group">
+            <h4>Dung lượng RAM</h4>
+            @foreach (var option in Model.RamOptions)
+            {
+                <label class="catalog-filter-option">
+                    <input class="js-filter-autosubmit" type="checkbox" name="ram" value="@option.Value" checked="@option.Selected" />
+                    <span>@option.Label <small>(@option.Count)</small></span>
+                </label>
+            }
+        </section>
+    }
+
+    @if (Model.GpuOptions.Any())
+    {
+        <section class="catalog-filter-group">
+            <h4>GPU</h4>
+            @foreach (var option in Model.GpuOptions)
+            {
+                <label class="catalog-filter-option">
+                    <input class="js-filter-autosubmit" type="checkbox" name="gpu" value="@option.Value" checked="@option.Selected" />
+                    <span>@option.Label <small>(@option.Count)</small></span>
+                </label>
+            }
+        </section>
+    }
+</form>

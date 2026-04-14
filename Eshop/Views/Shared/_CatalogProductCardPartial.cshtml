@@ -1,0 +1,72 @@
+@model Eshop.Models.ProductModel
+
+@{
+    var imageSrc = ProductImageHelper.ResolveProductImage(Model);
+    var oldPrice = Model.Price * 1.08m;
+    var discountPercent = oldPrice > 0
+        ? Math.Round((oldPrice - Model.Price) / oldPrice * 100)
+        : 0;
+    var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
+}
+
+<article class="catalog-card">
+    <a asp-action="Details" asp-controller="Product" asp-route-id="@Model.Id" class="catalog-card-media">
+        @if (!string.IsNullOrWhiteSpace(imageSrc))
+        {
+            <img src="@imageSrc" alt="@Model.Name" class="catalog-card-image" />
+        }
+        else
+        {
+            <div class="catalog-card-placeholder">
+                <i class="fa fa-image"></i>
+            </div>
+        }
+    </a>
+
+    <div class="catalog-card-body">
+        <div class="catalog-card-meta">
+            @if (Model.Publisher != null)
+            {
+                <span>@Model.Publisher.Name</span>
+            }
+            @if (Model.Category != null)
+            {
+                <span>@Model.Category.Name</span>
+            }
+        </div>
+
+        <a asp-action="Details" asp-controller="Product" asp-route-id="@Model.Id" class="catalog-card-title">
+            @Model.Name
+        </a>
+
+        <div class="catalog-card-price">@Model.Price.ToString("#,##0")đ</div>
+
+        <div class="catalog-card-price-row">
+            <span class="catalog-card-old-price">@oldPrice.ToString("#,##0")đ</span>
+            @if (discountPercent > 0)
+            {
+                <span class="catalog-card-discount">-@discountPercent%</span>
+            }
+        </div>
+
+        <div class="catalog-card-footer">
+            <div class="catalog-card-action-row">
+                <button type="button" class="catalog-card-cart js-catalog-add-to-cart" data-product-id="@Model.Id">
+                    <span class="catalog-card-cart-icon">
+                        <i class="fa fa-shopping-cart"></i>
+                    </span>
+                    <span>Thêm vào giỏ</span>
+                </button>
+                <span class="catalog-card-stock">Còn hàng</span>
+            </div>
+
+            @if (canUseWishlistAndCompare)
+            {
+                <div class="catalog-card-mini-actions">
+                    <button type="button" class="btn btn-default js-catalog-add-wishlist" data-product-id="@Model.Id">Yêu thích</button>
+                    <button type="button" class="btn btn-default js-catalog-add-compare" data-product-id="@Model.Id">So sánh</button>
+                </div>
+            }
+        </div>
+    </div>
+</article>

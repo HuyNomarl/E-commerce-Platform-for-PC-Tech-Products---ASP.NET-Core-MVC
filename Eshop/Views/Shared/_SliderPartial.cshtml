@@ -1,56 +1,364 @@
-﻿@if (ViewBag.Sliders != null && ViewBag.Sliders.Count > 0)
+@model IEnumerable<Eshop.Models.SliderModel>
+
+@{
+    var sliders = (Model ?? Enumerable.Empty<Eshop.Models.SliderModel>())
+        .Where(x => x.Status == 1 && !string.IsNullOrWhiteSpace(x.Image))
+        .OrderByDescending(x => x.Id)
+        .ToList();
+}
+
+@if (sliders.Any())
 {
-    <section id="slider" class="site-slider">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
+    <style>
+        .home-hero {
+            margin: 0 0 22px;
+        }
 
-                    <div id="slider-carousel" class="carousel slide" data-ride="carousel" data-interval="5000" data-pause="hover">
+        .home-hero-shell {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 170, 0, 0.25), transparent 28%),
+                linear-gradient(135deg, #091224 0%, #14355f 55%, #0b4f6c 100%);
+            box-shadow: 0 26px 48px rgba(15, 23, 42, 0.16);
+        }
 
-                        <ol class="carousel-indicators">
-                            @for (int i = 0; i < ViewBag.Sliders.Count; i++)
-                            {
-                                <li data-target="#slider-carousel" data-slide-to="@i" class="@(i == 0 ? "active" : "")"></li>
-                            }
-                        </ol>
+        .home-hero-carousel {
+            margin-bottom: 0;
+        }
 
-                        <div class="carousel-inner">
-                            @for (int i = 0; i < ViewBag.Sliders.Count; i++)
-                            {
-                                var item = ViewBag.Sliders[i];
-                                var imgUrl = Url.Content("~/media/sliders/" + item.Image);
+        .home-hero-slide {
+            position: relative;
+            min-height: 430px;
+        }
 
-                                <div class="item @(i == 0 ? "active" : "")">
-                                    <div class="slider-wrap">
+        .home-hero-image {
+            width: 100%;
+            height: 430px;
+            object-fit: cover;
+            display: block;
+            filter: saturate(1.02);
+        }
 
-                                        <!-- GIỮ IMG như code cũ -->
-                                        <img class="slider-img" src="@imgUrl" alt="Slider" />
+        .home-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(5, 10, 20, 0.86) 0%, rgba(5, 10, 20, 0.52) 42%, rgba(5, 10, 20, 0.12) 100%),
+                linear-gradient(180deg, rgba(255, 106, 0, 0.08), transparent 45%);
+        }
 
-                                        <!-- overlay + text (tuỳ chọn) -->
-                                        <div class="slider-overlay"></div>
+        .home-hero-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            padding: 44px 56px;
+            color: #fff;
+        }
 
-                                        <div class="slider-content">
-                                            <h1>PC &amp; Linh kiện</h1>
-                                            <p>Deal tốt mỗi ngày – giao nhanh</p>
-                                            <a asp-controller="Product" asp-action="Index" class="btn btn-default slider-btn">
-                                                Mua ngay
+        .home-hero-copy {
+            max-width: 560px;
+        }
+
+        .home-hero-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            margin-bottom: 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(8px);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .home-hero-title {
+            margin: 0 0 14px;
+            font-size: 42px;
+            line-height: 1.08;
+            font-weight: 900;
+            letter-spacing: -.03em;
+            text-shadow: 0 10px 24px rgba(0,0,0,.28);
+        }
+
+        .home-hero-desc {
+            margin: 0 0 24px;
+            max-width: 520px;
+            color: rgba(255,255,255,0.88);
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        .home-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .home-hero-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 22px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .home-hero-btn:hover {
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        .home-hero-btn--primary {
+            background: linear-gradient(135deg, #ff7a18 0%, #ffb347 100%);
+            color: #fff;
+            box-shadow: 0 18px 30px rgba(255, 122, 24, 0.24);
+        }
+
+        .home-hero-btn--primary:hover {
+            color: #fff;
+        }
+
+        .home-hero-btn--ghost {
+            border-color: rgba(255,255,255,0.24);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+
+        .home-hero-btn--ghost:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.14);
+        }
+
+        .home-hero-indicators {
+            bottom: 18px;
+            left: 56px;
+            width: auto;
+            margin-left: 0;
+            text-align: left;
+        }
+
+        .home-hero-indicators li {
+            width: 12px;
+            height: 12px;
+            margin: 0 8px 0 0;
+            border: none;
+            background: rgba(255,255,255,0.36);
+        }
+
+        .home-hero-indicators .active {
+            width: 34px;
+            border-radius: 999px;
+            background: #fff;
+        }
+
+        .home-hero-control {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 52px;
+            height: 52px;
+            border: none;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            z-index: 3;
+            transition: background .2s ease, transform .2s ease;
+        }
+
+        .home-hero-control:hover {
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+        }
+
+        .home-hero-control.left {
+            left: 22px;
+        }
+
+        .home-hero-control.right {
+            right: 22px;
+        }
+
+        .home-hero-meta {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+            color: rgba(255,255,255,0.78);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .home-hero-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        @@media (max-width: 991px) {
+            .home-hero-slide,
+            .home-hero-image {
+                height: 380px;
+                min-height: 380px;
+            }
+
+            .home-hero-content {
+                padding: 34px 34px 58px;
+            }
+
+            .home-hero-title {
+                font-size: 34px;
+            }
+
+            .home-hero-desc {
+                font-size: 15px;
+                line-height: 1.65;
+            }
+
+            .home-hero-indicators {
+                left: 34px;
+            }
+        }
+
+        @@media (max-width: 767px) {
+            .home-hero {
+                margin-bottom: 16px;
+            }
+
+            .home-hero-shell {
+                border-radius: 18px;
+            }
+
+            .home-hero-slide,
+            .home-hero-image {
+                height: 330px;
+                min-height: 330px;
+            }
+
+            .home-hero-content {
+                align-items: flex-end;
+                padding: 22px 20px 56px;
+            }
+
+            .home-hero-kicker {
+                margin-bottom: 12px;
+                font-size: 10px;
+            }
+
+            .home-hero-title {
+                font-size: 26px;
+            }
+
+            .home-hero-desc {
+                font-size: 14px;
+                margin-bottom: 18px;
+            }
+
+            .home-hero-actions {
+                gap: 10px;
+            }
+
+            .home-hero-btn {
+                min-height: 42px;
+                padding: 0 16px;
+                font-size: 12px;
+            }
+
+            .home-hero-indicators {
+                left: 20px;
+                bottom: 14px;
+            }
+
+            .home-hero-control {
+                display: none !important;
+            }
+        }
+    </style>
+
+    <section class="home-hero" aria-label="Banner nổi bật trang chủ">
+        <div class="home-hero-shell">
+            <div id="homeHeroCarousel" class="carousel slide home-hero-carousel" data-ride="carousel" data-interval="5500" data-pause="hover">
+                <ol class="carousel-indicators home-hero-indicators">
+                    @for (int i = 0; i < sliders.Count; i++)
+                    {
+                        <li data-target="#homeHeroCarousel" data-slide-to="@i" class="@(i == 0 ? "active" : string.Empty)"></li>
+                    }
+                </ol>
+
+                <div class="carousel-inner" role="listbox">
+                    @for (int i = 0; i < sliders.Count; i++)
+                    {
+                        var item = sliders[i];
+                        var imageUrl = Url.Content($"~/media/sliders/{item.Image}");
+                        var title = string.IsNullOrWhiteSpace(item.Name) ? "Ưu đãi nổi bật tại Eshop" : item.Name.Trim();
+                        var description = string.IsNullOrWhiteSpace(item.Description)
+                            ? "Khám phá thêm các cấu hình PC, linh kiện và deal mới được cập nhật trên trang chủ."
+                            : item.Description.Trim();
+
+                        <div class="item @(i == 0 ? "active" : string.Empty)">
+                            <article class="home-hero-slide">
+                                <img src="@imageUrl"
+                                     alt="@title"
+                                     class="home-hero-image"
+                                     loading="@(i == 0 ? "eager" : "lazy")"
+                                     fetchpriority="@(i == 0 ? "high" : "auto")" />
+
+                                @* <div class="home-hero-overlay"></div>
+
+                                <div class="home-hero-content">
+                                    <div class="home-hero-copy">
+                                        <span class="home-hero-kicker">
+                                            <i class="fa fa-bolt"></i>
+                                            Banner nổi bật
+                                        </span>
+
+                                        <h2 class="home-hero-title">@title</h2>
+                                        <p class="home-hero-desc">@description</p>
+
+                                        <div class="home-hero-actions">
+                                            <a href="#homeCatalog" class="home-hero-btn home-hero-btn--primary">
+                                                Khám phá sản phẩm
+                                            </a>
+                                            <a asp-controller="PcBuilder" asp-action="Index" class="home-hero-btn home-hero-btn--ghost">
+                                                Tư vấn build PC
                                             </a>
                                         </div>
+
+                                        <div class="home-hero-meta">
+                                            <span><i class="fa fa-check-circle"></i> Slider quản lý từ admin</span>
+                                            <span><i class="fa fa-refresh"></i> Tự cập nhật theo trạng thái hiển thị</span>
+                                        </div>
                                     </div>
-                                </div>
-                            }
+                                </div> *@
+                            </article>
                         </div>
-
-                        <a href="#slider-carousel" class="left control-carousel hidden-xs" data-slide="prev">
-                            <i class="fa fa-angle-left"></i>
-                        </a>
-                        <a href="#slider-carousel" class="right control-carousel hidden-xs" data-slide="next">
-                            <i class="fa fa-angle-right"></i>
-                        </a>
-
-                    </div>
-
+                    }
                 </div>
+
+                @if (sliders.Count > 1)
+                {
+                    <a href="#homeHeroCarousel" class="home-hero-control left" data-slide="prev" aria-label="Slide trước">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a href="#homeHeroCarousel" class="home-hero-control right" data-slide="next" aria-label="Slide tiếp theo">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                }
             </div>
         </div>
     </section>

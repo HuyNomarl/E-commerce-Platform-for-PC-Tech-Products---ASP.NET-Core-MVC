@@ -142,13 +142,22 @@ namespace Eshop.Controllers
             return View(viewModel);
         }
 
-        public async Task<IActionResult> Search(string searchTerm)
+        public async Task<IActionResult> Search(
+            string? searchTerm,
+            string? sort_by,
+            [FromQuery(Name = "price")] List<string>? price,
+            [FromQuery(Name = "publisher")] List<string>? publisher,
+            [FromQuery(Name = "cpu")] List<string>? cpu,
+            [FromQuery(Name = "ram")] List<string>? ram,
+            [FromQuery(Name = "gpu")] List<string>? gpu)
         {
             IQueryable<ProductModel> query = _dataContext.Products
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Publisher)
                 .Include(p => p.ProductImages)
+                .Include(p => p.Specifications)
+                    .ThenInclude(s => s.SpecificationDefinition)
                 .WhereVisibleOnStorefront(_dataContext);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -158,12 +167,60 @@ namespace Eshop.Controllers
                     p.Description.Contains(searchTerm));
             }
 
-            var products = await query
-                .OrderByDescending(p => p.Id)
-                .ToListAsync();
+            var allProducts = await query.ToListAsync();
 
-            ViewBag.Keyword = searchTerm;
-            return View(products);
+            var selectedPriceRanges = ProductCatalogFilterHelper.NormalizePriceSelections(price);
+            var selectedPublishers = ProductCatalogFilterHelper.NormalizeSelections(publisher);
+            var selectedCpus = ProductCatalogFilterHelper.NormalizeSelections(cpu);
+            var selectedRams = ProductCatalogFilterHelper.NormalizeSelections(ram);
+            var selectedGpus = ProductCatalogFilterHelper.NormalizeSelections(gpu);
+            var normalizedSort = ProductCatalogFilterHelper.NormalizeSort(sort_by);
+
+            var filteredProducts = allProducts
+                .Where(product => ProductCatalogFilterHelper.MatchesPriceRanges(product.Price, selectedPriceRanges))
+                .Where(product => ProductCatalogFilterHelper.MatchesSelection(product.Publisher?.Name, selectedPublishers))
+                .Where(product => ProductCatalogFilterHelper.MatchesSelection(ProductCatalogFilterHelper.ExtractCpuLabel(product), selectedCpus))
+                .Where(product => ProductCatalogFilterHelper.MatchesSelection(ProductCatalogFilterHelper.ExtractRamLabel(product), selectedRams))
+                .Where(product => ProductCatalogFilterHelper.MatchesSelection(ProductCatalogFilterHelper.ExtractGpuLabel(product), selectedGpus))
+                .ToList();
+
+            filteredProducts = ProductCatalogFilterHelper.ApplySorting(filteredProducts, normalizedSort);
+
+            var viewModel = new ProductCatalogPageViewModel
+            {
+                Title = string.IsNullOrWhiteSpace(searchTerm) ? "Kết quả tìm kiếm" : $"Tìm: {searchTerm}",
+                BreadcrumbLabel = "Tìm kiếm",
+                SummaryText = string.IsNullOrWhiteSpace(searchTerm)
+                    ? $"Hiển thị {filteredProducts.Count} sản phẩm khả dụng."
+                    : $"Từ khóa \"{searchTerm}\" có {filteredProducts.Count} sản phẩm phù hợp.",
+                SortBy = normalizedSort,
+                TotalProducts = filteredProducts.Count,
+                Products = filteredProducts,
+                Sidebar = new ProductCatalogSidebarViewModel
+                {
+                    SortBy = normalizedSort,
+                    FormActionUrl = Url.Action(nameof(Search), "Product") ?? string.Empty,
+                    ClearFiltersUrl = Url.Action(nameof(Search), "Product", new { searchTerm }) ?? string.Empty,
+                    PreservedRouteValues = string.IsNullOrWhiteSpace(searchTerm)
+                        ? new List<ProductCatalogRouteValueViewModel>()
+                        : new List<ProductCatalogRouteValueViewModel>
+                        {
+                            new() { Key = "searchTerm", Value = searchTerm }
+                        },
+                    HasActiveFilters = selectedPriceRanges.Any()
+                        || selectedPublishers.Any()
+                        || selectedCpus.Any()
+                        || selectedRams.Any()
+                        || selectedGpus.Any(),
+                    PriceRanges = ProductCatalogFilterHelper.BuildPriceRanges(allProducts, selectedPriceRanges),
+                    Publishers = ProductCatalogFilterHelper.BuildFilterOptions(allProducts, x => x.Publisher?.Name, selectedPublishers),
+                    CpuOptions = ProductCatalogFilterHelper.BuildFilterOptions(allProducts, ProductCatalogFilterHelper.ExtractCpuLabel, selectedCpus),
+                    RamOptions = ProductCatalogFilterHelper.BuildFilterOptions(allProducts, ProductCatalogFilterHelper.ExtractRamLabel, selectedRams),
+                    GpuOptions = ProductCatalogFilterHelper.BuildFilterOptions(allProducts, ProductCatalogFilterHelper.ExtractGpuLabel, selectedGpus)
+                }
+            };
+
+            return View("~/Views/Category/Index.cshtml", viewModel);
         }
 
         [Authorize(Policy = PolicyNames.CustomerSelfService)]

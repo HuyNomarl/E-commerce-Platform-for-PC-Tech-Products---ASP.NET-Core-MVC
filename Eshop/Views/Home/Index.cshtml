@@ -1,11 +1,11 @@
 ﻿@using System.Linq
-@model IEnumerable<Eshop.Models.ProductModel>
+@model Eshop.Models.ViewModels.HomeIndexViewModel
 
 @{
     ViewData["Title"] = "Home Page";
     var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
 
-    var productList = Model?.ToList() ?? new List<Eshop.Models.ProductModel>();
+    var productList = Model?.Products?.ToList() ?? new List<Eshop.Models.ProductModel>();
 
 
     Func<string?, int> getCategoryPriority = name =>
@@ -53,8 +53,7 @@
         .ThenBy(x => x.CategoryName)
         .ToList();
 
-    var recommendedProducts = ViewBag.RecommendedProducts as List<Eshop.Models.ProductModel>
-        ?? new List<Eshop.Models.ProductModel>();
+    var recommendedProducts = Model?.RecommendedProducts ?? new List<Eshop.Models.ProductModel>();
 }
 
 <style>
@@ -645,6 +644,9 @@
 </style>
 
 <div class="col-sm-12 home-page-wrapper">
+    <partial name="_SliderPartial" model="Model?.Sliders" />
+
+    <div id="homeCatalog"></div>
 
     @if (hotProducts.Any())
     {

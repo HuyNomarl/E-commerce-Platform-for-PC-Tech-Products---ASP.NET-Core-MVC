@@ -1,404 +1,182 @@
-﻿@model ContactModel
+@model ContactModel
 
 @{
-    // ====== NAV (placeholder để mở rộng sau này) ======
-    var navGroups = new[]
+    var contact = Model ?? new ContactModel
     {
-        new {
-            Title = "Shop",
-            Links = new (string Text, string Href)[] {
-                ("Drinks", "#"),
-                ("Gift Cards", "#"),
-                ("Find In Store", "#"),
-                ("Wholesale", "#"),
-                ("Heroes Program", "#"),
-            }
-        },
-        new {
-            Title = "Learn",
-            Links = new (string Text, string Href)[] {
-                ("Our Story", "#"),
-                ("Blog", "#"),
-                ("Digestive Health", "#"),
-                ("Sustainability", "#"),
-                ("Ingredients", "#"),
-                ("Quality & Safety", "#"),
-            }
-        },
-        new {
-            Title = "Help",
-            Links = new (string Text, string Href)[] {
-                ("FAQ", "#"),
-                ("Contact Us", "#"),
-                ("Accessibility", "#"),
-                ("Satisfaction Guarantee", "#"),
-                ("Manage Subscriptions", "#"),
-                ("Track Your Order", "#"),
-            }
-        },
-        new {
-            Title = "Company",
-            Links = new (string Text, string Href)[] {
-                ("Earn Rewards", "#"),
-                ("My Account", "#"),
-                ("Press", "#"),
-                ("Careers", "#"),
-                ("Affiliate Program", "#"),
-                ("Registered Dietitian Program", "#"),
-            }
-        },
+        Name = "Eshop",
+        Description = "<p>Eshop đồng hành cùng bạn trong việc chọn linh kiện, thiết bị và cấu hình PC phù hợp cho học tập, làm việc và gaming.</p>",
+        Email = string.Empty,
+        Phone = string.Empty,
+        Map = string.Empty,
+        LogoImg = string.Empty
     };
 
-    // ====== CTA liên hệ (placeholder) ======
-    var contactCtas = new[]
-    {
-        new { Text = "Liên hệ", Href = "#", Icon = "fa-regular fa-envelope" },
-        new { Text = "Hotline", Href = "#", Icon = "fa-solid fa-phone" },
-        new { Text = "Zalo", Href = "#", Icon = "fa-regular fa-comment-dots" },
-    };
+    var companyName = string.IsNullOrWhiteSpace(contact.Name) ? "Eshop" : contact.Name;
+    var descriptionHtml = string.IsNullOrWhiteSpace(contact.Description)
+        ? "<p>Eshop đồng hành cùng bạn trong việc chọn linh kiện, thiết bị và cấu hình PC phù hợp cho học tập, làm việc và gaming.</p>"
+        : contact.Description;
 
-    var socials = new[]
-    {
-    new { Title="Instagram", Href="#", Icon="fa-brands fa-instagram" },
-    new { Title="Facebook",  Href="#", Icon="fa-brands fa-facebook-f" },
-    new { Title="X",         Href="#", Icon="fa-brands fa-x-twitter" },
-    new { Title="LinkedIn",  Href="#", Icon="fa-brands fa-linkedin-in" },
-    new { Title="Pinterest", Href="#", Icon="fa-brands fa-pinterest-p" },
-    new { Title="TikTok",    Href="#", Icon="fa-brands fa-tiktok" },
-};
+    var logoPath = string.IsNullOrWhiteSpace(contact.LogoImg)
+        ? Url.Content("~/images/Logo/bfe68383-fed2-4775-954a-a5ac3c1d5291.png")
+        : Url.Content($"~/media/contact/{contact.LogoImg}");
 
-    var mapUrl = Model.Map ?? "";
-    if (!string.IsNullOrWhiteSpace(mapUrl) && mapUrl.Contains("google.com/maps") && !mapUrl.Contains("output=embed"))
+    var rawMapUrl = contact.Map ?? string.Empty;
+    var embeddedMapUrl = rawMapUrl;
+    if (!string.IsNullOrWhiteSpace(embeddedMapUrl) &&
+        embeddedMapUrl.Contains("google.com/maps", StringComparison.OrdinalIgnoreCase) &&
+        !embeddedMapUrl.Contains("output=embed", StringComparison.OrdinalIgnoreCase))
     {
-        mapUrl += mapUrl.Contains("?") ? "&output=embed" : "?output=embed";
+        embeddedMapUrl += embeddedMapUrl.Contains('?') ? "&output=embed" : "?output=embed";
     }
+
+    var phoneText = string.IsNullOrWhiteSpace(contact.Phone) ? "Đang cập nhật" : contact.Phone;
+    var emailText = string.IsNullOrWhiteSpace(contact.Email) ? "Đang cập nhật" : contact.Email;
+
+    var callHref = string.IsNullOrWhiteSpace(contact.Phone) ? "#" : $"tel:{contact.Phone}";
+    var emailHref = string.IsNullOrWhiteSpace(contact.Email) ? "#" : $"mailto:{contact.Email}";
+    var mapHref = string.IsNullOrWhiteSpace(rawMapUrl) ? (Url.Action("Contact", "Home") ?? "#") : rawMapUrl;
+
+    var exploreLinks = new[]
+    {
+        (Text: "Trang chủ", Href: Url.Action("Index", "Home") ?? "#"),
+        (Text: "Sản phẩm", Href: Url.Action("Index", "Product") ?? "#"),
+        (Text: "Danh mục", Href: Url.Action("Index", "Category") ?? "#"),
+        (Text: "Build PC", Href: Url.Action("Index", "PcBuilder") ?? "#"),
+        (Text: "Liên hệ", Href: Url.Action("Contact", "Home") ?? "#")
+    };
+
+    var supportLinks = new[]
+    {
+        (Text: "Giỏ hàng", Href: Url.Action("Index", "Cart") ?? "#"),
+        (Text: "So sánh sản phẩm", Href: Url.Action("Compare", "Home") ?? "#"),
+        (Text: "Danh sách yêu thích", Href: Url.Action("Wishlist", "Home") ?? "#"),
+        (Text: "Đăng nhập", Href: Url.Action("Login", "Account") ?? "#"),
+        (Text: "Tạo tài khoản", Href: Url.Action("Create", "Account") ?? "#")
+    };
 }
 
-<style>
+<footer class="tt-footer">
+    <div class="tt-footer-main">
+        <div class="container">
+            <div class="tt-footer-grid">
+                <section class="tt-footer-panel tt-footer-brand-panel" aria-label="Giới thiệu Eshop">
+                    <div class="tt-footer-brand-top">
+                        <img src="@logoPath" alt="@companyName" class="tt-footer-logo" />
+                        <span class="tt-footer-badge">Storefront</span>
+                    </div>
 
-    .contact-footer {
-        --contact-bg: #111827; 
-        --contact-text: rgba(255,255,255,.92);
-        --contact-muted: rgba(255,255,255,.72);
-        --contact-accent: #FE980F; 
-        --contact-accent-text: #111827;
+                    <div class="tt-footer-description">
+                        @Html.Raw(descriptionHtml)
+                    </div>
 
-        --contact-border: rgba(255,255,255,.18);
-        --contact-surface: rgba(255,255,255,.06);
-        position: relative;
-        background: var(--contact-bg);
-        color: var(--contact-text);
-        overflow: hidden;
-        padding: 72px 0 28px;
-    }
-
-    .contact-footer__wave {
-        position: absolute;
-        left: 0;
-        top: -88px;
-        width: 100%;
-        height: 120px;
-        display: block;
-        pointer-events: none;
-    }
-
-    .contact-footer__inner {
-        position: relative;
-        z-index: 1;
-    }
-
-    .contact-footer__grid {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr 1.9fr; /* Brand + 4 cột link + Right */
-        gap: 26px 34px;
-        align-items: start;
-    }
-
-    .contact-footer__logo img {
-        max-width: 200px;
-        height: auto;
-        display: block;
-    }
-
-    .contact-footer__desc {
-        margin-top: 14px;
-        color: var(--contact-muted);
-        line-height: 1.6;
-        font-size: 14px;
-    }
-
-        .contact-footer__desc p {
-            margin-bottom: 10px;
-        }
-
-    .contact-footer__ctas {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 14px;
-    }
-
-    .contact-footer__cta {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        border: 1px solid var(--contact-border);
-        border-radius: 999px;
-        color: var(--contact-text);
-        text-decoration: none;
-        font-size: 13px;
-        transition: .15s ease;
-    }
-
-        .contact-footer__cta:hover {
-            border-color: rgba(255,255,255,.35);
-            transform: translateY(-1px);
-            color: #fff;
-        }
-
-    .contact-footer__group-title {
-        font-weight: 700;
-        letter-spacing: .2px;
-        margin-bottom: 10px;
-        font-size: 16px;
-    }
-
-    .contact-footer__links {
-        display: grid;
-        gap: 10px;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-
-        .contact-footer__links a {
-            color: var(--contact-text);
-            text-decoration: none;
-            font-size: 14px;
-            opacity: .92;
-            transition: .15s ease;
-        }
-
-            .contact-footer__links a:hover {
-                opacity: 1;
-                text-decoration: underline;
-            }
-
-    .contact-footer__right {
-        justify-self: end;
-        width: 100%;
-        max-width: 520px;
-    }
-
-    .contact-footer__signup-title {
-        font-weight: 700;
-        margin-bottom: 12px;
-        font-size: 16px;
-        text-align: right;
-    }
-
-    .contact-footer__form {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
-        align-items: center;
-    }
-
-    .contact-footer__input {
-        width: 100%;
-        background: #F3F4F6; 
-        color: #111827;
-        border: none;
-        border-radius: 999px;
-        padding: 12px 16px;
-        outline: none;
-        font-size: 14px;
-    }
-
-    .contact-footer__btn {
-        border: none;
-        border-radius: 999px;
-        padding: 12px 18px;
-        font-weight: 700;
-        cursor: pointer;
-        background: var(--contact-accent);
-        color: var(--contact-accent-text);
-        transition: .15s ease;
-        white-space: nowrap;
-    }
-
-        .contact-footer__btn:hover {
-            filter: brightness(.95);
-            transform: translateY(-1px);
-        }
-
-    .contact-footer__social {
-        display: flex;
-        gap: 16px;
-        justify-content: flex-end;
-        margin-top: 18px;
-        flex-wrap: wrap;
-    }
-
-        .contact-footer__social a {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 999px;
-            border: 1px solid var(--contact-border);
-            color: #fff;
-            text-decoration: none;
-            transition: .15s ease;
-        }
-
-            .contact-footer__social a:hover {
-                border-color: rgba(255,255,255,.35);
-                transform: translateY(-1px);
-            }
-
-    .contact-footer__map {
-        margin-top: 18px;
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid var(--contact-border);
-        background: var(--contact-surface);
-    }
-
-        .contact-footer__map iframe {
-            display: block;
-            width: 100%;
-            height: 210px;
-            border: 0;
-        }
-
-    .contact-footer__badge {
-        margin-top: 14px;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 6px;
-        color: var(--contact-muted);
-        font-size: 12px;
-    }
-
-    .contact-footer__badge-circle {
-        width: 58px;
-        height: 58px;
-        border-radius: 999px;
-        border: 2px solid rgba(255,255,255,.55);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 800;
-        font-size: 22px;
-        line-height: 1;
-    }
-
-    .contact-footer__bottom {
-        margin-top: 26px;
-        padding-top: 18px;
-        border-top: 1px solid rgba(255,255,255,.14);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        color: var(--contact-muted);
-        font-size: 12px;
-        flex-wrap: wrap;
-    }
-
-        .contact-footer__bottom a {
-            color: var(--contact-muted);
-            text-decoration: none;
-        }
-
-            .contact-footer__bottom a:hover {
-                color: #fff;
-                text-decoration: underline;
-            }
-
-    
-</style>
-
-<footer class="contact-footer">
-    <!-- Wave giống ảnh -->
-    <svg class="contact-footer__wave" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
-        <path fill="var(--contact-bg)"
-              d="M0,60 C240,110 520,10 760,56 C1020,108 1240,96 1440,70 L1440,120 L0,120 Z"></path>
-    </svg>
-
-    <div class="container contact-footer__inner">
-        <div class="contact-footer__grid">
-
-            <!-- Brand / Company info (giữ dữ liệu của bạn) -->
-            <div>
-                <div class="contact-footer__logo">
-                    <img src="~/media/contact/@Model.LogoImg" alt="Logo" />
-                </div>
-
-                <div class="contact-footer__desc">
-                    @Html.Raw(Model.Description)
-                </div>
-
-                <!-- CTA mở rộng sau này -->
-                <div class="contact-footer__ctas">
-                    @foreach (var cta in contactCtas)
-                    {
-                        <a class="contact-footer__cta" href="@cta.Href">
-                            <i class="@cta.Icon"></i>
-                            <span>@cta.Text</span>
+                    <div class="tt-footer-actions">
+                        <a href="@callHref" class="tt-footer-action">
+                            <i class="fa fa-phone"></i>
+                            <span>Gọi ngay</span>
                         </a>
-                    }
-                </div>
-            </div>
+                        <a href="@emailHref" class="tt-footer-action">
+                            <i class="fa fa-envelope"></i>
+                            <span>Gửi email</span>
+                        </a>
+                        <a href="@mapHref" class="tt-footer-action" target="_blank" rel="noopener">
+                            <i class="fa fa-map-marker"></i>
+                            <span>Xem bản đồ</span>
+                        </a>
+                    </div>
+                </section>
 
-            <!-- 4 cột links -->
-            @foreach (var group in navGroups)
-            {
-                <div>
-                    <div class="contact-footer__group-title">@group.Title</div>
-                    <ul class="contact-footer__links">
-                        @foreach (var link in group.Links)
+                <section class="tt-footer-panel" aria-label="Khám phá">
+                    <h2 class="tt-footer-title">Khám phá</h2>
+                    <ul class="tt-footer-links">
+                        @foreach (var link in exploreLinks)
                         {
-                            <li><a href="@link.Href">@link.Text</a></li>
+                            <li>
+                                <a href="@link.Href">
+                                    <i class="fa fa-angle-right"></i>
+                                    <span>@link.Text</span>
+                                </a>
+                            </li>
                         }
                     </ul>
-                </div>
-            }
+                </section>
 
-            <!-- Right column: subscribe + socials + map + badge -->
-            <div class="contact-footer__right">
-                <div class="contact-footer__signup-title">Sign up to get 15% off your first order</div>
+                <section class="tt-footer-panel" aria-label="Hỗ trợ khách hàng">
+                    <h2 class="tt-footer-title">Hỗ trợ</h2>
+                    <ul class="tt-footer-links">
+                        @foreach (var link in supportLinks)
+                        {
+                            <li>
+                                <a href="@link.Href">
+                                    <i class="fa fa-angle-right"></i>
+                                    <span>@link.Text</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </section>
 
-                <!-- Form subscribe: bạn có thể đổi action/controller sau -->
-                <form class="contact-footer__form" method="post" action="#">
-                    <input class="contact-footer__input" type="email" name="email" placeholder="Your Email Address" required />
-                    <button class="contact-footer__btn" type="submit">Subscribe</button>
-                </form>
+                <section class="tt-footer-panel tt-footer-contact-panel" aria-label="Thông tin liên hệ">
+                    <h2 class="tt-footer-title">Thông tin liên hệ</h2>
 
-                <div class="contact-footer__social" aria-label="Social links">
-                    @foreach (var s in socials)
-                    {
-                        <a href="@s.Href" title="@s.Title" aria-label="@s.Title" target="_blank" rel="noopener">
-                            <i class="@s.Icon"></i>
-                        </a>
-                    }
-                </div>
+                    <ul class="tt-footer-contact-list">
+                        <li>
+                            <span class="tt-footer-contact-icon"><i class="fa fa-phone"></i></span>
+                            <div>
+                                <strong>Hotline</strong>
+                                <p>@phoneText</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tt-footer-contact-icon"><i class="fa fa-envelope"></i></span>
+                            <div>
+                                <strong>Email</strong>
+                                <p>@emailText</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="tt-footer-contact-icon"><i class="fa fa-map-marker"></i></span>
+                            <div>
+                                <strong>Bản đồ cửa hàng</strong>
+                                <p>
+                                    <a href="@mapHref" target="_blank" rel="noopener">Mở Google Maps</a>
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+            </div>
 
-                @* Giữ nguyên map logic của bạn *@
-                @if (!string.IsNullOrWhiteSpace(mapUrl))
-                {
-                    <div class="contact-footer__map">
-                        <iframe src="@mapUrl"
+            @if (!string.IsNullOrWhiteSpace(embeddedMapUrl))
+            {
+                <section class="tt-footer-map-panel" aria-label="Bản đồ cửa hàng">
+                    <div class="tt-footer-map-heading">
+                        <div>
+                            <span class="tt-footer-eyebrow">Chi nhánh</span>
+                            <h2>Vị trí cửa hàng</h2>
+                        </div>
+                        <a href="@mapHref" target="_blank" rel="noopener">Mở trong Google Maps</a>
+                    </div>
+
+                    <div class="tt-footer-map-frame">
+                        <iframe src="@embeddedMapUrl"
                                 loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
                                 allowfullscreen>
                         </iframe>
                     </div>
-                }
+                </section>
+            }
+        </div>
+    </div>
+
+    <div class="tt-footer-bottom">
+        <div class="container">
+            <div class="tt-footer-bottom-inner">
+                <p>Copyright © @DateTime.Now.Year @companyName. All rights reserved.</p>
+                <div class="tt-footer-bottom-links">
+                    <a href="@(Url.Action("Privacy", "Home") ?? "#")">Chính sách</a>
+                    <a href="@(Url.Action("Contact", "Home") ?? "#")">Liên hệ</a>
+                </div>
             </div>
         </div>
     </div>

@@ -2,122 +2,241 @@
 
 @{
     ViewData["Title"] = "Điều chỉnh kho";
+    var warehouseCount = Model.Warehouses?.Count ?? 0;
+    var productCount = Model.Products?.Count ?? 0;
 }
 
-<div class="row g-3 inventory-adjust-page inv-page">
-    <div class="col-12">
-        <section class="inv-hero">
-            <div class="inv-hero__content">
-                <div class="inv-hero__eyebrow">
-                    <i class="fa fa-sliders"></i>
-                    <span>Inventory Adjustment</span>
-                </div>
-                <h4>Điều chỉnh kho</h4>
-                <p class="inv-hero__desc">Cập nhật lại số lượng tồn kho thực tế sau kiểm kê với giao diện gọn hơn, dễ tập trung vào đúng kho và đúng sản phẩm cần chỉnh.</p>
-                <div class="inv-hero__meta">
-                    <span class="inv-chip">Chọn đúng kho</span>
-                    <span class="inv-chip">Tìm nhanh sản phẩm</span>
-                    <span class="inv-chip">Lưu rõ lý do điều chỉnh</span>
-                </div>
+<div class="inventory-adjust-page inv-page">
+    <section class="inv-hero">
+        <div class="inv-hero__content">
+            <div class="inv-hero__eyebrow">
+                <i class="fa fa-sliders"></i>
+                <span>Inventory Adjustment</span>
             </div>
-
-            <a asp-action="Index" class="inv-btn-back">
-                <i class="fa fa-arrow-left"></i>
-                <span>Quay lại tổng quan kho</span>
-            </a>
-        </section>
-    </div>
-
-    <div class="col-12 col-xl-8">
-        <div class="card-soft inv-panel">
-            <div class="section-head">
-                <div>
-                    <div class="section-title">
-                        <i class="fa fa-sliders"></i>
-                        <span>Phiếu điều chỉnh kho</span>
-                    </div>
-                    <div class="section-subtitle">Chỉ cập nhật sau khi đã kiểm đếm thực tế để tránh chênh lệch tồn.</div>
-                </div>
-            </div>
-
-            <div class="section-body">
-                <form asp-action="Adjust" method="post">
-                    @Html.AntiForgeryToken()
-                    <div asp-validation-summary="ModelOnly" class="text-danger inv-validation-summary"></div>
-
-                    <div class="inv-step-row">
-                        <span class="inv-step-chip">1. Chọn kho</span>
-                        <span class="inv-step-chip">2. Chọn sản phẩm</span>
-                        <span class="inv-step-chip">3. Nhập số lượng mới và lý do</span>
-                    </div>
-
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label asp-for="WarehouseId" class="field-label">Kho</label>
-                            <select asp-for="WarehouseId" asp-items="Model.Warehouses" class="form-select field-control">
-                                <option value="">-- Chọn kho --</option>
-                            </select>
-                            <span asp-validation-for="WarehouseId" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <label asp-for="ProductId" class="field-label">Sản phẩm</label>
-                            <select asp-for="ProductId"
-                                    asp-items="Model.Products"
-                                    class="form-select field-control js-filterable-select"
-                                    data-search-placeholder="Tìm sản phẩm cần điều chỉnh...">
-                                <option value="">-- Chọn sản phẩm --</option>
-                            </select>
-                            <span asp-validation-for="ProductId" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <label asp-for="NewQuantity" class="field-label">Số lượng mới</label>
-                            <input asp-for="NewQuantity" class="form-control field-control" type="number" min="0" step="1" placeholder="Nhập số lượng mới" />
-                            <span asp-validation-for="NewQuantity" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="Note" class="field-label">Lý do</label>
-                            <textarea asp-for="Note" class="form-control field-control textarea-control" rows="4" placeholder="Ví dụ: kiểm kê lại kho, cập nhật chênh lệch thực tế..."></textarea>
-                            <span asp-validation-for="Note" class="text-danger small"></span>
-                        </div>
-                    </div>
-
-                    <div class="form-footer">
-                        <button type="submit" class="btn-submit-warning">
-                            <i class="fa fa-check-circle"></i>
-                            <span>Điều chỉnh kho</span>
-                        </button>
-                    </div>
-                </form>
+            <h4>Phiếu điều chỉnh kho</h4>
+            <p class="inv-hero__desc">
+                Cập nhật lại số lượng tồn thực tế với bố cục tập trung hơn vào đúng kho, đúng sản phẩm và đúng mức tồn mới
+                trước khi ghi nhận vào lịch sử kho.
+            </p>
+            <div class="inv-hero__meta">
+                <span class="inv-chip">@warehouseCount kho đang hoạt động</span>
+                <span class="inv-chip">@productCount sản phẩm có thể điều chỉnh</span>
+                <span class="inv-chip">Ghi lịch sử thay đổi ngay sau khi lưu</span>
             </div>
         </div>
-    </div>
 
-    <div class="col-12 col-xl-4">
-        <div class="card-soft inv-panel info-card">
-            <div class="section-head">
-                <div>
-                    <div class="section-title">
-                        <i class="fa fa-info-circle"></i>
-                        <span>Lưu ý thao tác</span>
+        <a asp-action="Index" class="inv-btn-back">
+            <i class="fa fa-arrow-left"></i>
+            <span>Quay lại tổng quan kho</span>
+        </a>
+    </section>
+
+    <div class="adjust-layout">
+        <div class="adjust-layout__main">
+            <div class="card-soft inv-panel adjust-panel">
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">
+                            <i class="fa fa-sliders"></i>
+                            <span>Thiết lập phiếu điều chỉnh</span>
+                        </div>
+                        <div class="section-subtitle">
+                            Đi theo từng bước để hạn chế chọn nhầm kho hoặc nhập sai số lượng tồn sau kiểm kê.
+                        </div>
                     </div>
-                    <div class="section-subtitle">Một thay đổi nhỏ cũng ảnh hưởng trực tiếp đến số lượng đang bán.</div>
+                </div>
+
+                <div class="section-body">
+                    <form asp-action="Adjust" method="post" id="adjustInventoryForm" class="adjust-workflow-form">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger inv-validation-summary"></div>
+
+                        <div class="adjust-metric-grid">
+                            <article class="adjust-metric-card">
+                                <span class="adjust-metric-label">Điểm chạm 1</span>
+                                <strong class="adjust-metric-value">Kho</strong>
+                                <p class="adjust-metric-text">Xác định đúng địa điểm đang kiểm kê trước khi thay đổi tồn.</p>
+                            </article>
+
+                            <article class="adjust-metric-card">
+                                <span class="adjust-metric-label">Điểm chạm 2</span>
+                                <strong class="adjust-metric-value">Sản phẩm</strong>
+                                <p class="adjust-metric-text">Tìm đúng mã hàng cần cập nhật để tránh lệch dữ liệu.</p>
+                            </article>
+
+                            <article class="adjust-metric-card">
+                                <span class="adjust-metric-label">Điểm chạm 3</span>
+                                <strong class="adjust-metric-value">Số lượng mới</strong>
+                                <p class="adjust-metric-text">Lưu lại kết quả kiểm đếm thực tế và lý do điều chỉnh rõ ràng.</p>
+                            </article>
+                        </div>
+
+                        <div class="inv-step-row adjust-step-row">
+                            <span class="inv-step-chip" data-adjust-step="warehouse">1. Chọn kho</span>
+                            <span class="inv-step-chip" data-adjust-step="product">2. Chọn sản phẩm</span>
+                            <span class="inv-step-chip" data-adjust-step="quantity">3. Nhập số lượng mới</span>
+                            <span class="inv-step-chip" data-adjust-step="note">4. Bổ sung lý do</span>
+                        </div>
+
+                        <div class="adjust-form-grid">
+                            <section class="adjust-form-card adjust-form-card--wide">
+                                <div class="adjust-form-card__head">
+                                    <div>
+                                        <div class="adjust-form-card__title">Phạm vi điều chỉnh</div>
+                                        <div class="adjust-form-card__desc">Chọn kho và sản phẩm trước khi cập nhật tồn mới.</div>
+                                    </div>
+                                </div>
+
+                                <div class="adjust-scope-grid">
+                                    <div class="adjust-field">
+                                        <label asp-for="WarehouseId" class="field-label">Kho</label>
+                                        <select asp-for="WarehouseId"
+                                                asp-items="Model.Warehouses"
+                                                class="form-select field-control js-filterable-select"
+                                                id="adjustWarehouseSelect">
+                                            <option value="">-- Chọn kho --</option>
+                                        </select>
+                                        <span asp-validation-for="WarehouseId" class="text-danger small"></span>
+                                    </div>
+
+                                    <div class="adjust-field">
+                                        <label asp-for="ProductId" class="field-label">Sản phẩm</label>
+                                        <select asp-for="ProductId"
+                                                asp-items="Model.Products"
+                                                class="form-select field-control js-filterable-select"
+                                                id="adjustProductSelect"
+                                                data-search-placeholder="Tìm sản phẩm cần điều chỉnh...">
+                                            <option value="">-- Chọn sản phẩm --</option>
+                                        </select>
+                                        <span asp-validation-for="ProductId" class="text-danger small"></span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="adjust-form-card">
+                                <div class="adjust-form-card__head">
+                                    <div>
+                                        <div class="adjust-form-card__title">Số lượng sau kiểm kê</div>
+                                        <div class="adjust-form-card__desc">Nhập số tồn mới đã được kiểm đếm và đối chiếu.</div>
+                                    </div>
+                                </div>
+
+                                <label asp-for="NewQuantity" class="field-label">Số lượng mới</label>
+                                <input asp-for="NewQuantity"
+                                       class="form-control field-control adjust-quantity-input"
+                                       id="adjustQuantityInput"
+                                       type="number"
+                                       min="0"
+                                       step="1"
+                                       placeholder="Nhập số lượng mới" />
+                                <span asp-validation-for="NewQuantity" class="text-danger small"></span>
+                            </section>
+
+                            <section class="adjust-form-card">
+                                <div class="adjust-form-card__head">
+                                    <div>
+                                        <div class="adjust-form-card__title">Lý do cập nhật</div>
+                                        <div class="adjust-form-card__desc">Ghi rõ nguyên nhân để tiện tra cứu trong lịch sử kho.</div>
+                                    </div>
+                                </div>
+
+                                <label asp-for="Note" class="field-label">Lý do</label>
+                                <textarea asp-for="Note"
+                                          class="form-control field-control textarea-control adjust-note-input"
+                                          id="adjustNoteInput"
+                                          rows="5"
+                                          placeholder="Ví dụ: kiểm kê lại kho, cập nhật chênh lệch thực tế, hàng lỗi cần loại bỏ..."></textarea>
+                                <span asp-validation-for="Note" class="text-danger small"></span>
+                            </section>
+                        </div>
+
+                        <div class="form-footer adjust-form-footer">
+                            <div class="adjust-footer-note">
+                                <i class="fa fa-shield"></i>
+                                <span>Thay đổi sẽ được ghi vào lịch sử kho ngay sau khi lưu phiếu.</span>
+                            </div>
+
+                            <button type="submit" class="btn-submit-warning adjust-submit-btn">
+                                <i class="fa fa-check-circle"></i>
+                                <span>Lưu phiếu điều chỉnh</span>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="section-body">
-                <span class="inv-note-badge">Ảnh hưởng trực tiếp tới tồn kho hiện tại</span>
-
-                <ul class="info-list">
-                    <li>Chọn đúng kho đang kiểm kê trước khi cập nhật số lượng.</li>
-                    <li>Dùng ô tìm kiếm sản phẩm để tránh chọn nhầm mã tương tự.</li>
-                    <li>Nhập số lượng tồn mới sau khi đã đối chiếu thực tế.</li>
-                    <li>Ghi rõ lý do để dễ tra lại khi xem lịch sử điều chỉnh.</li>
-                </ul>
-            </div>
         </div>
+
+        <aside class="adjust-layout__side">
+            <div class="card-soft inv-panel info-card adjust-summary-card">
+                <div class="section-head">
+                    <div>
+                        <div class="section-title">
+                            <i class="fa fa-crosshairs"></i>
+                            <span>Tóm tắt thao tác</span>
+                        </div>
+                        <div class="section-subtitle">Theo dõi nhanh các thông tin sẽ được ghi nhận trước khi xác nhận.</div>
+                    </div>
+                </div>
+
+                <div class="section-body">
+                    <span class="inv-note-badge">Ảnh hưởng trực tiếp tới tồn kho hiện tại</span>
+
+                    <div class="adjust-summary-grid">
+                        <div class="adjust-summary-item">
+                            <span class="adjust-summary-label">Kho được chọn</span>
+                            <strong class="adjust-summary-value" id="adjustSummaryWarehouse">Chưa chọn kho</strong>
+                        </div>
+
+                        <div class="adjust-summary-item">
+                            <span class="adjust-summary-label">Sản phẩm</span>
+                            <strong class="adjust-summary-value" id="adjustSummaryProduct">Chưa chọn sản phẩm</strong>
+                        </div>
+
+                        <div class="adjust-summary-item">
+                            <span class="adjust-summary-label">Số lượng mới</span>
+                            <strong class="adjust-summary-value" id="adjustSummaryQuantity">Chưa nhập số lượng</strong>
+                        </div>
+
+                        <div class="adjust-summary-item adjust-summary-item--note">
+                            <span class="adjust-summary-label">Ghi chú điều chỉnh</span>
+                            <div class="adjust-summary-note is-placeholder" id="adjustSummaryNote">Chưa có ghi chú điều chỉnh.</div>
+                        </div>
+                    </div>
+
+                    <div class="adjust-checklist">
+                        <div class="adjust-checklist__title">Checklist trước khi lưu</div>
+
+                        <div class="adjust-checklist__item" data-adjust-check="warehouse">
+                            <i class="fa fa-circle-o"></i>
+                            <span>Đã xác nhận đúng kho cần điều chỉnh</span>
+                        </div>
+
+                        <div class="adjust-checklist__item" data-adjust-check="product">
+                            <i class="fa fa-circle-o"></i>
+                            <span>Đã chọn đúng sản phẩm sau khi tìm kiếm</span>
+                        </div>
+
+                        <div class="adjust-checklist__item" data-adjust-check="quantity">
+                            <i class="fa fa-circle-o"></i>
+                            <span>Đã nhập số lượng mới theo kết quả kiểm kê</span>
+                        </div>
+
+                        <div class="adjust-checklist__item" data-adjust-check="note">
+                            <i class="fa fa-circle-o"></i>
+                            <span>Đã bổ sung lý do để tiện đối soát sau này</span>
+                        </div>
+                    </div>
+
+                    <div class="adjust-tip-box">
+                        <div class="adjust-tip-box__title">Lưu ý thao tác</div>
+                        <p>
+                            Khi lưu phiếu, hệ thống sẽ cập nhật số tồn mới của sản phẩm tại kho đã chọn và ghi lại lịch sử để
+                            đội kho, kế toán hoặc quản trị có thể tra cứu lại.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </aside>
     </div>
 </div>
 
@@ -131,6 +250,107 @@
             if (window.EshopAdminSelectFilter) {
                 window.EshopAdminSelectFilter.enhance(document);
             }
+
+            const warehouseSelect = document.getElementById("adjustWarehouseSelect");
+            const productSelect = document.getElementById("adjustProductSelect");
+            const quantityInput = document.getElementById("adjustQuantityInput");
+            const noteInput = document.getElementById("adjustNoteInput");
+
+            const summaryWarehouse = document.getElementById("adjustSummaryWarehouse");
+            const summaryProduct = document.getElementById("adjustSummaryProduct");
+            const summaryQuantity = document.getElementById("adjustSummaryQuantity");
+            const summaryNote = document.getElementById("adjustSummaryNote");
+
+            const stepWarehouse = document.querySelector('[data-adjust-step="warehouse"]');
+            const stepProduct = document.querySelector('[data-adjust-step="product"]');
+            const stepQuantity = document.querySelector('[data-adjust-step="quantity"]');
+            const stepNote = document.querySelector('[data-adjust-step="note"]');
+
+            const checkWarehouse = document.querySelector('[data-adjust-check="warehouse"]');
+            const checkProduct = document.querySelector('[data-adjust-check="product"]');
+            const checkQuantity = document.querySelector('[data-adjust-check="quantity"]');
+            const checkNote = document.querySelector('[data-adjust-check="note"]');
+
+            function getSelectedText(select) {
+                if (!select || !select.value) {
+                    return "";
+                }
+
+                const option = select.options[select.selectedIndex];
+                return option ? option.text.trim() : "";
+            }
+
+            function setCompletedState(element, isCompleted) {
+                if (!element) {
+                    return;
+                }
+
+                element.classList.toggle("is-complete", isCompleted);
+
+                const icon = element.querySelector("i");
+                if (icon) {
+                    icon.className = isCompleted ? "fa fa-check-circle" : "fa fa-circle-o";
+                }
+            }
+
+            function syncAdjustPreview() {
+                const warehouseText = getSelectedText(warehouseSelect);
+                const productText = getSelectedText(productSelect);
+                const noteText = noteInput ? noteInput.value.trim() : "";
+                const quantityText = quantityInput ? quantityInput.value.trim() : "";
+                const hasWarehouse = warehouseText.length > 0;
+                const hasProduct = productText.length > 0;
+                const hasQuantity = quantityText !== "" && Number(quantityText) >= 0;
+                const hasNote = noteText.length > 0;
+
+                if (summaryWarehouse) {
+                    summaryWarehouse.textContent = hasWarehouse ? warehouseText : "Chưa chọn kho";
+                }
+
+                if (summaryProduct) {
+                    summaryProduct.textContent = hasProduct ? productText : "Chưa chọn sản phẩm";
+                }
+
+                if (summaryQuantity) {
+                    summaryQuantity.textContent = hasQuantity
+                        ? Number(quantityText).toLocaleString("vi-VN") + " sản phẩm"
+                        : "Chưa nhập số lượng";
+                }
+
+                if (summaryNote) {
+                    summaryNote.textContent = hasNote ? noteText : "Chưa có ghi chú điều chỉnh.";
+                    summaryNote.classList.toggle("is-placeholder", !hasNote);
+                }
+
+                setCompletedState(stepWarehouse, hasWarehouse);
+                setCompletedState(stepProduct, hasProduct);
+                setCompletedState(stepQuantity, hasQuantity);
+                setCompletedState(stepNote, hasNote);
+
+                setCompletedState(checkWarehouse, hasWarehouse);
+                setCompletedState(checkProduct, hasProduct);
+                setCompletedState(checkQuantity, hasQuantity);
+                setCompletedState(checkNote, hasNote);
+            }
+
+            [warehouseSelect, productSelect].forEach(function (element) {
+                if (!element) {
+                    return;
+                }
+
+                element.addEventListener("change", syncAdjustPreview);
+            });
+
+            [quantityInput, noteInput].forEach(function (element) {
+                if (!element) {
+                    return;
+                }
+
+                element.addEventListener("input", syncAdjustPreview);
+                element.addEventListener("change", syncAdjustPreview);
+            });
+
+            syncAdjustPreview();
         })();
     </script>
 }

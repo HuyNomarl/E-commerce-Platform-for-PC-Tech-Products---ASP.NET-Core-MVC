@@ -12,7 +12,8 @@ namespace Eshop.Repository.Components
             _dataContext = dataContext;
         }
 
-        public async Task<IViewComponentResult> InvokeAsync() => View(await _dataContext.Contact.FirstOrDefaultAsync());
+        public async Task<IViewComponentResult> InvokeAsync()
+            => View(await _dataContext.Contact.AsNoTracking().FirstOrDefaultAsync());
 
     }
 }

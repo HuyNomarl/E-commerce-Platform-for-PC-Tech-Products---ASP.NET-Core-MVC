@@ -52,6 +52,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             var details = await _dataContext.OrderDetails
                 .Include(od => od.Product)
+                    .ThenInclude(p => p.ProductImages)
                 .Where(od => od.OrderId == order.OrderId)
                 .ToListAsync();
 
@@ -133,8 +134,10 @@ namespace Eshop.Areas.Admin.Controllers
                 return Json(new
                 {
                     success = true,
+                    message = $"Cap nhat trang thai don hang thanh cong: {OrderDisplayHelper.GetStatusLabel(newStatus)}.",
                     statusLabel = OrderDisplayHelper.GetStatusLabel(newStatus),
-                    statusBadgeClass = OrderDisplayHelper.GetBootstrapBadgeClass(newStatus)
+                    statusBadgeClass = OrderDisplayHelper.GetBootstrapBadgeClass(newStatus),
+                    reloadUrl = Url.Action(nameof(ViewOrder), new { area = "Admin", orderCode })
                 });
             }
             catch (Exception ex)

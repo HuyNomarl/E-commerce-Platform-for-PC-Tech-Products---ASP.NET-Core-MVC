@@ -2,6 +2,7 @@ using Eshop.Constants;
 using Eshop.Helpers;
 using Eshop.Models;
 using Eshop.Models.Enums;
+using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Eshop.Services;
 using Eshop.Views.ViewModels;
@@ -72,6 +73,8 @@ namespace Eshop.Controllers
                     return await _dataContext.Sliders
                         .AsNoTracking()
                         .Where(x => x.Status == 1)
+                        .Where(x => !string.IsNullOrWhiteSpace(x.Image))
+                        .OrderByDescending(x => x.Id)
                         .ToListAsync(cancel);
                 },
                 options: new HybridCacheEntryOptions
@@ -91,10 +94,14 @@ namespace Eshop.Controllers
                 recommendedProducts = await _recommendService.RecommendAsync(user.Id, 8);
             }
 
-            ViewBag.Sliders = sliders;
-            ViewBag.RecommendedProducts = recommendedProducts;
+            var viewModel = new HomeIndexViewModel
+            {
+                Products = products,
+                Sliders = sliders,
+                RecommendedProducts = recommendedProducts
+            };
 
-            return View(products);
+            return View(viewModel);
         }
 
         public IActionResult Privacy()

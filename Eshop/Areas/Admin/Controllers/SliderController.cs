@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -14,11 +15,13 @@ namespace Eshop.Areas.Admin.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly IWebHostEnvironment _env;
+        private readonly HybridCache _cache;
 
-        public SliderController(DataContext dataContext, IWebHostEnvironment env)
+        public SliderController(DataContext dataContext, IWebHostEnvironment env, HybridCache cache)
         {
             _dataContext = dataContext;
             _env = env;
+            _cache = cache;
         }
 
         public async Task<IActionResult> Index()
@@ -63,6 +66,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Sliders.Add(model);
             await _dataContext.SaveChangesAsync();
+            await RemoveHomeSliderCacheAsync();
 
             TempData["success"] = "Thêm slider thành công!";
             return RedirectToAction(nameof(Index));
@@ -124,6 +128,7 @@ namespace Eshop.Areas.Admin.Controllers
             }
 
             await _dataContext.SaveChangesAsync();
+            await RemoveHomeSliderCacheAsync();
 
             TempData["success"] = "Cập nhật slider thành công!";
             return RedirectToAction(nameof(Index));
@@ -147,11 +152,14 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Sliders.Remove(slider);
             await _dataContext.SaveChangesAsync();
+            await RemoveHomeSliderCacheAsync();
 
             TempData["success"] = "Xóa slider thành công!";
             return RedirectToAction(nameof(Index));
         }
 
+        private ValueTask RemoveHomeSliderCacheAsync(CancellationToken cancellationToken = default)
+            => _cache.RemoveAsync(CacheKeys.HomeSliders, cancellationToken);
 
     }
 }

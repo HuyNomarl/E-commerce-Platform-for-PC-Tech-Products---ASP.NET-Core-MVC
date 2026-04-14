@@ -31,11 +31,15 @@
 <style>
     .pd-box{background:#fff;border:1px solid #ececec;border-radius:14px;padding:20px;box-shadow:0 12px 30px rgba(15,23,42,.05)}
     .pd-page{display:flex;flex-direction:column;gap:20px}
-    .pd-gallery{border:1px solid #eef2f7;border-radius:14px;background:#f8fafc;min-height:340px;display:flex;align-items:center;justify-content:center;padding:16px}
-    .pd-gallery img{width:100%;max-height:300px;object-fit:contain}
-    .pd-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:10px;margin-top:12px}
-    .pd-thumb{border:1px solid #dbe4ef;border-radius:12px;background:#fff;padding:6px;cursor:pointer}
+    .pd-gallery-frame{display:flex;flex-direction:column;gap:12px}
+    .pd-gallery{position:relative;border:1px solid #eef2f7;border-radius:18px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);min-height:380px;display:flex;align-items:center;justify-content:center;padding:20px}
+    .pd-gallery img{width:100%;max-height:320px;object-fit:contain}
+    .pd-gallery-badge{position:absolute;top:14px;right:14px;display:inline-flex;align-items:center;padding:6px 12px;border-radius:999px;background:rgba(15,23,42,.82);color:#fff;font-size:12px;font-weight:700}
+    .pd-thumbs{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));gap:10px}
+    .pd-thumb{border:1px solid #dbe4ef;border-radius:12px;background:#fff;padding:6px;cursor:pointer;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
     .pd-thumb.active,.pd-thumb:hover{border-color:#fe980f}
+    .pd-thumb.active,.pd-thumb:focus{box-shadow:0 0 0 3px rgba(254,152,15,.18);outline:none}
+    .pd-thumb:hover{transform:translateY(-2px)}
     .pd-thumb img{width:100%;height:62px;object-fit:contain}
     .pd-title{margin:0 0 10px;font-size:30px;color:#0f172a;font-weight:700;line-height:1.3}
     .pd-meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
@@ -89,12 +93,18 @@
             <div class="pd-box">
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="pd-gallery">
+                        <div class="pd-gallery-frame">
+                            <div class="pd-gallery">
+                                @if (galleryItems.Count > 1)
+                                {
+                                    <span class="pd-gallery-badge">@galleryItems.Count ảnh</span>
+                                }
+
                             @if (mainGalleryItem != null)
                             {
                                 <img id="mainProductImage" src="@mainGalleryItem.Url" alt="@mainGalleryItem.AltText" />
                             }
-                            else if (!(User.Identity?.IsAuthenticated ?? false))
+                            else
                             {
                                 <div class="text-muted text-center"><i class="fa fa-image"></i><br />Chưa có hình ảnh</div>
                             }
@@ -102,15 +112,16 @@
 
                         @if (galleryItems.Count > 1)
                         {
-                            <div class="pd-thumbs">
+                            <div class="pd-thumbs" aria-label="Danh sách ảnh sản phẩm">
                                 @foreach (var item in galleryItems)
                                 {
-                                    <button type="button" class="pd-thumb @(item == mainGalleryItem ? "active" : "")" data-image="@item.Url" data-alt="@item.AltText">
+                                    <button type="button" class="pd-thumb @(item == mainGalleryItem ? "active" : "")" data-image="@item.Url" data-alt="@item.AltText" aria-label="Xem ảnh @item.AltText">
                                         <img src="@item.Url" alt="@item.AltText" />
                                     </button>
                                 }
                             </div>
                         }
+                        </div>
                     </div>
 
                     <div class="col-md-6">

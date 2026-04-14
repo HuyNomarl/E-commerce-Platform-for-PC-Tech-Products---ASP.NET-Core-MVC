@@ -6,6 +6,7 @@
     var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
     var isBackOfficeUser = User.CanAccessBackOffice();
     var canUseWishlistCompareLinks = !isBackOfficeUser || User.CanUseWishlistAndCompare();
+    var bodyClass = ViewData["BodyClass"]?.ToString() ?? string.Empty;
 
     var cartItems = Context.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
     var cartCount = cartItems.Sum(x => x.Quantity);
@@ -70,7 +71,7 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
+<body class="@bodyClass">
     <partial name="_SupportChatPartial" />
 
     <header class="tt-header">
@@ -137,7 +138,7 @@
                     </div>
 
                     <div class="tt-search-col">
-                        <form asp-controller="Product" asp-action="Search" method="post" class="tt-search-form">
+                        <form asp-controller="Product" asp-action="Search" method="get" class="tt-search-form">
                             <select name="categoryId" class="tt-search-select">
                                 <option value="">Tất cả danh mục</option>
                             </select>
@@ -241,16 +242,7 @@
         </div>
     </section>
 
-    <footer id="footer">
-        <partial name="_FooterPartial" />
-        <div class="footer-bottom">
-            <div class="container">
-                <div class="row">
-                    <p class="pull-left">Copyright © 2025 E-SHOPPER Inc. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <partial name="_FooterPartial" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.17/dist/sweetalert2.all.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

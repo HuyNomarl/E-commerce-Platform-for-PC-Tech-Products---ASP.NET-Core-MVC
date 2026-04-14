@@ -77,11 +77,15 @@ function initSupportChat() {
     function showChat() {
         chatBox.classList.remove("is-hidden");
         chatBox.setAttribute("aria-hidden", "false");
+        document.body.classList.add("support-chat-open");
+        window.dispatchEvent(new CustomEvent("eshop:support-chat-opened"));
     }
 
     function hideChat() {
         chatBox.classList.add("is-hidden");
         chatBox.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("support-chat-open");
+        window.dispatchEvent(new CustomEvent("eshop:support-chat-closed"));
     }
 
     function scrollToBottom() {

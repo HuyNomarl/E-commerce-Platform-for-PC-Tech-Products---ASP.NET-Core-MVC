@@ -113,17 +113,39 @@
                                 {
                                     <tr>
                                         <td>
-                                            <div class="cell-main">@item.ProductName</div>
-                                            @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
-                                            {
-                                                <div class="cell-sub">
-                                                    @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
-                                                    @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
+                                            @{
+                                                var imageSrc = ProductImageHelper.ResolveAssetUrl(item.ProductImage)
+                                                    ?? ProductImageHelper.ResolveProductImage(item.Product);
+                                            }
+                                            <div class="order-item-cell">
+                                                @if (!string.IsNullOrWhiteSpace(imageSrc))
+                                                {
+                                                    <img src="@imageSrc"
+                                                         alt="@item.ProductName"
+                                                         class="order-item-thumb"
+                                                         loading="lazy" />
+                                                }
+                                                else
+                                                {
+                                                    <div class="order-item-thumb order-item-thumb--placeholder" aria-hidden="true">
+                                                        <i class="fa fa-picture-o"></i>
+                                                    </div>
+                                                }
+
+                                                <div class="order-item-body">
+                                                    <div class="cell-main">@item.ProductName</div>
+                                                    @if (!string.IsNullOrWhiteSpace(item.BuildName) || !string.IsNullOrWhiteSpace(item.ComponentType))
                                                     {
-                                                        <span> - @item.ComponentType</span>
+                                                        <div class="cell-sub">
+                                                            @(string.IsNullOrWhiteSpace(item.BuildName) ? item.ComponentType : item.BuildName)
+                                                            @if (!string.IsNullOrWhiteSpace(item.BuildName) && !string.IsNullOrWhiteSpace(item.ComponentType))
+                                                            {
+                                                                <span> - @item.ComponentType</span>
+                                                            }
+                                                        </div>
                                                     }
                                                 </div>
-                                            }
+                                            </div>
                                         </td>
                                         <td class="text-right">
                                             <span class="money-text">@item.Price.ToString("N0") đ</span>
@@ -175,6 +197,7 @@
                                         <select asp-for="Status"
                                                 asp-items="Model.StatusList"
                                                 id="orderStatus"
+                                                data-current-status="@Model.Status"
                                                 class="form-control input-soft status-select">
                                         </select>
                                     }
@@ -183,10 +206,16 @@
                                         <select asp-for="Status"
                                                 asp-items="Model.StatusList"
                                                 id="orderStatus"
+                                                data-current-status="@Model.Status"
                                                 class="form-control input-soft status-select"
                                                 disabled>
                                         </select>
                                     }
+                                    <div class="status-helper">
+                                        @(canChangeStatus
+                                            ? "Chọn trạng thái mới, xác nhận. Sau đó hệ thống sẽ đồng bộ lại trạng thái."
+                                            : "Đơn hàng đang ở trạng thái cuối, không thể cập nhật thêm.")
+                                    </div>
                                 </th>
                             </tr>
                         </tfoot>
@@ -315,6 +344,36 @@
         background: #fafafa;
     }
 
+    .order-item-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .order-item-body {
+        min-width: 0;
+    }
+
+    .order-item-thumb {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+    }
+
+    .order-item-thumb--placeholder {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        color: #94a3b8;
+        font-size: 20px;
+    }
+
     .cell-main {
         font-weight: 700;
         color: #111827;
@@ -365,6 +424,18 @@
 
     .status-select {
         min-width: 220px;
+    }
+
+    .status-select.is-updating {
+        opacity: .7;
+        cursor: wait;
+    }
+
+    .status-helper {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #6b7280;
+        line-height: 1.5;
     }
 
     .btn-outline-secondary {
@@ -443,13 +514,21 @@
 
 @section Scripts {
     <script>
+        let isUpdatingOrderStatus = false;
+
         $(document).on('change', '#orderStatus', async function () {
+            const $statusSelect = $(this);
             const orderCode = $('#orderCode').val();
-            const status = $(this).val();
+            const status = $statusSelect.val();
             const selectedText = $('#orderStatus option:selected').text();
             const token = $('input[name="__RequestVerificationToken"]').val();
-            const previousValue = '@Model.Status';
-            const previousText = '@OrderDisplayHelper.GetStatusLabel(Model.Status)';
+            const previousValue = $statusSelect.attr('data-current-status') || '@Model.Status';
+            const previousText = $statusSelect.find(`option[value="${previousValue}"]`).text() || '@OrderDisplayHelper.GetStatusLabel(Model.Status)';
+
+            if (isUpdatingOrderStatus || !status || status === previousValue) {
+                $statusSelect.val(previousValue);
+                return;
+            }
 
             const confirmResult = await showAppConfirm({
                 title: 'Cập nhật trạng thái đơn hàng?',
@@ -459,9 +538,12 @@
             });
 
             if (!confirmResult.isConfirmed) {
-                $(this).val(previousValue);
+                $statusSelect.val(previousValue);
                 return;
             }
+
+            isUpdatingOrderStatus = true;
+            $statusSelect.prop('disabled', true).addClass('is-updating');
 
             $.ajax({
                 url: '@Url.Action("UpdateOrder", "Order", new { area = "Admin" })',
@@ -473,17 +555,22 @@
                 },
                 success: async function (res) {
                     if (res.success) {
-                        await showAppAlert(`Đã cập nhật trạng thái sang "${res.statusLabel}".`, 'success');
-                        location.reload();
+                        $statusSelect.attr('data-current-status', status);
+                        await showAppAlert(res.message || `Đã cập nhật trạng thái sang "${res.statusLabel}".`, 'success');
+                        window.location.href = res.reloadUrl || window.location.href;
                     } else {
                         await showAppAlert(res.message || 'Không thể cập nhật trạng thái.', 'error');
-                        $('#orderStatus').val(previousValue);
+                        $statusSelect.val(previousValue);
+                        $statusSelect.prop('disabled', false).removeClass('is-updating');
+                        isUpdatingOrderStatus = false;
                     }
                 },
                 error: async function (xhr) {
                     const message = xhr.responseJSON?.message || 'Cập nhật trạng thái thất bại.';
                     await showAppAlert(message, 'error');
-                    $('#orderStatus').val(previousValue);
+                    $statusSelect.val(previousValue);
+                    $statusSelect.prop('disabled', false).removeClass('is-updating');
+                    isUpdatingOrderStatus = false;
                 }
             });
         });

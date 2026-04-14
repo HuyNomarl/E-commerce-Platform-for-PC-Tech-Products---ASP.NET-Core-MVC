@@ -592,6 +592,7 @@ namespace Eshop.Controllers
 
             var orderDetails = await _dataContext.OrderDetails
                 .Include(x => x.Product)
+                    .ThenInclude(x => x.ProductImages)
                 .Where(x => x.OrderId == order.OrderId)
                 .ToListAsync();
 
@@ -617,6 +618,8 @@ namespace Eshop.Controllers
                     ProductName = !string.IsNullOrWhiteSpace(x.ProductName)
                         ? x.ProductName
                         : (x.Product != null ? x.Product.Name : string.Empty),
+                    ProductImageUrl = ProductImageHelper.ResolveAssetUrl(x.ProductImage)
+                        ?? ProductImageHelper.ResolveProductImage(x.Product),
                     Price = x.Price,
                     Quantity = x.Quantity,
                     BuildName = x.BuildName,
@@ -630,12 +633,22 @@ namespace Eshop.Controllers
         [Authorize(Policy = PolicyNames.CustomerSelfService)]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CancelOrder(string orderCode)
+        public async Task<IActionResult> CancelOrder(string orderCode, string? returnUrl = null)
         {
+            IActionResult RedirectToSafeLocation()
+            {
+                if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                return RedirectToAction(nameof(History));
+            }
+
             if (string.IsNullOrWhiteSpace(orderCode))
             {
                 TempData["error"] = "Mã đơn hàng không hợp lệ.";
-                return RedirectToAction(nameof(History));
+                return RedirectToSafeLocation();
             }
 
             var currentUser = await _userManager.GetUserAsync(User);
@@ -650,13 +663,13 @@ namespace Eshop.Controllers
             if (order == null)
             {
                 TempData["error"] = "Không tìm thấy đơn hàng.";
-                return RedirectToAction(nameof(History));
+                return RedirectToSafeLocation();
             }
 
             if (!_orderStateService.CanCustomerCancel((OrderStatus)order.Status))
             {
                 TempData["error"] = "Đơn hàng này không còn ở trạng thái cho phép khách hủy.";
-                return RedirectToAction(nameof(History));
+                return RedirectToSafeLocation();
             }
 
             await using var tx = await _dataContext.Database.BeginTransactionAsync();
@@ -681,7 +694,7 @@ namespace Eshop.Controllers
                 TempData["error"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(History));
+            return RedirectToSafeLocation();
         }
 
 
