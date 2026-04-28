@@ -1,4 +1,5 @@
 using Eshop.Models;
+using Eshop.Models.Enums;
 using Eshop.Repository;
 
 namespace Eshop.Helpers
@@ -10,6 +11,12 @@ namespace Eshop.Helpers
             DataContext context)
         {
             return query.Where(product =>
+                (
+                    product.ProductType == ProductType.Normal ||
+                    product.ProductType == ProductType.PcPrebuilt ||
+                    product.ProductType == ProductType.Component ||
+                    product.ProductType == ProductType.Monitor
+                ) &&
                 product.Status == 1 &&
                 product.Category.Status == 1 &&
                 (

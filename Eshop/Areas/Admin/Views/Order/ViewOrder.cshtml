@@ -2,7 +2,7 @@
 @using Eshop.Helpers
 
 @{
-    ViewData["Title"] = "Chi tiet don hang";
+    ViewData["Title"] = "Chi tiết đơn hàng";
     var canChangeStatus = Model.StatusList.Count > 1;
 }
 
@@ -10,23 +10,23 @@
     <div class="col-12">
         <div class="page-head">
             <div>
-                <h4 class="mb-1">Chi tiet don hang</h4>
-                <div class="page-subtitle">Theo doi thong tin khach hang, thanh toan, trang thai va cac san pham trong don.</div>
+                <h4 class="mb-1">Chi tiết đơn hàng</h4>
+                <div class="page-subtitle">Theo dõi thông tin khách hàng, thanh toán, trạng thái và các sản phẩm trong đơn.</div>
             </div>
 
             <div class="page-actions">
                 <a asp-action="ExportInvoice"
-                   asp-controller="Order"
-                   asp-area="Admin"
-                   asp-route-orderCode="@Model.OrderCode"
-                   target="_blank"
-                   rel="noopener"
-                   class="btn btn-primary">
-                    <i class="fa fa-print me-1"></i> Xuat hoa don
+                       asp-controller="Order"
+                       asp-area="Admin"
+                       asp-route-orderCode="@Model.OrderCode"
+                       target="_blank"
+                       rel="noopener"
+                       class="btn btn-primary">
+                    <i class="fa fa-print me-1"></i> Xuất hóa đơn
                 </a>
 
                 <a asp-action="Index" asp-controller="Order" asp-area="Admin" class="btn btn-outline-secondary">
-                    <i class="fa fa-arrow-left me-1"></i> Quay lai
+                    <i class="fa fa-arrow-left me-1"></i> Quay lại
                 </a>
             </div>
         </div>
@@ -34,20 +34,20 @@
 
     <div class="col-12 col-xl-7">
         <div class="card-soft info-card">
-            <div class="section-title">Thong tin don hang</div>
+            <div class="section-title">Thông tin đơn hàng</div>
             <div class="info-grid">
                 <div class="info-item">
-                    <div class="info-label">Ma don</div>
+                    <div class="info-label">Mã đơn</div>
                     <div class="info-value code-pill">@Model.OrderCode</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Ngay dat</div>
+                    <div class="info-label">Ngày đặt</div>
                     <div class="info-value">@Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Trang thai</div>
+                    <div class="info-label">Trạng thái</div>
                     <div class="info-value">
                         <span class="status-pill @OrderDisplayHelper.GetSoftBadgeClass(Model.Status)">
                             @OrderDisplayHelper.GetStatusLabel(Model.Status)
@@ -56,7 +56,7 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Thanh toan</div>
+                    <div class="info-label">Thanh toán</div>
                     <div class="info-value">
                         <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(Model.PaymentMethod)">
                             @OrderDisplayHelper.GetPaymentMethodLabel(Model.PaymentMethod)
@@ -65,17 +65,17 @@
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Tai khoan</div>
+                    <div class="info-label">Tài khoản</div>
                     <div class="info-value">@Model.UserName</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">Nguoi nhan</div>
+                    <div class="info-label">Người nhận</div>
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.CustomerDisplayName) ? "-" : Model.CustomerDisplayName)</div>
                 </div>
 
                 <div class="info-item">
-                    <div class="info-label">So dien thoai</div>
+                    <div class="info-label">Số điện thoại</div>
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Phone) ? "-" : Model.Phone)</div>
                 </div>
 
@@ -85,13 +85,13 @@
                 </div>
 
                 <div class="info-item info-item--full">
-                    <div class="info-label">Dia chi giao hang</div>
+                    <div class="info-label">Địa chỉ giao hàng</div>
                     <div class="info-value">@(string.IsNullOrWhiteSpace(Model.ShippingAddressDisplay) ? "-" : Model.ShippingAddressDisplay)</div>
                 </div>
 
                 <div class="info-item info-item--full">
-                    <div class="info-label">Ghi chu</div>
-                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Khong co ghi chu" : Model.Note)</div>
+                    <div class="info-label">Ghi chú</div>
+                    <div class="info-value">@(string.IsNullOrWhiteSpace(Model.Note) ? "Không có ghi chú" : Model.Note)</div>
                 </div>
             </div>
         </div>
@@ -99,30 +99,30 @@
 
     <div class="col-12 col-xl-5">
         <div class="card-soft summary-card">
-            <div class="section-title">Tong quan thanh toan</div>
+            <div class="section-title">Tổng quan thanh toán</div>
 
             <div class="summary-row">
-                <span>Tam tinh</span>
-                <strong>@Model.SubTotal.ToString("N0") d</strong>
+                <span>Tạm tính</span>
+                <strong>@Model.SubTotal.ToString("N0") đ</strong>
             </div>
             <div class="summary-row">
-                <span>Giam gia</span>
-                <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+                <span>Giảm giá</span>
+                <strong>-@Model.DiscountAmount.ToString("N0") đ</strong>
             </div>
             <div class="summary-row">
-                <span>Phi van chuyen</span>
-                <strong>@Model.ShippingCost.ToString("N0") d</strong>
+                <span>Phí vận chuyển</span>
+                <strong>@Model.ShippingCost.ToString("N0") đ</strong>
             </div>
             <div class="summary-row summary-row--total">
-                <span>Tong thanh toan</span>
-                <strong>@Model.TotalAmount.ToString("N0") d</strong>
+                <span>Tổng thanh toán</span>
+                <strong>@Model.TotalAmount.ToString("N0") đ</strong>
             </div>
 
             <form id="updateForm" class="mt-4">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="orderCode" value="@Model.OrderCode" />
 
-                <label for="orderStatus" class="form-label fw-bold">Cap nhat trang thai</label>
+                <label for="orderStatus" class="form-label fw-bold">Cập nhật trạng thái</label>
                 @if (canChangeStatus)
                 {
                     <select asp-for="Status"
@@ -145,8 +145,8 @@
 
                 <div class="status-helper">
                     @(canChangeStatus
-                        ? "Chon trang thai moi va xac nhan. He thong se dong bo lai giao dien sau khi cap nhat."
-                        : "Don hang dang o trang thai cuoi, khong the cap nhat them.")
+                        ? "Chọn trạng thái mới và xác nhận. Hệ thống sẽ đồng bộ lại giao diện sau khi cập nhật."
+                        : "Đơn hàng đang ở trạng thái cuối, không thể cập nhật thêm.")
                 </div>
             </form>
         </div>
@@ -156,8 +156,8 @@
         <div class="card-soft table-card">
             <div class="table-toolbar">
                 <div>
-                    <div class="section-title mb-0">San pham trong don</div>
-                    <div class="section-subtitle">Kiem tra snapshot san pham, so luong va tong tien tung dong.</div>
+                    <div class="section-title mb-0">Sản phẩm trong đơn</div>
+                    <div class="section-subtitle">Kiểm tra snapshot sản phẩm, số lượng và tổng tiền từng dòng.</div>
                 </div>
             </div>
 
@@ -165,10 +165,10 @@
                 <table class="table detail-table" id="detail_order">
                     <thead>
                         <tr>
-                            <th>San pham</th>
-                            <th class="text-end">Gia</th>
-                            <th class="text-center">So luong</th>
-                            <th class="text-end">Thanh tien</th>
+                            <th>Sản phẩm</th>
+                            <th class="text-end">Giá</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -212,13 +212,13 @@
                                         </div>
                                     </td>
                                     <td class="text-end">
-                                        <span class="money-text">@item.Price.ToString("N0") d</span>
+                                        <span class="money-text">@item.Price.ToString("N0") đ</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="qty-pill">@item.Quantity</span>
                                     </td>
                                     <td class="text-end">
-                                        <span class="money-text">@((item.Price * item.Quantity).ToString("N0")) d</span>
+                                        <span class="money-text">@((item.Price * item.Quantity).ToString("N0")) đ</span>
                                     </td>
                                 </tr>
                             }
@@ -229,7 +229,7 @@
                                 <td colspan="4" class="empty-cell text-center">
                                     <div class="empty-wrap">
                                         <i class="fa fa-folder-open-o empty-icon"></i>
-                                        <div>Khong co chi tiet don hang.</div>
+                                        <div>Không có chi tiết đơn hàng.</div>
                                     </div>
                                 </td>
                             </tr>
@@ -522,10 +522,10 @@
             }
 
             const confirmResult = await showAppConfirm({
-                title: 'Cap nhat trang thai don hang?',
-                text: `Don se chuyen tu "${previousText}" sang "${selectedText}".`,
-                confirmButtonText: 'Cap nhat',
-                cancelButtonText: 'Huy'
+                title: 'Cập nhật trạng thái đơn hàng?',
+                text: `Đơn sẽ chuyển từ "${previousText}" sang "${selectedText}".`,
+                confirmButtonText: 'Cập nhật',
+                cancelButtonText: 'Hủy'
             });
 
             if (!confirmResult.isConfirmed) {
@@ -547,7 +547,7 @@
                 success: async function (res) {
                     if (res.success) {
                         $statusSelect.attr('data-current-status', status);
-                        await showAppAlert(res.message || `Da cap nhat trang thai sang "${res.statusLabel}".`, 'success');
+                        await showAppAlert(res.message || `Đã cập nhật trạng thái "${res.statusLabel}".`, 'success');
                         window.location.href = res.reloadUrl || window.location.href;
                     } else {
                         await showAppAlert(res.message || 'Khong the cap nhat trang thai.', 'error');

@@ -165,6 +165,9 @@ namespace Eshop.Services
                         .Include(p => p.Category)
                         .Include(p => p.ProductImages)
                         .WhereVisibleOnStorefront(_context)
+                        .OrderByDescending(p => p.Quantity > 0 ? 1 : 0)
+                        .ThenByDescending(p => p.Sold)
+                        .ThenByDescending(p => p.Id)
                         .ToListAsync(cancel);
                 },
                 options: new HybridCacheEntryOptions

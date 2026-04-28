@@ -2346,7 +2346,7 @@ namespace Eshop.Migrations
                     b.HasOne("Eshop.Models.PublisherModel", "Publisher")
                         .WithMany()
                         .HasForeignKey("PublisherId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Category");

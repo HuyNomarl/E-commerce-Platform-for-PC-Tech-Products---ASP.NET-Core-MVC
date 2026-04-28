@@ -2,8 +2,10 @@
 using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
+using Eshop.Constants;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
@@ -14,17 +16,20 @@ namespace Eshop.Services
         private readonly DataContext _context;
         private readonly ICartService _cartService;
         private readonly IBackgroundJobClient _backgroundJobClient;
+        private readonly HybridCache _cache;
         private readonly ILogger<InventoryService> _logger;
 
         public InventoryService(
             DataContext context,
             ICartService cartService,
             IBackgroundJobClient backgroundJobClient,
+            HybridCache cache,
             ILogger<InventoryService> logger)
         {
             _context = context;
             _cartService = cartService;
             _backgroundJobClient = backgroundJobClient;
+            _cache = cache;
             _logger = logger;
         }
 
@@ -884,6 +889,7 @@ namespace Eshop.Services
             product.Quantity = available < 0 ? 0 : available;
 
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             QueueProductRagSync(new[] { productId });
         }
 
@@ -899,6 +905,7 @@ namespace Eshop.Services
             }
 
             await _context.SaveChangesAsync();
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             QueueProductRagSync(products.Select(x => x.Id));
         }
 

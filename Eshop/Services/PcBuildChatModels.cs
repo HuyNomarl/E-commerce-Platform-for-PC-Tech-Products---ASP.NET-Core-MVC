@@ -12,7 +12,8 @@ namespace Eshop.Services
         ComponentRecommendation = 3,
         CompatibilityCheck = 4,
         KnowledgeCheck = 5,
-        Clarification = 6
+        Clarification = 6,
+        NotUnderstood = 7
     }
 
     internal sealed class PcBuildChatIntentAnalysis
@@ -20,10 +21,13 @@ namespace Eshop.Services
         public PcBuildChatIntentKind Intent { get; set; } = PcBuildChatIntentKind.GeneralHelp;
         public BuildRequirementProfile Requirement { get; set; } = new();
         public List<PcComponentType> TargetComponents { get; set; } = new();
+        public List<PcBuildChatHistoryItemDto> EffectiveHistory { get; set; } = new();
         public bool WantsProductSuggestions { get; set; }
         public bool NeedsClarification { get; set; }
         public bool ShouldGenerateBuildProposal { get; set; }
         public bool PotentialMisconception { get; set; }
+        public bool ShouldReject { get; set; }
+        public bool HasStrictBudgetCap { get; set; }
         public List<string> ClarificationHints { get; set; } = new();
         public string ConversationContext { get; set; } = string.Empty;
 
@@ -36,6 +40,7 @@ namespace Eshop.Services
                 PcBuildChatIntentKind.CompatibilityCheck => "compatibility_check",
                 PcBuildChatIntentKind.KnowledgeCheck => "knowledge_check",
                 PcBuildChatIntentKind.Clarification => "clarification",
+                PcBuildChatIntentKind.NotUnderstood => "not_understood",
                 _ => "general_help",
             };
     }

@@ -63,8 +63,24 @@ namespace Eshop.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            var blockReason = await GetDeleteBlockReasonAsync(id);
+            if (!string.IsNullOrWhiteSpace(blockReason))
+            {
+                TempData["error"] = blockReason;
+                return RedirectToAction(nameof(Index));
+            }
+
             _dataContext.Publishers.Remove(publisher);
-            await _dataContext.SaveChangesAsync();
+
+            try
+            {
+                await _dataContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["error"] = "Không thể xóa thương hiệu vì còn dữ liệu liên quan.";
+                return RedirectToAction(nameof(Index));
+            }
 
             TempData["success"] = "Xóa thương hiệu thành công!";
             return RedirectToAction(nameof(Index));
@@ -141,6 +157,21 @@ namespace Eshop.Areas.Admin.Controllers
         private async Task<bool> PublisherExists(int id)
         {
             return await _dataContext.Publishers.AnyAsync(e => e.Id == id);
+        }
+
+        private async Task<string?> GetDeleteBlockReasonAsync(int publisherId)
+        {
+            if (await _dataContext.Products.AnyAsync(x => x.PublisherId == publisherId))
+            {
+                return "Thương hiệu đang được gán cho sản phẩm nên không thể xóa.";
+            }
+
+            if (await _dataContext.InventoryReceipts.AnyAsync(x => x.PublisherId == publisherId))
+            {
+                return "Thương hiệu đã phát sinh phiếu nhập kho nên không được xóa.";
+            }
+
+            return null;
         }
 
         private static string BuildSlug(string? name)

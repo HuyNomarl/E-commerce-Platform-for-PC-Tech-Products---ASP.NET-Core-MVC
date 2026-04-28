@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -23,18 +23,18 @@ namespace Eshop.Areas.Admin.Controllers
     {
         private readonly DataContext _context;
         private readonly ICloudinaryService _cloudinaryService;
-        private readonly IMemoryCache _memoryCache;
+        private readonly HybridCache _cache;
         private readonly IProductCatalogRagSyncService _productCatalogRagSyncService;
 
         public PcComponentAdminController(
             DataContext context,
             ICloudinaryService cloudinaryService,
-            IMemoryCache memoryCache,
+            HybridCache cache,
             IProductCatalogRagSyncService productCatalogRagSyncService)
         {
             _context = context;
             _cloudinaryService = cloudinaryService;
-            _memoryCache = memoryCache;
+            _cache = cache;
             _productCatalogRagSyncService = productCatalogRagSyncService;
         }
 
@@ -144,7 +144,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Update(vm.Product);
             await _context.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await SyncProductRagAsync(vm.Product.Id);
 
             TempData["success"] = "Tạo linh kiện thành công.";
@@ -393,7 +393,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await SyncProductRagAsync(product.Id);
 
             TempData["success"] = "Cập nhật linh kiện thành công.";
@@ -442,7 +442,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             await DeleteProductFromRagAsync(id);
 
             TempData["success"] = "Xóa linh kiện thành công.";
@@ -463,7 +463,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             product.Status = product.Status == 1 ? 0 : 1;
             await _context.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
             if (product.Status == 1)
             {
                 await SyncProductRagAsync(product.Id);

@@ -79,6 +79,60 @@ namespace Eshop.Services
         public List<RagDocumentListItem> Documents { get; set; } = new();
     }
 
+    public class RagDocumentSyncItemRequest
+    {
+        [JsonPropertyName("doc_id")]
+        public string DocId { get; set; } = string.Empty;
+
+        [JsonPropertyName("content")]
+        public string Content { get; set; } = string.Empty;
+
+        [JsonPropertyName("source")]
+        public string? Source { get; set; }
+
+        [JsonPropertyName("metadata")]
+        public Dictionary<string, object?> Metadata { get; set; } = new();
+    }
+
+    public class RagDocumentSyncRequest
+    {
+        [JsonPropertyName("namespace")]
+        public string Namespace { get; set; } = string.Empty;
+
+        [JsonPropertyName("documents")]
+        public List<RagDocumentSyncItemRequest> Documents { get; set; } = new();
+
+        [JsonPropertyName("prune_missing")]
+        public bool PruneMissing { get; set; }
+
+        [JsonPropertyName("prune_prefix")]
+        public string? PrunePrefix { get; set; }
+    }
+
+    public class RagDocumentSyncResponse
+    {
+        [JsonPropertyName("namespace")]
+        public string Namespace { get; set; } = string.Empty;
+
+        [JsonPropertyName("input_count")]
+        public int InputCount { get; set; }
+
+        [JsonPropertyName("created_count")]
+        public int CreatedCount { get; set; }
+
+        [JsonPropertyName("updated_count")]
+        public int UpdatedCount { get; set; }
+
+        [JsonPropertyName("unchanged_count")]
+        public int UnchangedCount { get; set; }
+
+        [JsonPropertyName("deleted_count")]
+        public int DeletedCount { get; set; }
+
+        [JsonPropertyName("changed")]
+        public bool Changed { get; set; }
+    }
+
     public class RagClient
     {
         private readonly HttpClient _httpClient;
@@ -112,6 +166,15 @@ namespace Eshop.Services
         {
             var response = await _httpClient.PostAsJsonAsync("/documents/upsert", request, cancellationToken);
             response.EnsureSuccessStatusCode();
+        }
+
+        public async Task<RagDocumentSyncResponse?> SyncDocumentsAsync(
+            RagDocumentSyncRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var response = await _httpClient.PostAsJsonAsync("/documents/sync", request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<RagDocumentSyncResponse>(cancellationToken: cancellationToken);
         }
 
         public async Task DeleteDocumentAsync(string ns, string docId, CancellationToken cancellationToken = default)

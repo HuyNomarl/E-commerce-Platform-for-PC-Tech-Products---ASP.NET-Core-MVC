@@ -70,25 +70,38 @@ namespace Eshop.Services
                 .WhereVisibleOnStorefront(_context)
                 .Where(x => x.ComponentType.HasValue && targetComponents.Contains(x.ComponentType.Value));
 
-            var primaryProducts = ragRankMap.Any()
-                ? await baseQuery
-                    .Where(x => ragRankMap.Keys.Contains(x.Id))
-                    .ToListAsync(cancellationToken)
-                : new List<ProductModel>();
+            var componentBudget = ResolveComponentBudget(analysis, targetComponents.Count);
+            var strictSingleComponentQuery = targetComponents.Count == 1
+                && (analysis.Intent == PcBuildChatIntentKind.ComponentRecommendation
+                    || analysis.Intent == PcBuildChatIntentKind.UpgradeCurrentBuild);
 
-            var fallbackProducts = await baseQuery
+            if (analysis.Intent == PcBuildChatIntentKind.ComponentRecommendation
+                || analysis.Intent == PcBuildChatIntentKind.UpgradeCurrentBuild
+                || analysis.Intent == PcBuildChatIntentKind.CompatibilityCheck)
+            {
+                baseQuery = baseQuery.Where(x => x.Quantity > 0);
+            }
+
+            var candidateProducts = await baseQuery
                 .OrderByDescending(x => x.Sold)
-                .ThenByDescending(x => x.Price)
-                .Take(48)
+                .ThenBy(x => x.Price)
+                .Take(120)
                 .ToListAsync(cancellationToken);
 
-            var combinedProducts = primaryProducts
-                .Concat(fallbackProducts)
+            var filteredProducts = ApplyHardFilters(
+                candidateProducts,
+                analysis,
+                strictSingleComponentQuery,
+                componentBudget,
+                hasCurrentBuild,
+                selectedProducts,
+                checkResult);
+
+            var combinedProducts = filteredProducts
                 .GroupBy(x => x.Id)
                 .Select(x => x.First())
                 .ToList();
 
-            var componentBudget = ResolveComponentBudget(analysis, targetComponents.Count);
             var scoredProducts = combinedProducts
                 .Select(product => new
                 {
@@ -99,6 +112,11 @@ namespace Eshop.Services
                 .OrderByDescending(x => x.Score)
                 .ThenBy(x => x.Product.Price)
                 .ToList();
+
+            if (strictSingleComponentQuery && !scoredProducts.Any())
+            {
+                return new List<PcBuildChatSuggestedProductDto>();
+            }
 
             var results = new List<PcBuildChatSuggestedProductDto>();
             var perTypeCount = new Dictionary<PcComponentType, int>();
@@ -113,6 +131,29 @@ namespace Eshop.Services
                 }
 
                 var componentType = item.Product.ComponentType.Value;
+                if (strictSingleComponentQuery && componentType != targetComponents[0])
+                {
+                    continue;
+                }
+
+                if (strictSingleComponentQuery && componentBudget.HasValue && item.Product.Price > componentBudget.Value)
+                {
+                    continue;
+                }
+
+                if (strictSingleComponentQuery
+                    && analysis.Requirement.BudgetMin.HasValue
+                    && item.Product.Price < analysis.Requirement.BudgetMin.Value)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(analysis.Requirement.PreferredBrand)
+                    && !MatchesPreferredBrand(item.Product, analysis.Requirement.PreferredBrand))
+                {
+                    continue;
+                }
+
                 var currentCount = perTypeCount.GetValueOrDefault(componentType);
                 if (currentCount >= maxPerType)
                 {
@@ -167,12 +208,12 @@ namespace Eshop.Services
                 .Select(x =>
                 {
                     var product = products[x.ProductId];
-                    var quantityText = x.Quantity > 1 ? $" - so luong {x.Quantity}" : string.Empty;
+                    var quantityText = x.Quantity > 1 ? $" - số lượng {x.Quantity}" : string.Empty;
 
                     return new PcBuildChatSuggestedProductDto
                     {
                         ComponentType = x.ComponentType.ToString(),
-                        Reason = $"Linh kien trong cau hinh goi y{quantityText}.",
+                        Reason = $"Linh kiện trong cấu hình gợi ý{quantityText}.",
                         Product = PcBuilderProductMapper.ToCardDto(product)
                     };
                 })
@@ -196,7 +237,7 @@ namespace Eshop.Services
 
                 if (targetComponents.Any())
                 {
-                    queryParts.Add("Linh kien can tim: " + string.Join(", ", targetComponents));
+                    queryParts.Add("Linh kiện cần tìm: " + string.Join(", ", targetComponents));
                 }
 
                 if (!string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle))
@@ -206,22 +247,22 @@ namespace Eshop.Services
 
                 if (!string.IsNullOrWhiteSpace(analysis.Requirement.PrimaryPurpose))
                 {
-                    queryParts.Add($"Muc dich: {analysis.Requirement.PrimaryPurpose}");
+                    queryParts.Add($"Mục đích: {analysis.Requirement.PrimaryPurpose}");
                 }
 
                 if (analysis.Requirement.BudgetMax.HasValue)
                 {
-                    queryParts.Add($"Ngan sach toi da: {analysis.Requirement.BudgetMax.Value}");
+                    queryParts.Add($"Ngân sách tối đa: {analysis.Requirement.BudgetMax.Value}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(analysis.Requirement.ResolutionTarget))
                 {
-                    queryParts.Add($"Do phan giai: {analysis.Requirement.ResolutionTarget}");
+                    queryParts.Add($"Độ phân giải: {analysis.Requirement.ResolutionTarget}");
                 }
 
                 if (selectedProducts.Any())
                 {
-                    queryParts.Add("Build hien tai: " + string.Join("; ", selectedProducts.Select(x => x.Product.Name)));
+                    queryParts.Add("Build hiện tại: " + string.Join("; ", selectedProducts.Select(x => x.Product.Name)));
                 }
 
                 var response = await _ragClient.SearchAsync(
@@ -243,7 +284,7 @@ namespace Eshop.Services
 
                     if (!rankedIds.ContainsKey(productId))
                     {
-                        rankedIds[productId] = rank++;
+                rankedIds[productId] = rank++;
                     }
                 }
 
@@ -328,6 +369,50 @@ namespace Eshop.Services
             };
         }
 
+        private static List<ProductModel> ApplyHardFilters(
+            IEnumerable<ProductModel> products,
+            PcBuildChatIntentAnalysis analysis,
+            bool strictSingleComponentQuery,
+            decimal? componentBudget,
+            bool hasCurrentBuild,
+            IReadOnlyList<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult)
+        {
+            var filtered = products
+                .Where(product => product.ComponentType.HasValue)
+                .ToList();
+
+            if (strictSingleComponentQuery && componentBudget.HasValue)
+            {
+                filtered = filtered
+                    .Where(product => product.Price <= componentBudget.Value)
+                    .ToList();
+            }
+
+            if (strictSingleComponentQuery && analysis.Requirement.BudgetMin.HasValue)
+            {
+                filtered = filtered
+                    .Where(product => product.Price >= analysis.Requirement.BudgetMin.Value)
+                    .ToList();
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.PreferredBrand))
+            {
+                filtered = filtered
+                    .Where(product => MatchesPreferredBrand(product, analysis.Requirement.PreferredBrand))
+                    .ToList();
+            }
+
+            if (hasCurrentBuild)
+            {
+                filtered = filtered
+                    .Where(product => !ViolatesHardCompatibility(product, selectedProducts, checkResult))
+                    .ToList();
+            }
+
+            return filtered;
+        }
+
         private static double ScoreProduct(
             ProductModel product,
             PcBuildChatIntentAnalysis analysis,
@@ -388,6 +473,131 @@ namespace Eshop.Services
             }
 
             return score;
+        }
+
+        private static bool ViolatesHardCompatibility(
+            ProductModel candidate,
+            IReadOnlyList<PcBuildChatSelectedProduct> selectedProducts,
+            PcBuildCheckResponse checkResult)
+        {
+            if (!candidate.ComponentType.HasValue)
+            {
+                return true;
+            }
+
+            var cpu = GetSelectedProduct(selectedProducts, PcComponentType.CPU);
+            var mainboard = GetSelectedProduct(selectedProducts, PcComponentType.Mainboard);
+            var gpu = GetSelectedProduct(selectedProducts, PcComponentType.GPU);
+            var psu = GetSelectedProduct(selectedProducts, PcComponentType.PSU);
+            var pcCase = GetSelectedProduct(selectedProducts, PcComponentType.Case);
+            var cooler = GetSelectedProduct(selectedProducts, PcComponentType.Cooler);
+
+            return candidate.ComponentType.Value switch
+            {
+                PcComponentType.CPU => HasSocketMismatch(candidate, mainboard, "cpu_socket", "mb_socket"),
+                PcComponentType.Mainboard => HasSocketMismatch(cpu, candidate, "cpu_socket", "mb_socket")
+                    || HasCaseFormFactorMismatch(candidate, pcCase),
+                PcComponentType.RAM => HasRamTypeMismatch(candidate, mainboard),
+                PcComponentType.GPU => ExceedsCaseGpuLength(candidate, pcCase),
+                PcComponentType.PSU => HasInsufficientPsu(candidate, gpu, checkResult),
+                PcComponentType.Case => HasCaseFormFactorMismatch(mainboard, candidate)
+                    || ExceedsCaseGpuLength(gpu, candidate)
+                    || ExceedsCaseCoolerHeight(cooler, candidate)
+                    || HasPsuStandardMismatch(psu, candidate),
+                PcComponentType.Cooler => ExceedsCaseCoolerHeight(candidate, pcCase),
+                _ => false
+            };
+        }
+
+        private static bool MatchesPreferredBrand(ProductModel product, string preferredBrand)
+        {
+            if (string.IsNullOrWhiteSpace(preferredBrand))
+            {
+                return true;
+            }
+
+            var normalizedBrand = preferredBrand.Trim();
+
+            return product.Publisher?.Name?.Contains(normalizedBrand, StringComparison.OrdinalIgnoreCase) == true
+                || product.Name?.Contains(normalizedBrand, StringComparison.OrdinalIgnoreCase) == true;
+        }
+
+        private static bool HasSocketMismatch(ProductModel? cpuProduct, ProductModel? mainboardProduct, string cpuCode, string mainboardCode)
+        {
+            var cpuSocket = GetText(cpuProduct, cpuCode);
+            var mbSocket = GetText(mainboardProduct, mainboardCode);
+
+            return !string.IsNullOrWhiteSpace(cpuSocket)
+                && !string.IsNullOrWhiteSpace(mbSocket)
+                && !EqualsIgnoreCase(cpuSocket, mbSocket);
+        }
+
+        private static bool HasRamTypeMismatch(ProductModel? ramProduct, ProductModel? mainboardProduct)
+        {
+            var ramType = GetText(ramProduct, "ram_type");
+            var mbRamType = GetText(mainboardProduct, "mb_ram_type");
+
+            return !string.IsNullOrWhiteSpace(ramType)
+                && !string.IsNullOrWhiteSpace(mbRamType)
+                && !EqualsIgnoreCase(ramType, mbRamType);
+        }
+
+        private static bool ExceedsCaseGpuLength(ProductModel? gpuProduct, ProductModel? caseProduct)
+        {
+            var gpuLength = GetNumber(gpuProduct, "gpu_length_mm");
+            var caseMaxGpu = GetNumber(caseProduct, "case_max_gpu_length_mm");
+
+            return gpuLength.HasValue
+                && caseMaxGpu.HasValue
+                && gpuLength > caseMaxGpu;
+        }
+
+        private static bool ExceedsCaseCoolerHeight(ProductModel? coolerProduct, ProductModel? caseProduct)
+        {
+            var coolerHeight = GetNumber(coolerProduct, "cooler_height_mm");
+            var caseMaxCooler = GetNumber(caseProduct, "case_max_cooler_height_mm");
+
+            return coolerHeight.HasValue
+                && caseMaxCooler.HasValue
+                && coolerHeight > caseMaxCooler;
+        }
+
+        private static bool HasCaseFormFactorMismatch(ProductModel? mainboardProduct, ProductModel? caseProduct)
+        {
+            var mbSize = GetText(mainboardProduct, "mb_form_factor");
+            var supportedSizes = GetJsonList(caseProduct, "case_supported_mb_sizes");
+
+            return !string.IsNullOrWhiteSpace(mbSize)
+                && supportedSizes.Any()
+                && !supportedSizes.Any(x => EqualsIgnoreCase(x, mbSize));
+        }
+
+        private static bool HasPsuStandardMismatch(ProductModel? psuProduct, ProductModel? caseProduct)
+        {
+            var psuStandard = GetText(psuProduct, "psu_standard");
+            var casePsuStandard = GetText(caseProduct, "case_psu_standard");
+
+            return !string.IsNullOrWhiteSpace(psuStandard)
+                && !string.IsNullOrWhiteSpace(casePsuStandard)
+                && !EqualsIgnoreCase(psuStandard, casePsuStandard);
+        }
+
+        private static bool HasInsufficientPsu(ProductModel psuProduct, ProductModel? gpuProduct, PcBuildCheckResponse checkResult)
+        {
+            var psuWatt = GetNumber(psuProduct, "psu_watt");
+            if (!psuWatt.HasValue)
+            {
+                return false;
+            }
+
+            var recommendedPsu = GetNumber(gpuProduct, "gpu_recommended_psu_w");
+            if (recommendedPsu.HasValue && psuWatt < recommendedPsu)
+            {
+                return true;
+            }
+
+            return checkResult.EstimatedPower > 0
+                && psuWatt < checkResult.EstimatedPower * 1.1m;
         }
 
         private static double ScoreByComponentFocus(ProductModel product, PcBuildChatIntentAnalysis analysis)
@@ -668,13 +878,13 @@ namespace Eshop.Services
             {
                 return componentType switch
                 {
-                    PcComponentType.CPU => "CPU nay hop voi truy van va uu tien hieu nang hien tai.",
-                    PcComponentType.Mainboard => "Mainboard nay la ung vien tot de ghep voi cau hinh ban dang hoi.",
-                    PcComponentType.RAM => "Bo RAM nay phu hop de nang cap nhanh va de chon vao builder.",
-                    PcComponentType.GPU => "GPU nay noi bat trong tam gia va nhu cau ban vua mo ta.",
-                    PcComponentType.PSU => "PSU nay la lua chon an toan hon cho nhu cau cong suat hien tai.",
-                    PcComponentType.Case => "Case nay de lap vao build va kha hop cho nhu cau thong dung.",
-                    _ => "San pham nay khop voi cau hoi va du lieu build hien tai."
+                    PcComponentType.CPU => "CPU này hợp với truy vấn và ưu tiên hiệu năng hiện tại.",
+                    PcComponentType.Mainboard => "Mainboard này là ứng viên tốt để ghép với cấu hình bạn đang hỏi.",
+                    PcComponentType.RAM => "Bộ RAM này phù hợp để nâng cấp nhanh và dễ chọn vào builder.",
+                    PcComponentType.GPU => "GPU này nổi bật trong tầm giá và nhu cầu bạn vừa mô tả.",
+                    PcComponentType.PSU => "PSU này là lựa chọn an toàn hơn cho nhu cầu công suất hiện tại.",
+                    PcComponentType.Case => "Case này dễ lắp vào build và khá hợp cho nhu cầu thông dụng.",
+                    _ => "Sản phẩm này khớp với câu hỏi và dữ liệu build hiện tại."
                 };
             }
 
@@ -685,7 +895,7 @@ namespace Eshop.Services
                 var mbSocket = GetText(product, "mb_socket");
                 if (!string.IsNullOrWhiteSpace(cpuSocket) && !string.IsNullOrWhiteSpace(mbSocket) && EqualsIgnoreCase(cpuSocket, mbSocket))
                 {
-                    return "Mainboard nay khop socket voi CPU hien tai.";
+                    return "Mainboard này khớp socket với CPU hiện tại.";
                 }
             }
 
@@ -696,7 +906,7 @@ namespace Eshop.Services
                 var mbRamType = GetText(mainboard, "mb_ram_type");
                 if (!string.IsNullOrWhiteSpace(ramType) && !string.IsNullOrWhiteSpace(mbRamType) && EqualsIgnoreCase(ramType, mbRamType))
                 {
-                    return "Bo RAM nay dung chuan ma mainboard hien tai dang ho tro.";
+                    return "Bộ RAM này đúng chuẩn mà mainboard hiện tại đang hỗ trợ.";
                 }
             }
 
@@ -708,21 +918,21 @@ namespace Eshop.Services
                 var psuWatt = GetNumber(product, "psu_watt");
                 if (recommended.HasValue && psuWatt.HasValue && psuWatt >= recommended)
                 {
-                    return "Cong suat PSU nay de tho hon cho GPU hien tai.";
+                    return "Công suất PSU này dễ thở hơn cho GPU hiện tại.";
                 }
             }
 
             if (componentType == PcComponentType.Case)
             {
-                return "Case nay la ung vien hop ly neu ban dang can sua loi fit linh kien.";
+                return "Case này là ứng viên hợp lý nếu bạn đang cần sửa lỗi fit linh kiện.";
             }
 
             if (analysis.Intent == PcBuildChatIntentKind.CompatibilityCheck && checkResult.Messages.Any())
             {
-                return "San pham nay duoc uu tien de goi y sua loi tuong thich hien tai.";
+                return "Sản phẩm này được ưu tiên để gợi ý sửa lỗi tương thích hiện tại.";
             }
 
-            return "San pham nay duoc goi y dua tren cau hoi va build hien tai cua ban.";
+            return "Sản phẩm này được gợi ý dựa trên câu hỏi và build hiện tại của bạn.";
         }
 
         private static ProductModel? GetSelectedProduct(

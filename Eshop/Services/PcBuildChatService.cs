@@ -1,5 +1,6 @@
 using Eshop.Models;
 using Eshop.Models.Configurations;
+using Eshop.Models.Enums;
 using Eshop.Models.ViewModels;
 using Eshop.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -61,8 +62,19 @@ namespace Eshop.Services
             var analysis = await _intentAnalyzer.AnalyzeAsync(request);
             var requirement = analysis.Requirement ?? new BuildRequirementProfile();
 
+            if (analysis.ShouldReject)
+            {
+                return BuildOutOfScopeResponse(analysis);
+            }
+
             var buildRequest = await ResolveBuildRequestAsync(request, analysis, hasCurrentBuild);
             buildRequest.Items ??= new List<PcBuildCheckItemDto>();
+
+            if (ShouldReturnNoBuildProposalReply(analysis, hasCurrentBuild, buildRequest))
+            {
+                return BuildNoBuildProposalResponse(analysis);
+            }
+
             var selectedProducts = await LoadPromptProductsAsync(buildRequest.Items);
             var checkResult = await _compatibilityService.CheckAsync(buildRequest) ?? new PcBuildCheckResponse();
 
@@ -79,6 +91,13 @@ namespace Eshop.Services
                 selectedProducts,
                 checkResult,
                 safeMessage);
+
+            productSuggestions = ConstrainSuggestedProducts(analysis, productSuggestions);
+
+            if (ShouldReturnNoMatchingProductReply(analysis, productSuggestions))
+            {
+                return BuildNoMatchingProductResponse(analysis, checkResult);
+            }
 
             var ragTexts = await CollectRagContextAsync(
                 safeMessage,
@@ -225,9 +244,19 @@ namespace Eshop.Services
             PcBuildCheckResponse checkResult,
             List<PcBuildChatSuggestedProductDto> productSuggestions)
         {
+            if (!ShouldQueryNamespace(ns, analysis))
+            {
+                return new List<string>();
+            }
+
             try
             {
                 var query = BuildRagQuery(ns, userMessage, analysis, buildRequest, selectedProducts, checkResult, productSuggestions);
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    return new List<string>();
+                }
+
                 var rag = await _ragClient.SearchAsync(query, ns, k: 4, minScore: 0.05);
 
                 Log.Information("RAG namespace: {Namespace}", ns);
@@ -268,36 +297,41 @@ namespace Eshop.Services
             {
                 if (analysis.NeedsClarification)
                 {
-                    return $"Huong dan dat cau hoi build PC ro hon va cach chot nhu cau: {analysis.ConversationContext}";
+                    return $"Hướng dẫn đặt câu hỏi build PC rõ hơn và cách chốt nhu cầu: {analysis.ConversationContext}";
                 }
 
                 if (checkResult.Messages != null && checkResult.Messages.Any())
                 {
-                    return $"Giai thich va huong dan xu ly loi build PC: {string.Join("; ", checkResult.Messages.Select(x => x.Message))}";
+                    return $"Giải thích và hướng dẫn xử lý lỗi build PC: {string.Join("; ", checkResult.Messages.Select(x => x.Message))}";
                 }
 
                 if (selectedProducts.Any())
                 {
-                    return $"Huong dan build PC cho cau hinh dang xet: {string.Join("; ", selectedProducts.Select(x => x.Product.Name))}. Cau hoi: {userMessage}";
+                    return $"Hướng dẫn build PC cho cấu hình đang xét: {string.Join("; ", selectedProducts.Select(x => x.Product.Name))}. Câu hỏi: {userMessage}";
                 }
 
-                return $"Huong dan build PC theo nhu cau: {analysis.ConversationContext}";
+                return $"Hướng dẫn build PC theo nhu cầu: {analysis.ConversationContext}";
             }
 
             if (ns == "game_profile")
             {
+                if (!ShouldQueryGameProfile(analysis))
+                {
+                    return string.Empty;
+                }
+
                 var gameOrPurpose = !string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle)
                     ? analysis.Requirement.GameTitle
                     : analysis.Requirement.PrimaryPurpose;
 
-                return $"Nhu cau game hoac muc dich su dung: {gameOrPurpose}. Yeu cau: {analysis.ConversationContext}";
+                return $"Nhu cầu game hoặc mục đích sử dụng: {gameOrPurpose}. Yêu cầu: {analysis.ConversationContext}";
             }
 
             var parts = new List<string>();
 
             if (!string.IsNullOrWhiteSpace(analysis.Requirement.PrimaryPurpose))
             {
-                parts.Add($"Muc dich: {analysis.Requirement.PrimaryPurpose}");
+                parts.Add($"Mục đích: {analysis.Requirement.PrimaryPurpose}");
             }
 
             if (!string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle))
@@ -307,66 +341,69 @@ namespace Eshop.Services
 
             if (!string.IsNullOrWhiteSpace(analysis.Requirement.ResolutionTarget))
             {
-                parts.Add($"Do phan giai: {analysis.Requirement.ResolutionTarget}");
+                parts.Add($"Độ phân giải: {analysis.Requirement.ResolutionTarget}");
             }
 
             if (!string.IsNullOrWhiteSpace(analysis.Requirement.PerformancePriority))
             {
-                parts.Add($"Uu tien: {analysis.Requirement.PerformancePriority}");
+                parts.Add($"Ưu tiên: {analysis.Requirement.PerformancePriority}");
             }
 
             if (analysis.Requirement.BudgetMax.HasValue)
             {
-                parts.Add($"Ngan sach toi da: {analysis.Requirement.BudgetMax.Value}");
+                parts.Add($"Ngân sách tối đa: {analysis.Requirement.BudgetMax.Value}");
             }
 
             if (analysis.TargetComponents.Any())
             {
-                parts.Add("Linh kien quan tam: " + string.Join(", ", analysis.TargetComponents));
+                parts.Add("Linh kiện quan tâm: " + string.Join(", ", analysis.TargetComponents));
             }
 
             if (selectedProducts.Any())
             {
-                parts.Add("Cau hinh dang xet: " + string.Join("; ", selectedProducts.Select(x => x.Product.Name)));
+                parts.Add("Cấu hình đang xét: " + string.Join("; ", selectedProducts.Select(x => x.Product.Name)));
             }
             else if (buildRequest?.Items != null && buildRequest.Items.Any())
             {
-                parts.Add("Cau hinh goi y: " + string.Join("; ", buildRequest.Items.Select(x => $"{x.ComponentType}:{x.ProductId}")));
+                parts.Add("Cấu hình gợi ý: " + string.Join("; ", buildRequest.Items.Select(x => $"{x.ComponentType}:{x.ProductId}")));
             }
 
             if (productSuggestions.Any())
             {
-                parts.Add("San pham dang goi y: " + string.Join("; ", productSuggestions.Select(x => x.Product.Name)));
+                parts.Add("Sản phẩm đang gợi ý: " + string.Join("; ", productSuggestions.Select(x => x.Product.Name)));
             }
 
-            parts.Add($"Cau hoi: {analysis.ConversationContext}");
+            parts.Add($"Câu hỏi: {analysis.ConversationContext}");
             return string.Join(". ", parts);
         }
 
         private static string BuildSystemPrompt()
         {
             return """
-                Ban la tro ly tu van build PC cho website ban linh kien.
+            Bạn là trợ lý tư vấn build PC cho website bán linh kiện.
 
-                Quy tac:
-                - compatibility_result la nguon su that ky thuat.
-                - selected_build_products la danh sach san pham that tu catalog DB, uu tien thong tin nay khi phan tich cau hinh.
-                - catalog_suggestions la cac san pham that se duoc hien thanh card trong UI chat.
-                - intent_analysis mo ta loai cau hoi, linh kien dang duoc quan tam va cac diem con thieu.
-                - requirement_profile mo ta nhu cau nguoi dung.
-                - suggestions la goi y sua hoac toi uu.
-                - rag_context la tai lieu tham khao them tu huong dan build, profile game va catalog san pham.
-                - Tra loi bang tieng Viet, ngan gon, ro rang, co tinh tu van mua hang.
-                - Neu has_current_build = true, ban dang phan tich cau hinh hien tai cua nguoi dung.
-                - Neu has_current_build = false, ban dang tu van dua tren nhu cau va lich su hoi dap, khong duoc gia vo la da co cau hinh hoan chinh neu build dang rong.
-                - Tuyet doi khong noi "cau hinh ban chon" khi has_current_build = false va selected_build_products dang rong.
-                - Neu co loi tuong thich, hay noi ro loi, ly do va cach sua.
-                - Neu nguoi dung hoi sai kien thuc hoac premiss sai, hay noi ro diem sai mot cach lich su, sau do dua thong tin dung.
-                - Neu needs_clarification = true, hay noi ro con thieu thong tin gi va dat 1-3 cau hoi bo sung cu the.
-                - Neu dang hoi linh kien rieng le, uu tien tra loi xoay quanh linh kien do thay vi lat ra ca build.
-                - Neu rag_context va selected_build_products co xung dot, uu tien selected_build_products va compatibility_result.
-                - Neu catalog_suggestions co du lieu, co the nhac den 2-4 ten san pham noi bat va noi rang card san pham dang duoc hien ben duoi de nguoi dung tick chon vao Build PC.
-                """;
+            Quy tắc:
+            - compatibility_result là nguồn sự thật kỹ thuật.
+            - selected_build_products là danh sách sản phẩm thật từ catalog DB, ưu tiên thông tin này khi phân tích cấu hình.
+            - catalog_suggestions là các sản phẩm thật sẽ được hiển thị thành card trong UI chat.
+            - intent_analysis mô tả loại câu hỏi, linh kiện đang được quan tâm và các điểm còn thiếu.
+            - requirement_profile mô tả nhu cầu người dùng.
+            - suggestions là gợi ý sửa hoặc tối ưu.
+            - rag_context là tài liệu tham khảo thêm từ hướng dẫn build, profile game và catalog sản phẩm.
+            - Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng, có tính tư vấn mua hàng.
+            - Nếu has_current_build = true, bạn đang phân tích cấu hình hiện tại của người dùng.
+            - Nếu has_current_build = false, bạn đang tư vấn dựa trên nhu cầu và lịch sử hỏi đáp, không được giả vờ là đã có cấu hình hoàn chỉnh nếu build đang rỗng.
+            - Tuyệt đối không nói "cấu hình bạn chọn" khi has_current_build = false và selected_build_products đang rỗng.
+            - Nếu có lỗi tương thích, hãy nói rõ lỗi, lý do và cách sửa.
+            - Nếu người dùng hỏi sai kiến thức hoặc premise sai, hãy nói rõ điểm sai một cách lịch sự, sau đó đưa thông tin đúng.
+            - Nếu needs_clarification = true, hãy nói rõ còn thiếu thông tin gì và đặt 1-3 câu hỏi bổ sung cụ thể.
+            - Nếu đang hỏi linh kiện riêng lẻ, ưu tiên trả lời xoay quanh linh kiện đó thay vì lật ra cả build.
+            - Nếu rag_context và selected_build_products có xung đột, ưu tiên selected_build_products và compatibility_result.
+            - Nếu chat_intent = not_understood, câu trả lời phải là chính xác: "Tôi không rõ, tôi chỉ có thể tư vấn bạn build thôi."
+            - Nếu là truy vấn linh kiện đơn lẻ có BudgetMax, tuyệt đối không đề xuất sản phẩm vượt BudgetMax.
+            - Nếu catalog_suggestions rỗng cho một truy vấn linh kiện đã có ràng buộc rõ, hãy nói chưa tìm thấy sản phẩm phù hợp thay vì đoán tên sản phẩm.
+            - Nếu catalog_suggestions có dữ liệu, có thể nhắc đến 2-4 tên sản phẩm nổi bật và nói rằng card sản phẩm đang được hiển thị bên dưới để người dùng tick chọn vào Build PC.
+            """;
         }
 
         private static string BuildUserPrompt(
@@ -387,10 +424,13 @@ namespace Eshop.Services
             sb.AppendLine($"has_current_build: {hasCurrentBuild}");
             sb.AppendLine($"chat_intent: {analysis.IntentCode}");
             sb.AppendLine($"needs_clarification: {analysis.NeedsClarification}");
+            sb.AppendLine($"strict_budget_cap: {analysis.HasStrictBudgetCap}");
             sb.AppendLine($"potential_misconception: {analysis.PotentialMisconception}");
 
             sb.AppendLine("recent_chat_history:");
-            foreach (var item in request.History?.TakeLast(8) ?? new List<PcBuildChatHistoryItemDto>())
+            foreach (var item in analysis.EffectiveHistory
+                         .Where(x => x != null && !string.IsNullOrWhiteSpace(x.Content))
+                         .TakeLast(4))
             {
                 sb.AppendLine($"- {item.Role}: {item.Content}");
             }
@@ -432,7 +472,7 @@ namespace Eshop.Services
             }
             else
             {
-                sb.AppendLine("- Khong co build hien tai.");
+                sb.AppendLine("- Không có build hiện tại.");
             }
 
             sb.AppendLine("compatibility_result:");
@@ -454,7 +494,7 @@ namespace Eshop.Services
             sb.AppendLine("catalog_suggestions:");
             foreach (var suggestion in productSuggestions ?? new List<PcBuildChatSuggestedProductDto>())
             {
-                sb.AppendLine($"- [{suggestion.ComponentType}] {suggestion.Product.Name} | Gia: {suggestion.Product.Price} | Ly do: {suggestion.Reason}");
+                sb.AppendLine($"- [{suggestion.ComponentType}] {suggestion.Product.Name} | Giá: {suggestion.Product.Price} | Lý do: {suggestion.Reason}");
             }
 
             sb.AppendLine("rag_context:");
@@ -464,18 +504,49 @@ namespace Eshop.Services
             }
 
             sb.AppendLine("""
-                Quy tac tra loi:
-                - Neu needs_clarification = true, phan dau tien phai noi ro con thieu thong tin gi.
-                - Neu chat_intent = component_recommendation, tap trung vao linh kien nguoi dung dang hoi va de xuat phuong an de chon trong builder.
-                - Neu chat_intent = knowledge_check, phai sua thong tin sai neu co va giai thich ngan gon, de hieu.
-                - Neu chat_intent = upgrade_build, hay noi uu tien nang cap nao dang loi nhat truoc.
-                - Neu has_current_build = false va selected_build_products rong, khong duoc biet ra tong gia hay cong suat nhu mot build da chot.
-                - Khi nhac den san pham cu the, uu tien ten san pham va thong so trong selected_build_products hoac catalog_suggestions.
-                - Khong lap lai nguyen van du lieu prompt.
+                Quy tắc trả lời:
+                - Nếu chat_intent = not_understood, chỉ được trả lời: Tôi không rõ, tôi chỉ có thể tư vấn bạn build thôi.
+                - Nếu needs_clarification = true, phần đầu tiên phải nói rõ còn thiếu thông tin gì.
+                - Nếu chat_intent = component_recommendation, tập trung vào linh kiện người dùng đang hỏi và đề xuất phương án để chọn trong builder.
+                - Nếu chat_intent = knowledge_check, phải sửa thông tin sai nếu có và giải thích ngắn gọn, dễ hiểu.
+                - Nếu chat_intent = upgrade_build, hãy nói ưu tiên nâng cấp nào đáng lời nhất trước.
+                - Nếu has_current_build = false và selected_build_products rỗng, không được biết ra tổng giá hay công suất như một build đã chốt.
+                - Khi nhắc đến sản phẩm cụ thể, ưu tiên tên sản phẩm và thông số trong selected_build_products hoặc catalog_suggestions.
+                - Nếu strict_budget_cap = true thì không được đề xuất sản phẩm vượt ngân sách.
+                - Nếu catalog_suggestions rỗng cho query linh kiện đã có ràng buộc rõ, phải nói là chưa tìm thấy sản phẩm phù hợp trong catalog.
+                - Không lặp lại nguyên văn dữ liệu prompt.
                 """);
 
-            sb.AppendLine("Hay tao cau tra loi cuoi cung cho nguoi dung.");
+            sb.AppendLine("Hãy tạo câu trả lời cuối cùng cho người dùng.");
             return sb.ToString();
+        }
+
+        private static bool ShouldQueryNamespace(string ns, PcBuildChatIntentAnalysis analysis)
+        {
+            if (string.Equals(ns, "game_profile", StringComparison.OrdinalIgnoreCase))
+            {
+                return ShouldQueryGameProfile(analysis);
+            }
+
+            return true;
+        }
+
+        private static bool ShouldQueryGameProfile(PcBuildChatIntentAnalysis analysis)
+        {
+            if (analysis?.Requirement == null)
+            {
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.GameTitle))
+            {
+                return true;
+            }
+
+            return string.Equals(
+                analysis.Requirement.PrimaryPurpose,
+                "Gaming",
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private static string BuildFallbackReply(
@@ -485,6 +556,16 @@ namespace Eshop.Services
             List<PcBuildChatSuggestedProductDto> productSuggestions,
             List<string> ragTexts)
         {
+            if (analysis.Intent == PcBuildChatIntentKind.NotUnderstood || analysis.ShouldReject)
+            {
+                return "Tôi không rõ, tôi chỉ có thể tư vấn bạn build thôi.";
+            }
+
+            if (ShouldReturnNoMatchingProductReply(analysis, productSuggestions))
+            {
+                return BuildNoMatchingProductReply(analysis);
+            }
+
             var parts = new List<string>();
 
             if (analysis.NeedsClarification)
@@ -494,7 +575,7 @@ namespace Eshop.Services
             }
             else if (checkResult?.Messages?.Any() == true)
             {
-                parts.Add("Mình thấy vài điểm đáng chú ý trong cấu hình:");
+                parts.Add("Recommend:");
                 parts.AddRange(checkResult.Messages.Select(x => $"- {x.Message}"));
             }
             else if (checkResult != null && checkResult.EstimatedPower > 0)
@@ -525,6 +606,218 @@ namespace Eshop.Services
             }
 
             return string.Join("\n", parts);
+        }
+
+        private static bool ShouldReturnNoMatchingProductReply(
+            PcBuildChatIntentAnalysis analysis,
+            IReadOnlyCollection<PcBuildChatSuggestedProductDto> productSuggestions)
+        {
+            if (analysis.NeedsClarification || productSuggestions.Any())
+            {
+                return false;
+            }
+
+            if (analysis.TargetComponents.Count != 1)
+            {
+                return false;
+            }
+
+            if (analysis.Intent != PcBuildChatIntentKind.ComponentRecommendation
+                && analysis.Intent != PcBuildChatIntentKind.UpgradeCurrentBuild)
+            {
+                return false;
+            }
+
+            return analysis.Requirement.BudgetMax.HasValue
+                || analysis.Requirement.BudgetMin.HasValue
+                || !string.IsNullOrWhiteSpace(analysis.Requirement.PreferredBrand);
+        }
+
+        private static bool ShouldReturnNoBuildProposalReply(
+            PcBuildChatIntentAnalysis analysis,
+            bool hasCurrentBuild,
+            PcBuildCheckRequest buildRequest)
+        {
+            if (hasCurrentBuild || !analysis.ShouldGenerateBuildProposal)
+            {
+                return false;
+            }
+
+            return !HasRecommendedCoreBuild(buildRequest.Items, analysis.Requirement);
+        }
+
+        private static bool HasRecommendedCoreBuild(
+            IReadOnlyCollection<PcBuildCheckItemDto>? items,
+            BuildRequirementProfile requirement)
+        {
+            var selected = (items ?? Array.Empty<PcBuildCheckItemDto>())
+                .Select(x => x.ComponentType)
+                .ToHashSet();
+
+            var required = new HashSet<PcComponentType>
+            {
+                PcComponentType.CPU,
+                PcComponentType.Mainboard,
+                PcComponentType.RAM,
+                PcComponentType.SSD,
+                PcComponentType.PSU,
+                PcComponentType.Case
+            };
+
+            if (NeedsDedicatedGpu(requirement))
+            {
+                required.Add(PcComponentType.GPU);
+            }
+
+            return required.All(selected.Contains);
+        }
+
+        private static bool NeedsDedicatedGpu(BuildRequirementProfile requirement)
+        {
+            var purpose = requirement.PrimaryPurpose ?? string.Empty;
+
+            return purpose.Equals("Gaming", StringComparison.OrdinalIgnoreCase)
+                || purpose.Equals("Content Creation", StringComparison.OrdinalIgnoreCase)
+                || purpose.Equals("CAD / 3D", StringComparison.OrdinalIgnoreCase)
+                || purpose.Equals("AI / Machine Learning", StringComparison.OrdinalIgnoreCase)
+                || purpose.Equals("Streaming", StringComparison.OrdinalIgnoreCase)
+                || requirement.NeedsStreaming
+                || requirement.NeedsEditing
+                || !string.IsNullOrWhiteSpace(requirement.GameTitle);
+        }
+
+        private static PcBuildChatResponse BuildNoBuildProposalResponse(PcBuildChatIntentAnalysis analysis)
+        {
+            var budgetText = analysis.Requirement.BudgetMax.HasValue
+                ? $" trong khoảng {analysis.Requirement.BudgetMax.Value:N0} VND"
+                : " với catalog hiện tại";
+
+            return new PcBuildChatResponse
+            {
+                Reply = $"Mình chưa ghép được một cấu hình trọn vẹn{budgetText} cho nhu cầu này. Bạn có thể tăng ngân sách hoặc nới yêu cầu để mình đề xuất sát hơn.",
+                Intent = analysis.IntentCode,
+                IsValid = false,
+                TotalPrice = 0,
+                EstimatedPower = 0,
+                NeedsClarification = false,
+                ClarificationHints = new List<string>(),
+                Messages = new List<CompatibilityMessageDto>(),
+                SuggestedProducts = new List<PcBuildChatSuggestedProductDto>()
+            };
+        }
+
+        private static PcBuildChatResponse BuildOutOfScopeResponse(PcBuildChatIntentAnalysis analysis)
+        {
+            return new PcBuildChatResponse
+            {
+                Reply = "Tôi không rõ, tôi chỉ có thể tư vấn bạn build thôi.",
+                Intent = analysis.IntentCode,
+                IsValid = false,
+                TotalPrice = 0,
+                EstimatedPower = 0,
+                NeedsClarification = false,
+                ClarificationHints = new List<string>(),
+                Messages = new List<CompatibilityMessageDto>(),
+                SuggestedProducts = new List<PcBuildChatSuggestedProductDto>()
+            };
+        }
+
+        private static PcBuildChatResponse BuildRejectedResponse(PcBuildChatIntentAnalysis analysis)
+        {
+            return new PcBuildChatResponse
+            {
+                Reply = "Tôi không hiểu.",
+                Intent = analysis.IntentCode,
+                IsValid = false,
+                TotalPrice = 0,
+                EstimatedPower = 0,
+                NeedsClarification = false,
+                ClarificationHints = new List<string>(),
+                Messages = new List<CompatibilityMessageDto>(),
+                SuggestedProducts = new List<PcBuildChatSuggestedProductDto>()
+            };
+        }
+
+        private static PcBuildChatResponse BuildNoMatchingProductResponse(
+            PcBuildChatIntentAnalysis analysis,
+            PcBuildCheckResponse checkResult)
+        {
+            return new PcBuildChatResponse
+            {
+                Reply = BuildNoMatchingProductReply(analysis),
+                Intent = analysis.IntentCode,
+                IsValid = checkResult.IsValid,
+                TotalPrice = checkResult.TotalPrice,
+                EstimatedPower = checkResult.EstimatedPower,
+                NeedsClarification = false,
+                ClarificationHints = new List<string>(),
+                Messages = checkResult.Messages ?? new List<CompatibilityMessageDto>(),
+                SuggestedProducts = new List<PcBuildChatSuggestedProductDto>()
+            };
+        }
+
+        private static string BuildNoMatchingProductReply(PcBuildChatIntentAnalysis analysis)
+        {
+            var component = analysis.TargetComponents.FirstOrDefault().ToString();
+            var budgetText = analysis.Requirement.BudgetMax.HasValue
+                ? $" trong mức {analysis.Requirement.BudgetMax.Value:N0} VND"
+                : string.Empty;
+            var brandText = !string.IsNullOrWhiteSpace(analysis.Requirement.PreferredBrand)
+                ? $" với ưu tiên {analysis.Requirement.PreferredBrand}"
+                : string.Empty;
+
+            return $"Mình chưa tìm thấy {component} phù hợp{budgetText}{brandText} trong catalog hiện tại. Bạn có thể nới ngân sách, đổi hãng, hoặc nói rõ thêm nhu cầu để mình lọc lại sát hơn.";
+        }
+
+        private static List<PcBuildChatSuggestedProductDto> ConstrainSuggestedProducts(
+            PcBuildChatIntentAnalysis analysis,
+            IReadOnlyCollection<PcBuildChatSuggestedProductDto> productSuggestions)
+        {
+            var constrained = (productSuggestions ?? Array.Empty<PcBuildChatSuggestedProductDto>())
+                .Where(x => x?.Product != null)
+                .ToList();
+
+            if (analysis.TargetComponents.Any())
+            {
+                var allowedTypes = analysis.TargetComponents
+                    .Select(x => x.ToString())
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                constrained = constrained
+                    .Where(x => allowedTypes.Contains(x.ComponentType)
+                        || allowedTypes.Contains(x.Product.ComponentType))
+                    .ToList();
+            }
+
+            if (analysis.TargetComponents.Count == 1)
+            {
+                if (analysis.Requirement.BudgetMax.HasValue)
+                {
+                    constrained = constrained
+                        .Where(x => x.Product.Price <= analysis.Requirement.BudgetMax.Value)
+                        .ToList();
+                }
+
+                if (analysis.Requirement.BudgetMin.HasValue)
+                {
+                    constrained = constrained
+                        .Where(x => x.Product.Price >= analysis.Requirement.BudgetMin.Value)
+                        .ToList();
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(analysis.Requirement.PreferredBrand))
+            {
+                constrained = constrained
+                    .Where(x => x.Product.PublisherName?.Contains(analysis.Requirement.PreferredBrand, StringComparison.OrdinalIgnoreCase) == true
+                        || x.Product.Name?.Contains(analysis.Requirement.PreferredBrand, StringComparison.OrdinalIgnoreCase) == true)
+                    .ToList();
+            }
+
+            return constrained
+                .GroupBy(x => x.Product.Id)
+                .Select(x => x.First())
+                .ToList();
         }
     }
 }

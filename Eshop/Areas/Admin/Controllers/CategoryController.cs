@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -14,12 +14,12 @@ namespace Eshop.Areas.Admin.Controllers
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;
-        private readonly IMemoryCache _memoryCache;
+        private readonly HybridCache _cache;
 
-        public CategoryController(DataContext dataContext, IMemoryCache memoryCache)
+        public CategoryController(DataContext dataContext, HybridCache cache)
         {
             _dataContext = dataContext;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
 
         public async Task<IActionResult> Index(int pg = 1)
@@ -93,7 +93,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             _dataContext.Categories.Add(category);
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
 
             TempData["success"] = "Thêm danh mục thành công!";
             return RedirectToAction(nameof(Index));
@@ -178,7 +178,7 @@ namespace Eshop.Areas.Admin.Controllers
             try
             {
                 await _dataContext.SaveChangesAsync();
-                _memoryCache.Remove(CacheKeys.HomeProducts);
+                await _cache.RemoveAsync(CacheKeys.HomeProducts);
                 TempData["success"] = "Cập nhật danh mục thành công!";
                 return RedirectToAction(nameof(Index));
             }
@@ -209,9 +209,26 @@ namespace Eshop.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            var blockReason = await GetDeleteBlockReasonAsync(id);
+            if (!string.IsNullOrWhiteSpace(blockReason))
+            {
+                TempData["error"] = blockReason;
+                return RedirectToAction(nameof(Index));
+            }
+
             _dataContext.Categories.Remove(category);
-            await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+
+            try
+            {
+                await _dataContext.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                TempData["error"] = "Không thể xóa danh mục vì còn dữ liệu liên quan.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
 
             TempData["success"] = "Xóa danh mục thành công!";
             return RedirectToAction(nameof(Index));
@@ -230,7 +247,7 @@ namespace Eshop.Areas.Admin.Controllers
 
             category.Status = category.Status == 1 ? 0 : 1;
             await _dataContext.SaveChangesAsync();
-            _memoryCache.Remove(CacheKeys.HomeProducts);
+            await _cache.RemoveAsync(CacheKeys.HomeProducts);
 
             TempData["success"] = category.Status == 1
                 ? "Đã hiển thị danh mục."
@@ -242,6 +259,21 @@ namespace Eshop.Areas.Admin.Controllers
         private async Task<bool> CategoryExists(int id)
         {
             return await _dataContext.Categories.AnyAsync(e => e.Id == id);
+        }
+
+        private async Task<string?> GetDeleteBlockReasonAsync(int categoryId)
+        {
+            if (await _dataContext.Products.AnyAsync(x => x.CategoryId == categoryId))
+            {
+                return "Danh mục đang được gán cho sản phẩm nên không thể xóa.";
+            }
+
+            if (await _dataContext.Categories.AnyAsync(x => x.ParentCategoryId == categoryId))
+            {
+                return "Danh mục đang có danh mục con nên không thể xóa.";
+            }
+
+            return null;
         }
 
         private async Task LoadParentCategories(int? selectedId = null, int? currentCategoryId = null)

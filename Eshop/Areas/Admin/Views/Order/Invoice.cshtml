@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hoa don @Model.OrderCode</title>
+    <title>Hóa đơn @Model.OrderCode</title>
     <style>
         :root {
             color-scheme: light;
@@ -357,8 +357,8 @@
     <div class="page">
         <div class="toolbar">
             <div>
-                <strong>Hoa don in tu admin</strong>
-                <div style="color:#64748b; margin-top:4px;">Ban co the in truc tiep hoac Save as PDF tu trinh duyet.</div>
+                <strong>Hóa đơn in từ hệ thống</strong>
+                <div style="color:#64748b; margin-top:4px;">Bạn có thể in trực tiếp hoặc lưu dưới dạng PDF từ trình duyệt.</div>
             </div>
 
             <div class="toolbar-actions">
@@ -367,10 +367,10 @@
                    asp-action="ViewOrder"
                    asp-route-orderCode="@Model.OrderCode"
                    class="toolbar-btn">
-                    Quay lai chi tiet don
+                    Quay lại chi tiết đơn
                 </a>
                 <button type="button" class="toolbar-btn toolbar-btn--primary" onclick="window.print()">
-                    In hoa don
+                    In hóa đơn
                 </button>
             </div>
         </div>
@@ -378,21 +378,21 @@
         <main class="invoice">
             <section class="invoice-head">
                 <div>
-                    <span class="invoice-chip">ADMIN INVOICE</span>
+                    <span class="invoice-chip">HÓA ĐƠN HỆ THỐNG</span>
                     <div class="brand-name">ESHOP</div>
                     <div class="brand-sub">
-                        He thong thuong mai dien tu ban san pham cong nghe, PC dung san va linh kien build PC.<br />
-                        Hoa don nay duoc xuat tu khu vuc quan tri don hang.
+                        Hệ thống thương mại điện tử chuyên sản phẩm công nghệ, PC lắp sẵn và linh kiện máy tính.<br />
+                        Hóa đơn này được xuất từ khu vực quản trị đơn hàng.
                     </div>
                 </div>
 
                 <div class="invoice-title">
-                    <h1>Hoa don</h1>
+                    <h1>Hóa Đơn</h1>
                     <ul class="invoice-meta">
-                        <li><strong>So hoa don:</strong> @Model.InvoiceCode</li>
-                        <li><strong>Ma don:</strong> @Model.OrderCode</li>
-                        <li><strong>Ngay dat:</strong> @Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</li>
-                        <li><strong>Ngay xuat:</strong> @printedAt.ToString("dd/MM/yyyy HH:mm")</li>
+                        <li><strong>Số hóa đơn:</strong> @Model.InvoiceCode</li>
+                        <li><strong>Mã đơn hàng:</strong> @Model.OrderCode</li>
+                        <li><strong>Ngày đặt:</strong> @Model.CreatedTime.ToString("dd/MM/yyyy HH:mm")</li>
+                        <li><strong>Ngày xuất:</strong> @printedAt.ToString("dd/MM/yyyy HH:mm")</li>
                     </ul>
                 </div>
             </section>
@@ -400,17 +400,17 @@
             <section class="invoice-body">
                 <div class="info-grid">
                     <section class="info-card">
-                        <h2>Thong tin nguoi nhan</h2>
+                        <h2>Thông tin người nhận</h2>
                         <div class="info-row">
-                            <span class="info-label">Khach hang</span>
+                            <span class="info-label">Khách hàng</span>
                             <strong>@(string.IsNullOrWhiteSpace(Model.CustomerDisplayName) ? "-" : Model.CustomerDisplayName)</strong>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Tai khoan</span>
+                            <span class="info-label">Tài khoản</span>
                             <strong>@Model.UserName</strong>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">So dien thoai</span>
+                            <span class="info-label">Số điện thoại</span>
                             <strong>@(string.IsNullOrWhiteSpace(Model.Phone) ? "-" : Model.Phone)</strong>
                         </div>
                         <div class="info-row">
@@ -418,36 +418,36 @@
                             <strong>@(string.IsNullOrWhiteSpace(Model.Email) ? "-" : Model.Email)</strong>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Dia chi</span>
+                            <span class="info-label">Địa chỉ</span>
                             <strong>@(string.IsNullOrWhiteSpace(Model.ShippingAddressDisplay) ? "-" : Model.ShippingAddressDisplay)</strong>
                         </div>
                     </section>
 
                     <section class="info-card">
-                        <h2>Thong tin thanh toan</h2>
+                        <h2>Thông tin thanh toán</h2>
                         <div class="info-row">
-                            <span class="info-label">Trang thai</span>
+                            <span class="info-label">Trạng thái</span>
                             <span class="status-badge @OrderDisplayHelper.GetSoftBadgeClass(Model.Status)">
                                 @OrderDisplayHelper.GetStatusLabel(Model.Status)
                             </span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Thanh toan</span>
+                            <span class="info-label">Thanh toán</span>
                             <span class="@OrderDisplayHelper.GetPaymentMethodBadgeClass(Model.PaymentMethod)">
                                 @OrderDisplayHelper.GetPaymentMethodLabel(Model.PaymentMethod)
                             </span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Tam tinh</span>
-                            <strong>@Model.SubTotal.ToString("N0") d</strong>
+                            <span class="info-label">Tạm tính</span>
+                            <strong>@Model.SubTotal.ToString("N0") đ</strong>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Giam gia</span>
-                            <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+                            <span class="info-label">Giảm giá</span>
+                            <strong>-@Model.DiscountAmount.ToString("N0") đ</strong>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Van chuyen</span>
-                            <strong>@Model.ShippingCost.ToString("N0") d</strong>
+                            <span class="info-label">Vận chuyển</span>
+                            <strong>@Model.ShippingCost.ToString("N0") đ</strong>
                         </div>
                     </section>
                 </div>
@@ -456,11 +456,11 @@
                     <table>
                         <thead>
                             <tr>
-                                <th style="width:50px;">#</th>
-                                <th>San pham</th>
-                                <th class="text-right" style="width:140px;">Don gia</th>
+                                <th style="width:50px;">STT</th>
+                                <th>Sản phẩm</th>
+                                <th class="text-right" style="width:140px;">Đơn giá</th>
                                 <th class="text-right" style="width:90px;">SL</th>
-                                <th class="text-right" style="width:160px;">Thanh tien</th>
+                                <th class="text-right" style="width:160px;">Thành tiền</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -484,9 +484,9 @@
                                                 </div>
                                             }
                                         </td>
-                                        <td class="text-right">@item.Price.ToString("N0") d</td>
+                                        <td class="text-right">@item.Price.ToString("N0") đ</td>
                                         <td class="text-right">@item.Quantity</td>
-                                        <td class="text-right">@item.LineTotal.ToString("N0") d</td>
+                                        <td class="text-right">@item.LineTotal.ToString("N0") đ</td>
                                     </tr>
 
                                     index++;
@@ -495,7 +495,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="5" style="text-align:center; color:#64748b;">Khong co chi tiet san pham.</td>
+                                    <td colspan="5" style="text-align:center; color:#64748b;">Không có chi tiết sản phẩm.</td>
                                 </tr>
                             }
                         </tbody>
@@ -504,26 +504,26 @@
 
                 <section class="totals">
                     <div class="total-row">
-                        <span>Tam tinh</span>
-                        <strong>@Model.SubTotal.ToString("N0") d</strong>
+                        <span>Tạm tính</span>
+                        <strong>@Model.SubTotal.ToString("N0") đ</strong>
                     </div>
                     <div class="total-row">
-                        <span>Giam gia</span>
-                        <strong>-@Model.DiscountAmount.ToString("N0") d</strong>
+                        <span>Giảm giá</span>
+                        <strong>-@Model.DiscountAmount.ToString("N0") đ</strong>
                     </div>
                     <div class="total-row">
-                        <span>Phi van chuyen</span>
-                        <strong>@Model.ShippingCost.ToString("N0") d</strong>
+                        <span>Phí vận chuyển</span>
+                        <strong>@Model.ShippingCost.ToString("N0") đ</strong>
                     </div>
                     <div class="total-row total-row--grand">
-                        <span>Tong thanh toan</span>
-                        <strong>@Model.TotalAmount.ToString("N0") d</strong>
+                        <span>Tổng thanh toán</span>
+                        <strong>@Model.TotalAmount.ToString("N0") đ</strong>
                     </div>
                 </section>
 
                 <div class="invoice-note">
-                    <strong>Ghi chu:</strong>
-                    @(string.IsNullOrWhiteSpace(Model.Note) ? "Khong co ghi chu tu khach hang." : Model.Note)
+                    <strong>Ghi chú:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.Note) ? "Không có ghi chú từ khách hàng." : Model.Note)
                 </div>
             </section>
         </main>

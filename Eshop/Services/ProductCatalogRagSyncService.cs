@@ -87,10 +87,7 @@ namespace Eshop.Services
                     .ToListAsync(cancellationToken);
 
                 var stockMap = await GetAvailableStockMapAsync(products.Select(x => x.Id), cancellationToken);
-                var existing = await _ragClient.ListDocumentsAsync(_options.CatalogNamespace, cancellationToken)
-                    ?? new RagDocumentListResponse();
-
-                var liveDocIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var documents = new List<RagDocumentSyncItemRequest>();
 
                 foreach (var product in products)
                 {
@@ -99,23 +96,21 @@ namespace Eshop.Services
                         continue;
                     }
 
-                    await _ragClient.UpsertDocumentAsync(
-                        BuildUpsertRequest(product, stockMap.GetValueOrDefault(product.Id)),
-                        cancellationToken);
-
-                    liveDocIds.Add(BuildDocumentId(product.Id));
-                    report.UpsertedCount++;
+                    documents.Add(BuildSyncItem(product, stockMap.GetValueOrDefault(product.Id)));
                 }
 
-                foreach (var staleDocId in existing.Documents
-                             .Select(x => x.DocId)
-                             .Where(x => !string.IsNullOrWhiteSpace(x) && x.StartsWith("product:", StringComparison.OrdinalIgnoreCase))
-                             .Where(x => !liveDocIds.Contains(x))
-                             .Distinct(StringComparer.OrdinalIgnoreCase))
-                {
-                    await _ragClient.DeleteDocumentAsync(_options.CatalogNamespace, staleDocId, cancellationToken);
-                    report.DeletedCount++;
-                }
+                var syncResponse = await _ragClient.SyncDocumentsAsync(
+                    new RagDocumentSyncRequest
+                    {
+                        Namespace = _options.CatalogNamespace,
+                        Documents = documents,
+                        PruneMissing = true,
+                        PrunePrefix = "product:"
+                    },
+                    cancellationToken);
+
+                report.UpsertedCount = syncResponse?.CreatedCount + syncResponse?.UpdatedCount ?? 0;
+                report.DeletedCount = syncResponse?.DeletedCount ?? 0;
 
                 report.Success = true;
                 return report;
@@ -188,6 +183,18 @@ namespace Eshop.Services
                     ["status"] = product.Status,
                     ["source_type"] = "catalog_product"
                 }
+            };
+        }
+
+        private RagDocumentSyncItemRequest BuildSyncItem(ProductModel product, int availableStock)
+        {
+            var request = BuildUpsertRequest(product, availableStock);
+            return new RagDocumentSyncItemRequest
+            {
+                DocId = request.DocId,
+                Content = request.Content,
+                Source = request.Source,
+                Metadata = request.Metadata
             };
         }
 

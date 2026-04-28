@@ -1527,6 +1527,7 @@
         const pickerInStockOnly = document.getElementById("pickerInStockOnly");
         const pickerCompatibleOnly = document.getElementById("pickerCompatibleOnly");
         const buildChatMessages = document.getElementById("buildChatMessages");
+        const initialBuildChatMarkup = buildChatMessages?.innerHTML || "";
         const buildChatInput = document.getElementById("buildChatInput");
         const sendBuildChatBtn = document.getElementById("sendBuildChatBtn");
         const toggleBuildChatbox = document.getElementById("toggleBuildChatbox");
@@ -2335,6 +2336,7 @@
 
             renderBuildTable();
             renderMessages();
+            resetBuildChatConversation();
         }
 
         async function saveBuild() {
@@ -2725,6 +2727,21 @@
             buildChatMessages.appendChild(div);
             buildChatMessages.scrollTop = buildChatMessages.scrollHeight;
             return div;
+        }
+
+        function resetBuildChatConversation() {
+            chatConversation.length = 0;
+            chatSuggestionStore.clear();
+            chatResponseSeed = 0;
+
+            if (buildChatMessages) {
+                buildChatMessages.innerHTML = initialBuildChatMarkup;
+                buildChatMessages.scrollTop = buildChatMessages.scrollHeight;
+            }
+
+            if (buildChatInput) {
+                buildChatInput.value = "";
+            }
         }
 
         function recordChatTurn(role, content) {

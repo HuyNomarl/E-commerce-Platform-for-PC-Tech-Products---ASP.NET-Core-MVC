@@ -5,7 +5,11 @@
     ViewData["Title"] = "Home Page";
     var canUseWishlistAndCompare = User.CanUseWishlistAndCompare();
 
-    var productList = Model?.Products?.ToList() ?? new List<Eshop.Models.ProductModel>();
+    var productList = (Model?.Products ?? new List<Eshop.Models.ProductModel>())
+        .OrderByDescending(x => x.Quantity > 0)
+        .ThenByDescending(x => x.Sold)
+        .ThenByDescending(x => x.Id)
+        .ToList();
 
 
     Func<string?, int> getCategoryPriority = name =>
@@ -46,14 +50,22 @@
             CategoryId = g.Key.CategoryId,
             CategoryName = g.Key.CategoryName,
             Priority = getCategoryPriority(g.Key.CategoryName),
-            Products = g.ToList()
+            Products = g
+                .OrderByDescending(x => x.Quantity > 0)
+                .ThenByDescending(x => x.Sold)
+                .ThenByDescending(x => x.Id)
+                .ToList()
         })
         .OrderBy(x => x.Priority)
         .ThenByDescending(x => x.Products.Count)
         .ThenBy(x => x.CategoryName)
         .ToList();
 
-    var recommendedProducts = Model?.RecommendedProducts ?? new List<Eshop.Models.ProductModel>();
+    var recommendedProducts = (Model?.RecommendedProducts ?? new List<Eshop.Models.ProductModel>())
+        .OrderByDescending(x => x.Quantity > 0)
+        .ThenByDescending(x => x.Sold)
+        .ThenByDescending(x => x.Id)
+        .ToList();
 }
 
 <style>

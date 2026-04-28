@@ -9,16 +9,16 @@ namespace Eshop.Services
     {
         private static readonly Dictionary<PcComponentType, string[]> ComponentKeywords = new()
         {
-            [PcComponentType.CPU] = new[] { "cpu", "chip", "vi xu ly", "processor" },
-            [PcComponentType.Mainboard] = new[] { "mainboard", "main", "motherboard", "bo mach chu" },
+            [PcComponentType.CPU] = new[] { "cpu", "vi xu ly", "processor" },
+            [PcComponentType.Mainboard] = new[] { "mainboard", "motherboard", "bo mach chu" },
             [PcComponentType.RAM] = new[] { "ram", "memory", "bo nho" },
-            [PcComponentType.SSD] = new[] { "ssd", "nvme", "m.2", "sata", "o cung", "storage" },
+            [PcComponentType.SSD] = new[] { "ssd", "nvme", "m.2", "sata", "o cung" },
             [PcComponentType.HDD] = new[] { "hdd", "o cung co", "hard drive" },
             [PcComponentType.GPU] = new[] { "gpu", "vga", "card man hinh", "card do hoa", "card do hoa", "graphics card" },
             [PcComponentType.PSU] = new[] { "psu", "nguon", "bo nguon", "power supply" },
             [PcComponentType.Case] = new[] { "case", "vo case", "thung may", "vo may" },
-            [PcComponentType.Cooler] = new[] { "cooler", "tan nhiet", "tan", "fan cpu", "aio", "watercooling" },
-            [PcComponentType.Monitor] = new[] { "monitor", "man hinh", "display" }
+            [PcComponentType.Cooler] = new[] { "cooler", "tan nhiet", "fan cpu", "aio", "watercooling" },
+            [PcComponentType.Monitor] = new[] { "monitor", "man hinh" }
         };
 
         private readonly IBuildRequirementExtractor _requirementExtractor;
@@ -32,7 +32,8 @@ namespace Eshop.Services
         {
             var message = (request?.Message ?? string.Empty).Trim();
             var hasCurrentBuild = request?.Items != null && request.Items.Any();
-            var conversationContext = BuildConversationContext(request?.History, message);
+            var effectiveHistory = SelectEffectiveHistory(request?.History, message);
+            var conversationContext = BuildConversationContext(effectiveHistory, message);
 
             var requirement = await _requirementExtractor.ExtractAsync(conversationContext)
                 ?? new BuildRequirementProfile
@@ -42,7 +43,34 @@ namespace Eshop.Services
 
             var normalizedMessage = NormalizeText(message);
             var normalizedConversation = NormalizeText(conversationContext);
+            var directTargetComponents = DetectTargetComponents(normalizedMessage);
             var targetComponents = DetectTargetComponents(normalizedConversation);
+            var isRelevant = IsRelevantQuery(
+                normalizedMessage,
+                normalizedConversation,
+                hasCurrentBuild,
+                requirement,
+                directTargetComponents,
+                targetComponents);
+
+            if (!isRelevant)
+            {
+                return new PcBuildChatIntentAnalysis
+                {
+                    Intent = PcBuildChatIntentKind.NotUnderstood,
+                    Requirement = requirement,
+                    TargetComponents = new List<PcComponentType>(),
+                    EffectiveHistory = effectiveHistory,
+                    NeedsClarification = false,
+                    ClarificationHints = new List<string>(),
+                    WantsProductSuggestions = false,
+                    ShouldGenerateBuildProposal = false,
+                    PotentialMisconception = false,
+                    ShouldReject = true,
+                    HasStrictBudgetCap = false,
+                    ConversationContext = conversationContext
+                };
+            }
 
             var intent = DetectIntent(normalizedMessage, normalizedConversation, hasCurrentBuild, targetComponents);
             var needsClarification = DetermineNeedsClarification(
@@ -68,6 +96,7 @@ namespace Eshop.Services
                     : intent,
                 Requirement = requirement,
                 TargetComponents = targetComponents,
+                EffectiveHistory = effectiveHistory,
                 NeedsClarification = needsClarification,
                 ClarificationHints = clarificationHints,
                 WantsProductSuggestions = DetermineProductSuggestionNeed(intent, targetComponents, hasCurrentBuild, needsClarification),
@@ -75,6 +104,8 @@ namespace Eshop.Services
                     && !needsClarification
                     && intent == PcBuildChatIntentKind.NewBuild,
                 PotentialMisconception = DetectPotentialMisconception(normalizedConversation),
+                ShouldReject = false,
+                HasStrictBudgetCap = HasStrictBudgetCap(normalizedConversation, requirement, targetComponents),
                 ConversationContext = conversationContext
             };
         }
@@ -110,7 +141,7 @@ namespace Eshop.Services
                 return PcBuildChatIntentKind.ComponentRecommendation;
             }
 
-            if (ContainsAny(normalizedConversation, "build", "cau hinh", "pc gaming", "pc render", "pc do hoa", "pc hoc tap", "pc van phong", "pc choi game"))
+            if (ContainsNewBuildNeedPattern(normalizedConversation))
             {
                 return PcBuildChatIntentKind.NewBuild;
             }
@@ -143,11 +174,19 @@ namespace Eshop.Services
                 return true;
             }
 
+            if (intent == PcBuildChatIntentKind.ComponentRecommendation
+                && !hasCurrentBuild
+                && !requirement.BudgetMax.HasValue
+                && !requirement.BudgetMin.HasValue)
+            {
+                return true;
+            }
+
             if (intent == PcBuildChatIntentKind.NewBuild)
             {
                 var hasPurpose = !string.IsNullOrWhiteSpace(requirement.PrimaryPurpose)
                     || !string.IsNullOrWhiteSpace(requirement.GameTitle)
-                    || ContainsAny(normalizedConversation, "choi game", "gaming", "render", "edit", "stream", "lap trinh", "hoc tap", "van phong");
+                    || ContainsUseCaseKeywords(normalizedConversation);
                 var hasBudget = requirement.BudgetMax.HasValue || requirement.BudgetMin.HasValue;
                 var hasDisplayTarget = !string.IsNullOrWhiteSpace(requirement.ResolutionTarget)
                     || ContainsAny(normalizedConversation, "1080p", "1440p", "2k", "4k", "full hd");
@@ -177,7 +216,7 @@ namespace Eshop.Services
             bool hasCurrentBuild,
             bool needsClarification)
         {
-            if (needsClarification && intent == PcBuildChatIntentKind.Clarification && !targetComponents.Any())
+            if (needsClarification)
             {
                 return false;
             }
@@ -198,6 +237,71 @@ namespace Eshop.Services
             }
 
             return false;
+        }
+
+        private static bool IsRelevantQuery(
+            string normalizedMessage,
+            string normalizedConversation,
+            bool hasCurrentBuild,
+            BuildRequirementProfile requirement,
+            List<PcComponentType> directTargetComponents,
+            List<PcComponentType> targetComponents)
+        {
+            if (string.IsNullOrWhiteSpace(normalizedMessage))
+            {
+                return false;
+            }
+
+            var hasDirectBuilderSignal = HasDirectBuilderSignal(normalizedMessage, directTargetComponents);
+            if (ContainsNonPcDeviceKeywords(normalizedMessage) && !hasDirectBuilderSignal)
+            {
+                return false;
+            }
+
+            if (hasDirectBuilderSignal)
+            {
+                return true;
+            }
+
+            var hasBuilderConversationContext = HasBuilderConversationContext(
+                normalizedConversation,
+                hasCurrentBuild,
+                targetComponents);
+
+            if (!hasBuilderConversationContext)
+            {
+                return false;
+            }
+
+            if (hasCurrentBuild && ContainsAny(normalizedMessage, "loi", "hop khong", "du khong", "nang cap", "thay", "doi", "toi uu"))
+            {
+                return true;
+            }
+
+            return HasFollowUpBuildConstraintSignal(normalizedMessage, requirement);
+        }
+
+        private static bool HasStrictBudgetCap(
+            string normalizedConversation,
+            BuildRequirementProfile requirement,
+            List<PcComponentType> targetComponents)
+        {
+            if (!requirement.BudgetMax.HasValue || targetComponents.Count != 1)
+            {
+                return false;
+            }
+
+            if (ContainsAny(normalizedConversation, "tam", "khoang", "around", "xap xi"))
+            {
+                return false;
+            }
+
+            if (ContainsAny(normalizedConversation, "duoi", "toi da", "khong qua", "max", "under", "<", "<="))
+            {
+                return true;
+            }
+
+            return true;
         }
 
         private static bool DetectPotentialMisconception(string normalizedConversation)
@@ -282,6 +386,41 @@ namespace Eshop.Services
                 .ToList();
         }
 
+        private static List<PcBuildChatHistoryItemDto> SelectEffectiveHistory(
+            IReadOnlyCollection<PcBuildChatHistoryItemDto>? history,
+            string message)
+        {
+            var userHistory = history?
+                .Where(x => x != null && !string.IsNullOrWhiteSpace(x.Content))
+                .Where(x => !string.Equals(x.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(x.Role, "bot", StringComparison.OrdinalIgnoreCase))
+                .TakeLast(6)
+                .Select(x => new PcBuildChatHistoryItemDto
+                {
+                    Role = "user",
+                    Content = x.Content.Trim()
+                })
+                .ToList()
+                ?? new List<PcBuildChatHistoryItemDto>();
+
+            if (!userHistory.Any())
+            {
+                return new List<PcBuildChatHistoryItemDto>();
+            }
+
+            var normalizedMessage = NormalizeText(message);
+            var directTargetComponents = DetectTargetComponents(normalizedMessage);
+
+            if (!ShouldCarryHistory(normalizedMessage, directTargetComponents))
+            {
+                return new List<PcBuildChatHistoryItemDto>();
+            }
+
+            return userHistory
+                .TakeLast(4)
+                .ToList();
+        }
+
         private static List<PcComponentType> DetectTargetComponents(string normalizedText)
         {
             var detected = new List<PcComponentType>();
@@ -314,18 +453,38 @@ namespace Eshop.Services
             foreach (var item in history?
                          .Where(x => x != null && !string.IsNullOrWhiteSpace(x.Content))
                          .TakeLast(8)
-                     ?? Enumerable.Empty<PcBuildChatHistoryItemDto>())
+                      ?? Enumerable.Empty<PcBuildChatHistoryItemDto>())
             {
-                var role = string.Equals(item.Role, "assistant", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(item.Role, "bot", StringComparison.OrdinalIgnoreCase)
-                    ? "assistant"
-                    : "user";
+                var isAssistant = string.Equals(item.Role, "assistant", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(item.Role, "bot", StringComparison.OrdinalIgnoreCase);
+                if (isAssistant)
+                {
+                    continue;
+                }
 
-                sb.AppendLine($"{role}: {item.Content.Trim()}");
+                sb.AppendLine($"user: {item.Content.Trim()}");
             }
 
             sb.AppendLine($"user: {message}");
             return sb.ToString().Trim();
+        }
+
+        private static bool ShouldCarryHistory(
+            string normalizedMessage,
+            IReadOnlyCollection<PcComponentType> directTargetComponents)
+        {
+            if (string.IsNullOrWhiteSpace(normalizedMessage))
+            {
+                return false;
+            }
+
+            if (LooksLikeStandaloneQuery(normalizedMessage, directTargetComponents))
+            {
+                return false;
+            }
+
+            return HasContextualReference(normalizedMessage)
+                || HasFollowUpConstraintSignal(normalizedMessage);
         }
 
         private static string NormalizeText(string value)
@@ -358,5 +517,302 @@ namespace Eshop.Services
         {
             return values.Any(value => source.Contains(value, StringComparison.Ordinal));
         }
+
+        private static bool LooksLikeStandaloneQuery(
+            string normalizedMessage,
+            IReadOnlyCollection<PcComponentType> directTargetComponents)
+        {
+            if (HasContextualReference(normalizedMessage))
+            {
+                return false;
+            }
+
+            if (ContainsNewBuildNeedPattern(normalizedMessage))
+            {
+                return true;
+            }
+
+            if (!HasDirectBuilderSignal(normalizedMessage, directTargetComponents))
+            {
+                return false;
+            }
+
+            if (directTargetComponents.Any())
+            {
+                return true;
+            }
+
+            return ContainsAny(
+                normalizedMessage,
+                "toi muon",
+                "minh muon",
+                "toi can",
+                "minh can",
+                "hay goi y",
+                "goi y",
+                "tu van",
+                "nen mua",
+                "chon",
+                "tim",
+                "de xuat",
+                "lap",
+                "rap");
+        }
+
+        private static bool HasContextualReference(string normalizedMessage)
+        {
+            return ContainsAny(
+                normalizedMessage,
+                "cau hinh nay",
+                "build nay",
+                "bo nay",
+                "linh kien nay",
+                "may nay",
+                "bo do",
+                "cai nay",
+                "cai do",
+                "con nay",
+                "con do",
+                "cpu do",
+                "gpu do",
+                "main do",
+                "ram do",
+                "ssd do",
+                "nguon do",
+                "case do",
+                "man hinh do",
+                "the con",
+                "vay con",
+                "con neu",
+                "neu vay",
+                "the neu");
+        }
+
+        private static bool HasFollowUpConstraintSignal(string normalizedMessage)
+        {
+            if (normalizedMessage.Length > 96)
+            {
+                return false;
+            }
+
+            return ContainsAny(
+                normalizedMessage,
+                "duoi",
+                "tren",
+                "toi da",
+                "khong qua",
+                "khoang",
+                "budget",
+                "ngan sach",
+                "trieu",
+                "1080p",
+                "1440p",
+                "2k",
+                "4k",
+                "144hz",
+                "165hz",
+                "240hz",
+                "nvidia",
+                "geforce",
+                "amd",
+                "radeon",
+                "ryzen",
+                "intel",
+                "im lang",
+                "yen tinh",
+                "it on",
+                "khong rgb",
+                "nao tot hon",
+                "nao on hon",
+                "nao hop hon",
+                "cai nao",
+                "con nao",
+                "ban nao",
+                "mau nao",
+                "phuong an nao");
+        }
+
+        private static bool HasDirectBuilderSignal(
+            string normalizedMessage,
+            IReadOnlyCollection<PcComponentType> directTargetComponents)
+        {
+            return directTargetComponents.Any()
+                || ContainsAny(
+                    normalizedMessage,
+                    "pc",
+                    "build",
+                    "cau hinh",
+                    "linh kien",
+                    "tuong thich",
+                    "compatibility",
+                    "nang cap",
+                    "upgrade",
+                    "socket",
+                    "lap rap",
+                    "builder")
+                || ContainsNewBuildNeedPattern(normalizedMessage);
+        }
+
+        private static bool HasBuilderConversationContext(
+            string normalizedConversation,
+            bool hasCurrentBuild,
+            IReadOnlyCollection<PcComponentType> targetComponents)
+        {
+            return hasCurrentBuild
+                || targetComponents.Any()
+                || ContainsNewBuildNeedPattern(normalizedConversation)
+                || ContainsAny(
+                    normalizedConversation,
+                    "pc",
+                    "build",
+                    "cau hinh",
+                    "linh kien",
+                    "tuong thich",
+                    "socket",
+                    "lap rap",
+                    "builder");
+        }
+
+        private static bool HasFollowUpBuildConstraintSignal(string normalizedMessage, BuildRequirementProfile requirement)
+        {
+            var hasBudgetSignal = (requirement.BudgetMax.HasValue || requirement.BudgetMin.HasValue)
+                && ContainsAny(
+                    normalizedMessage,
+                    "duoi",
+                    "tren",
+                    "toi da",
+                    "khong qua",
+                    "tam",
+                    "khoang",
+                    "budget",
+                    "ngan sach",
+                    "trieu",
+                    "tr",
+                    "k");
+
+            var hasResolutionSignal = !string.IsNullOrWhiteSpace(requirement.ResolutionTarget)
+                || ContainsAny(normalizedMessage, "1080p", "1440p", "2k", "4k", "144hz", "165hz", "240hz");
+
+            var hasBrandSignal = !string.IsNullOrWhiteSpace(requirement.PreferredBrand)
+                && ContainsAny(normalizedMessage, "nvidia", "geforce", "amd", "radeon", "ryzen", "intel");
+
+            var hasWorkloadSignal = !string.IsNullOrWhiteSpace(requirement.GameTitle)
+                || (!string.IsNullOrWhiteSpace(requirement.PrimaryPurpose)
+                    && ContainsUseCaseKeywords(normalizedMessage));
+
+            var hasRecommendationFollowUpSignal = ContainsAny(
+                normalizedMessage,
+                "goi y",
+                "de xuat",
+                "nen mua",
+                "chon",
+                "ngon hon",
+                "manh hon",
+                "tot hon",
+                "phu hop hon");
+
+            return hasBudgetSignal
+                || hasResolutionSignal
+                || hasBrandSignal
+                || hasWorkloadSignal
+                || hasRecommendationFollowUpSignal;
+        }
+
+        private static bool ContainsNonPcDeviceKeywords(string normalizedConversation)
+        {
+            return ContainsAny(
+                normalizedConversation,
+                "laptop",
+                "notebook",
+                "macbook",
+                "iphone",
+                "ipad",
+                "android",
+                "dien thoai",
+                "tablet",
+                "playstation",
+                "ps5",
+                "xbox",
+                "nintendo switch",
+                "steam deck");
+        }
+
+        private static bool ContainsNewBuildNeedPattern(string normalizedText)
+        {
+            return ContainsAny(
+                       normalizedText,
+                       "build",
+                       "cau hinh",
+                       "pc gaming",
+                       "pc render",
+                       "pc do hoa",
+                       "pc hoc tap",
+                       "pc van phong",
+                       "pc choi game",
+                       "lap rap")
+                   || (ContainsAny(normalizedText, "may tinh", "bo may")
+                       && ContainsUseCaseKeywords(normalizedText));
+        }
+
+        private static bool ContainsUseCaseKeywords(string normalizedText)
+        {
+            return ContainsAny(
+                normalizedText,
+                "choi game",
+                "gaming",
+                "render",
+                "edit",
+                "stream",
+                "lap trinh",
+                "hoc tap",
+                "van phong",
+                "nghe nhac",
+                "studio",
+                "thu am",
+                "lam nhac",
+                "mix nhac",
+                "audio",
+                "ai",
+                "machine learning",
+                "deep learning",
+                "llm",
+                "stable diffusion",
+                "cad",
+                "revit",
+                "autocad",
+                "solidworks",
+                "sketchup",
+                "blender",
+                "photoshop",
+                "lightroom",
+                "edit anh",
+                "server",
+                "nas",
+                "backup",
+                "plex",
+                "trading",
+                "chung khoan",
+                "da man hinh",
+                "multi monitor",
+                "xem phim",
+                "giai tri",
+                "media",
+                "office");
+        }
+
+        private static bool ContainsPcKeywords(string normalizedConversation)
+        {
+            return ContainsAny(
+                normalizedConversation,
+                "pc",
+                "build",
+                "cau hinh",
+                "socket",
+                "tuong thich",
+                "desktop",
+                "workstation",
+                "linh kien");
+        }
+
     }
 }

@@ -122,6 +122,12 @@ namespace Eshop.Repository
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.Entity<ProductModel>()
+                .HasOne(p => p.Publisher)
+                .WithMany()
+                .HasForeignKey(p => p.PublisherId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<ProductOptionGroupModel>()
                 .HasOne(g => g.Product)
                 .WithMany(p => p.OptionGroups)

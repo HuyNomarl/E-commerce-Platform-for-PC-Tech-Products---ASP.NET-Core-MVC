@@ -5,7 +5,7 @@ using Eshop.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Hybrid;
 
 namespace Eshop.Areas.Admin.Controllers
 {
@@ -15,16 +15,16 @@ namespace Eshop.Areas.Admin.Controllers
     {
         private readonly DataContext _context;
         private readonly IInventoryService _inventoryService;
-        private readonly IMemoryCache _memoryCache;
+        private readonly HybridCache _cache;
 
         public WarehouseController(
             DataContext context,
             IInventoryService inventoryService,
-            IMemoryCache memoryCache)
+            HybridCache cache)
         {
             _context = context;
             _inventoryService = inventoryService;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
 
         public async Task<IActionResult> Index()
@@ -144,7 +144,7 @@ namespace Eshop.Areas.Admin.Controllers
             if (isActiveChanged)
             {
                 await _inventoryService.SyncWarehouseProductsAsync(id);
-                _memoryCache.Remove(CacheKeys.HomeProducts);
+                await _cache.RemoveAsync(CacheKeys.HomeProducts);
             }
 
             TempData["success"] = "Cập nhật kho thành công.";
